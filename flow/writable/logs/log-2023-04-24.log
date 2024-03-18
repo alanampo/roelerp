@@ -1,0 +1,300 @@
+CRITICAL - 2023-04-24 10:24:18 --> Cannot call constructor
+in APPPATH\Controllers\Flow.php on line 8.
+ 1 SYSTEMPATH\CodeIgniter.php(906): App\Controllers\Flow->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(490): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(368): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 FCPATH\index.php(67): CodeIgniter\CodeIgniter->run()
+CRITICAL - 2023-04-24 10:24:48 --> Cannot call constructor
+in APPPATH\Controllers\Flow.php on line 8.
+ 1 SYSTEMPATH\CodeIgniter.php(906): App\Controllers\Flow->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(490): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(368): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 FCPATH\index.php(67): CodeIgniter\CodeIgniter->run()
+CRITICAL - 2023-04-24 10:25:22 --> Cannot call constructor
+in APPPATH\Controllers\Flow.php on line 8.
+ 1 SYSTEMPATH\CodeIgniter.php(906): App\Controllers\Flow->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(490): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(368): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 FCPATH\index.php(67): CodeIgniter\CodeIgniter->run()
+CRITICAL - 2023-04-24 10:26:27 --> Class 'App\Controllers\Controller' not found
+in APPPATH\Controllers\Flow.php on line 5.
+ 1 SYSTEMPATH\Autoloader\Autoloader.php(312): include_once()
+ 2 SYSTEMPATH\Autoloader\Autoloader.php(289): CodeIgniter\Autoloader\Autoloader->includeFile('Z:\\xampp\\htdocs\\code\\app\\Controllers\\Flow.php')
+ 3 SYSTEMPATH\Autoloader\Autoloader.php(267): CodeIgniter\Autoloader\Autoloader->loadInNamespace('App\\Controllers\\Flow')
+ 4 [internal function]: CodeIgniter\Autoloader\Autoloader->loadClass('App\\Controllers\\Flow')
+ 5 [internal function]: spl_autoload_call('App\\Controllers\\Flow')
+ 6 SYSTEMPATH\CodeIgniter.php(892): class_exists('\\App\\Controllers\\Flow', true)
+ 7 SYSTEMPATH\CodeIgniter.php(486): CodeIgniter\CodeIgniter->startController()
+ 8 SYSTEMPATH\CodeIgniter.php(368): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 9 FCPATH\index.php(67): CodeIgniter\CodeIgniter->run()
+CRITICAL - 2023-04-24 10:26:49 --> Class 'App\Controllers\Controller' not found
+in APPPATH\Controllers\Flow.php on line 5.
+ 1 SYSTEMPATH\Autoloader\Autoloader.php(312): include_once()
+ 2 SYSTEMPATH\Autoloader\Autoloader.php(289): CodeIgniter\Autoloader\Autoloader->includeFile('Z:\\xampp\\htdocs\\code\\app\\Controllers\\Flow.php')
+ 3 SYSTEMPATH\Autoloader\Autoloader.php(267): CodeIgniter\Autoloader\Autoloader->loadInNamespace('App\\Controllers\\Flow')
+ 4 [internal function]: CodeIgniter\Autoloader\Autoloader->loadClass('App\\Controllers\\Flow')
+ 5 [internal function]: spl_autoload_call('App\\Controllers\\Flow')
+ 6 SYSTEMPATH\CodeIgniter.php(892): class_exists('\\App\\Controllers\\Flow', true)
+ 7 SYSTEMPATH\CodeIgniter.php(486): CodeIgniter\CodeIgniter->startController()
+ 8 SYSTEMPATH\CodeIgniter.php(368): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 9 FCPATH\index.php(67): CodeIgniter\CodeIgniter->run()
+CRITICAL - 2023-04-24 10:26:51 --> Class 'App\Controllers\Controller' not found
+in APPPATH\Controllers\Flow.php on line 5.
+ 1 SYSTEMPATH\Autoloader\Autoloader.php(312): include_once()
+ 2 SYSTEMPATH\Autoloader\Autoloader.php(289): CodeIgniter\Autoloader\Autoloader->includeFile('Z:\\xampp\\htdocs\\code\\app\\Controllers\\Flow.php')
+ 3 SYSTEMPATH\Autoloader\Autoloader.php(267): CodeIgniter\Autoloader\Autoloader->loadInNamespace('App\\Controllers\\Flow')
+ 4 [internal function]: CodeIgniter\Autoloader\Autoloader->loadClass('App\\Controllers\\Flow')
+ 5 [internal function]: spl_autoload_call('App\\Controllers\\Flow')
+ 6 SYSTEMPATH\CodeIgniter.php(892): class_exists('\\App\\Controllers\\Flow', true)
+ 7 SYSTEMPATH\CodeIgniter.php(486): CodeIgniter\CodeIgniter->startController()
+ 8 SYSTEMPATH\CodeIgniter.php(368): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 9 FCPATH\index.php(67): CodeIgniter\CodeIgniter->run()
+CRITICAL - 2023-04-24 10:27:41 --> Class 'App\Controllers\CI_Controller' not found
+in APPPATH\Controllers\Flow.php on line 5.
+ 1 SYSTEMPATH\Autoloader\Autoloader.php(312): include_once()
+ 2 SYSTEMPATH\Autoloader\Autoloader.php(289): CodeIgniter\Autoloader\Autoloader->includeFile('Z:\\xampp\\htdocs\\code\\app\\Controllers\\Flow.php')
+ 3 SYSTEMPATH\Autoloader\Autoloader.php(267): CodeIgniter\Autoloader\Autoloader->loadInNamespace('App\\Controllers\\Flow')
+ 4 [internal function]: CodeIgniter\Autoloader\Autoloader->loadClass('App\\Controllers\\Flow')
+ 5 [internal function]: spl_autoload_call('App\\Controllers\\Flow')
+ 6 SYSTEMPATH\CodeIgniter.php(892): class_exists('\\App\\Controllers\\Flow', true)
+ 7 SYSTEMPATH\CodeIgniter.php(486): CodeIgniter\CodeIgniter->startController()
+ 8 SYSTEMPATH\CodeIgniter.php(368): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 9 FCPATH\index.php(67): CodeIgniter\CodeIgniter->run()
+CRITICAL - 2023-04-24 10:27:49 --> Class 'CI_Controller' not found
+in APPPATH\Controllers\Flow.php on line 4.
+ 1 SYSTEMPATH\Autoloader\Autoloader.php(312): include_once()
+ 2 SYSTEMPATH\Autoloader\Autoloader.php(289): CodeIgniter\Autoloader\Autoloader->includeFile('Z:\\xampp\\htdocs\\code\\app\\Controllers\\Flow.php')
+ 3 SYSTEMPATH\Autoloader\Autoloader.php(267): CodeIgniter\Autoloader\Autoloader->loadInNamespace('App\\Controllers\\Flow')
+ 4 [internal function]: CodeIgniter\Autoloader\Autoloader->loadClass('App\\Controllers\\Flow')
+ 5 [internal function]: spl_autoload_call('App\\Controllers\\Flow')
+ 6 SYSTEMPATH\CodeIgniter.php(892): class_exists('\\App\\Controllers\\Flow', true)
+ 7 SYSTEMPATH\CodeIgniter.php(486): CodeIgniter\CodeIgniter->startController()
+ 8 SYSTEMPATH\CodeIgniter.php(368): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 9 FCPATH\index.php(67): CodeIgniter\CodeIgniter->run()
+CRITICAL - 2023-04-24 10:32:03 --> Call to a member function library() on null
+in APPPATH\Controllers\Flow.php on line 15.
+ 1 SYSTEMPATH\CodeIgniter.php(934): App\Controllers\Flow->confirmar()
+ 2 SYSTEMPATH\CodeIgniter.php(499): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Flow))
+ 3 SYSTEMPATH\CodeIgniter.php(368): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 FCPATH\index.php(67): CodeIgniter\CodeIgniter->run()
+CRITICAL - 2023-04-24 10:32:12 --> Call to a member function library() on null
+in APPPATH\Controllers\Flow.php on line 15.
+ 1 SYSTEMPATH\CodeIgniter.php(934): App\Controllers\Flow->confirmar()
+ 2 SYSTEMPATH\CodeIgniter.php(499): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Flow))
+ 3 SYSTEMPATH\CodeIgniter.php(368): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 FCPATH\index.php(67): CodeIgniter\CodeIgniter->run()
+CRITICAL - 2023-04-24 10:34:46 --> Call to a member function library() on null
+in APPPATH\Controllers\FlowCheckout.php on line 16.
+ 1 SYSTEMPATH\CodeIgniter.php(934): App\Controllers\FlowCheckout->confirmar()
+ 2 SYSTEMPATH\CodeIgniter.php(499): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\FlowCheckout))
+ 3 SYSTEMPATH\CodeIgniter.php(368): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 FCPATH\index.php(67): CodeIgniter\CodeIgniter->run()
+CRITICAL - 2023-04-24 10:36:09 --> Call to a member function send() on null
+in APPPATH\Controllers\FlowCheckout.php on line 20.
+ 1 SYSTEMPATH\CodeIgniter.php(934): App\Controllers\FlowCheckout->confirmar()
+ 2 SYSTEMPATH\CodeIgniter.php(499): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\FlowCheckout))
+ 3 SYSTEMPATH\CodeIgniter.php(368): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 FCPATH\index.php(67): CodeIgniter\CodeIgniter->run()
+CRITICAL - 2023-04-24 10:39:32 --> Class 'App\Libraries\FlowApi' not found
+in APPPATH\Libraries\Flow.php on line 9.
+ 1 SYSTEMPATH\Autoloader\Autoloader.php(312): include_once()
+ 2 SYSTEMPATH\Autoloader\Autoloader.php(289): CodeIgniter\Autoloader\Autoloader->includeFile('Z:\\xampp\\htdocs\\code\\app\\Libraries\\Flow.php')
+ 3 SYSTEMPATH\Autoloader\Autoloader.php(267): CodeIgniter\Autoloader\Autoloader->loadInNamespace('App\\Libraries\\Flow')
+ 4 [internal function]: CodeIgniter\Autoloader\Autoloader->loadClass('App\\Libraries\\Flow')
+ 5 APPPATH\Controllers\FlowCheckout.php(18): spl_autoload_call('App\\Libraries\\Flow')
+ 6 SYSTEMPATH\CodeIgniter.php(934): App\Controllers\FlowCheckout->confirmar()
+ 7 SYSTEMPATH\CodeIgniter.php(499): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\FlowCheckout))
+ 8 SYSTEMPATH\CodeIgniter.php(368): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 9 FCPATH\index.php(67): CodeIgniter\CodeIgniter->run()
+CRITICAL - 2023-04-24 10:40:51 --> Class 'App\Libraries\FlowApi' not found
+in APPPATH\Libraries\Flow.php on line 9.
+ 1 SYSTEMPATH\Autoloader\Autoloader.php(312): include_once()
+ 2 SYSTEMPATH\Autoloader\Autoloader.php(289): CodeIgniter\Autoloader\Autoloader->includeFile('Z:\\xampp\\htdocs\\code\\app\\Libraries\\Flow.php')
+ 3 SYSTEMPATH\Autoloader\Autoloader.php(267): CodeIgniter\Autoloader\Autoloader->loadInNamespace('App\\Libraries\\Flow')
+ 4 [internal function]: CodeIgniter\Autoloader\Autoloader->loadClass('App\\Libraries\\Flow')
+ 5 APPPATH\Controllers\FlowCheckout.php(18): spl_autoload_call('App\\Libraries\\Flow')
+ 6 SYSTEMPATH\CodeIgniter.php(934): App\Controllers\FlowCheckout->confirmar()
+ 7 SYSTEMPATH\CodeIgniter.php(499): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\FlowCheckout))
+ 8 SYSTEMPATH\CodeIgniter.php(368): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 9 FCPATH\index.php(67): CodeIgniter\CodeIgniter->run()
+CRITICAL - 2023-04-24 10:44:39 --> Class 'App\Libraries\FlowApi' not found
+in APPPATH\Libraries\Flow.php on line 9.
+ 1 SYSTEMPATH\Autoloader\Autoloader.php(312): include_once()
+ 2 SYSTEMPATH\Autoloader\Autoloader.php(289): CodeIgniter\Autoloader\Autoloader->includeFile('Z:\\xampp\\htdocs\\code\\app\\Libraries\\Flow.php')
+ 3 SYSTEMPATH\Autoloader\Autoloader.php(267): CodeIgniter\Autoloader\Autoloader->loadInNamespace('App\\Libraries\\Flow')
+ 4 [internal function]: CodeIgniter\Autoloader\Autoloader->loadClass('App\\Libraries\\Flow')
+ 5 APPPATH\Controllers\FlowCheckout.php(18): spl_autoload_call('App\\Libraries\\Flow')
+ 6 SYSTEMPATH\CodeIgniter.php(934): App\Controllers\FlowCheckout->confirmar()
+ 7 SYSTEMPATH\CodeIgniter.php(499): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\FlowCheckout))
+ 8 SYSTEMPATH\CodeIgniter.php(368): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 9 FCPATH\index.php(67): CodeIgniter\CodeIgniter->run()
+CRITICAL - 2023-04-24 10:47:32 --> Unsupported operand types
+in APPPATH\ThirdParty\flow\lib\FlowApi.class.php on line 17.
+ 1 APPPATH\Controllers\FlowCheckout.php(22): FlowApi->send('payment/create', null, 'POST')
+ 2 SYSTEMPATH\CodeIgniter.php(934): App\Controllers\FlowCheckout->confirmar()
+ 3 SYSTEMPATH\CodeIgniter.php(499): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\FlowCheckout))
+ 4 SYSTEMPATH\CodeIgniter.php(368): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 5 FCPATH\index.php(67): CodeIgniter\CodeIgniter->run()
+CRITICAL - 2023-04-24 10:49:20 --> Invalid ApiKey
+in APPPATH\ThirdParty\flow\lib\FlowApi.class.php on line 34.
+ 1 APPPATH\Controllers\FlowCheckout.php(22): FlowApi->send('payment/create', [...], 'POST')
+ 2 SYSTEMPATH\CodeIgniter.php(934): App\Controllers\FlowCheckout->confirmar()
+ 3 SYSTEMPATH\CodeIgniter.php(499): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\FlowCheckout))
+ 4 SYSTEMPATH\CodeIgniter.php(368): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 5 FCPATH\index.php(67): CodeIgniter\CodeIgniter->run()
+CRITICAL - 2023-04-24 10:54:35 --> Missing service params: commerceOrder, subject, amount, email, urlConfirmation, urlReturn
+in APPPATH\ThirdParty\flow\lib\FlowApi.class.php on line 34.
+ 1 APPPATH\Controllers\FlowCheckout.php(22): FlowApi->send('payment/create', [...], 'POST')
+ 2 SYSTEMPATH\CodeIgniter.php(934): App\Controllers\FlowCheckout->confirmar()
+ 3 SYSTEMPATH\CodeIgniter.php(499): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\FlowCheckout))
+ 4 SYSTEMPATH\CodeIgniter.php(368): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 5 FCPATH\index.php(67): CodeIgniter\CodeIgniter->run()
+CRITICAL - 2023-04-24 11:04:10 --> The subject parameter can not be empty
+in APPPATH\ThirdParty\flow\lib\FlowApi.class.php on line 35.
+ 1 APPPATH\Controllers\FlowCheckout.php(33): FlowApi->send('payment/create', [...], 'POST')
+ 2 SYSTEMPATH\CodeIgniter.php(934): App\Controllers\FlowCheckout->confirmar()
+ 3 SYSTEMPATH\CodeIgniter.php(499): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\FlowCheckout))
+ 4 SYSTEMPATH\CodeIgniter.php(368): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 5 FCPATH\index.php(67): CodeIgniter\CodeIgniter->run()
+CRITICAL - 2023-04-24 11:04:37 --> Call to a member function spawn_new_flow_transaction() on null
+in APPPATH\Controllers\FlowCheckout.php on line 46.
+ 1 SYSTEMPATH\CodeIgniter.php(934): App\Controllers\FlowCheckout->confirmar()
+ 2 SYSTEMPATH\CodeIgniter.php(499): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\FlowCheckout))
+ 3 SYSTEMPATH\CodeIgniter.php(368): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 FCPATH\index.php(67): CodeIgniter\CodeIgniter->run()
+CRITICAL - 2023-04-24 11:05:39 --> The route for "https://www.flow.cl/app/web/pay.php?token=C8AC3FE3F133F1194CBDF0A9C0D6A5E29A4B6C8H" cannot be found.
+in SYSTEMPATH\HTTP\RedirectResponse.php on line 60.
+ 1 SYSTEMPATH\HTTP\RedirectResponse.php(60): CodeIgniter\HTTP\Exceptions\HTTPException::forInvalidRedirectRoute('https://www.flow.cl/app/web/pay.php?token=C8AC3FE3F133F1194CBDF0A9C0D6A5E29A4B6C8H')
+ 2 SYSTEMPATH\Common.php(880): CodeIgniter\HTTP\RedirectResponse->route(false)
+ 3 APPPATH\Controllers\FlowCheckout.php(49): redirect('https://www.flow.cl/app/web/pay.php?token=C8AC3FE3F133F1194CBDF0A9C0D6A5E29A4B6C8H')
+ 4 SYSTEMPATH\CodeIgniter.php(934): App\Controllers\FlowCheckout->confirmar()
+ 5 SYSTEMPATH\CodeIgniter.php(499): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\FlowCheckout))
+ 6 SYSTEMPATH\CodeIgniter.php(368): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 FCPATH\index.php(67): CodeIgniter\CodeIgniter->run()
+CRITICAL - 2023-04-24 11:18:38 --> The route for "https://www.flow.cl/app/web/pay.php?token=E9F5D909BB02F85BE2861DA4C70F837172E1271B" cannot be found.
+in SYSTEMPATH\HTTP\RedirectResponse.php on line 60.
+ 1 SYSTEMPATH\HTTP\RedirectResponse.php(60): CodeIgniter\HTTP\Exceptions\HTTPException::forInvalidRedirectRoute('https://www.flow.cl/app/web/pay.php?token=E9F5D909BB02F85BE2861DA4C70F837172E1271B')
+ 2 SYSTEMPATH\Common.php(880): CodeIgniter\HTTP\RedirectResponse->route(false)
+ 3 APPPATH\Controllers\FlowCheckout.php(49): redirect('https://www.flow.cl/app/web/pay.php?token=E9F5D909BB02F85BE2861DA4C70F837172E1271B')
+ 4 SYSTEMPATH\CodeIgniter.php(934): App\Controllers\FlowCheckout->confirmar()
+ 5 SYSTEMPATH\CodeIgniter.php(499): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\FlowCheckout))
+ 6 SYSTEMPATH\CodeIgniter.php(368): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 FCPATH\index.php(67): CodeIgniter\CodeIgniter->run()
+CRITICAL - 2023-04-24 11:20:14 --> The route for "https://www.flow.cl/app/web/pay.php?token=0B8EE86F2B77E1B5FA860D281F3B2B5023FFCEEG" cannot be found.
+in SYSTEMPATH\HTTP\RedirectResponse.php on line 60.
+ 1 SYSTEMPATH\HTTP\RedirectResponse.php(60): CodeIgniter\HTTP\Exceptions\HTTPException::forInvalidRedirectRoute('https://www.flow.cl/app/web/pay.php?token=0B8EE86F2B77E1B5FA860D281F3B2B5023FFCEEG')
+ 2 SYSTEMPATH\Common.php(880): CodeIgniter\HTTP\RedirectResponse->route(false)
+ 3 APPPATH\Controllers\FlowCheckout.php(49): redirect('https://www.flow.cl/app/web/pay.php?token=0B8EE86F2B77E1B5FA860D281F3B2B5023FFCEEG')
+ 4 SYSTEMPATH\CodeIgniter.php(934): App\Controllers\FlowCheckout->confirmar()
+ 5 SYSTEMPATH\CodeIgniter.php(499): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\FlowCheckout))
+ 6 SYSTEMPATH\CodeIgniter.php(368): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 FCPATH\index.php(67): CodeIgniter\CodeIgniter->run()
+CRITICAL - 2023-04-24 11:28:42 --> The route for "https://www.flow.cl/app/web/pay.php?token=69C76F3A1E52FEDA6FAA73E930ED51D3EF98F72Q" cannot be found.
+in SYSTEMPATH\HTTP\RedirectResponse.php on line 60.
+ 1 SYSTEMPATH\HTTP\RedirectResponse.php(60): CodeIgniter\HTTP\Exceptions\HTTPException::forInvalidRedirectRoute('https://www.flow.cl/app/web/pay.php?token=69C76F3A1E52FEDA6FAA73E930ED51D3EF98F72Q')
+ 2 SYSTEMPATH\Common.php(880): CodeIgniter\HTTP\RedirectResponse->route(false)
+ 3 APPPATH\Controllers\FlowCheckout.php(51): redirect('https://www.flow.cl/app/web/pay.php?token=69C76F3A1E52FEDA6FAA73E930ED51D3EF98F72Q')
+ 4 SYSTEMPATH\CodeIgniter.php(934): App\Controllers\FlowCheckout->confirmar()
+ 5 SYSTEMPATH\CodeIgniter.php(499): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\FlowCheckout))
+ 6 SYSTEMPATH\CodeIgniter.php(368): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 FCPATH\index.php(67): CodeIgniter\CodeIgniter->run()
+CRITICAL - 2023-04-24 11:30:40 --> The route for "https://www.flow.cl/app/web/pay.php?token=7A43EB0ABB3F432AF7719EA7D7E0DE126CF6C02P" cannot be found.
+in SYSTEMPATH\HTTP\RedirectResponse.php on line 60.
+ 1 SYSTEMPATH\HTTP\RedirectResponse.php(60): CodeIgniter\HTTP\Exceptions\HTTPException::forInvalidRedirectRoute('https://www.flow.cl/app/web/pay.php?token=7A43EB0ABB3F432AF7719EA7D7E0DE126CF6C02P')
+ 2 SYSTEMPATH\Common.php(880): CodeIgniter\HTTP\RedirectResponse->route(false)
+ 3 APPPATH\Controllers\FlowCheckout.php(49): redirect('https://www.flow.cl/app/web/pay.php?token=7A43EB0ABB3F432AF7719EA7D7E0DE126CF6C02P')
+ 4 SYSTEMPATH\CodeIgniter.php(934): App\Controllers\FlowCheckout->confirmar()
+ 5 SYSTEMPATH\CodeIgniter.php(499): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\FlowCheckout))
+ 6 SYSTEMPATH\CodeIgniter.php(368): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 FCPATH\index.php(67): CodeIgniter\CodeIgniter->run()
+CRITICAL - 2023-04-24 11:31:05 --> The route for "https://www.flow.cl/app/web/pay.php?token=42F8867FB4F386BFB80388C7623A6876FB2F1CEO" cannot be found.
+in SYSTEMPATH\HTTP\RedirectResponse.php on line 60.
+ 1 SYSTEMPATH\HTTP\RedirectResponse.php(60): CodeIgniter\HTTP\Exceptions\HTTPException::forInvalidRedirectRoute('https://www.flow.cl/app/web/pay.php?token=42F8867FB4F386BFB80388C7623A6876FB2F1CEO')
+ 2 SYSTEMPATH\Common.php(880): CodeIgniter\HTTP\RedirectResponse->route(false)
+ 3 APPPATH\Controllers\FlowCheckout.php(49): redirect('https://www.flow.cl/app/web/pay.php?token=42F8867FB4F386BFB80388C7623A6876FB2F1CEO')
+ 4 SYSTEMPATH\CodeIgniter.php(934): App\Controllers\FlowCheckout->confirmar()
+ 5 SYSTEMPATH\CodeIgniter.php(499): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\FlowCheckout))
+ 6 SYSTEMPATH\CodeIgniter.php(368): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 FCPATH\index.php(67): CodeIgniter\CodeIgniter->run()
+CRITICAL - 2023-04-24 11:31:50 --> The route for "https://www.flow.cl/app/web/pay.php?token=8E516F122FF1268CF8986CC087D20855C193A55P" cannot be found.
+in SYSTEMPATH\HTTP\RedirectResponse.php on line 60.
+ 1 SYSTEMPATH\HTTP\RedirectResponse.php(60): CodeIgniter\HTTP\Exceptions\HTTPException::forInvalidRedirectRoute('https://www.flow.cl/app/web/pay.php?token=8E516F122FF1268CF8986CC087D20855C193A55P')
+ 2 SYSTEMPATH\Common.php(880): CodeIgniter\HTTP\RedirectResponse->route(false)
+ 3 APPPATH\Controllers\FlowCheckout.php(49): redirect('https://www.flow.cl/app/web/pay.php?token=8E516F122FF1268CF8986CC087D20855C193A55P')
+ 4 SYSTEMPATH\CodeIgniter.php(934): App\Controllers\FlowCheckout->confirmar()
+ 5 SYSTEMPATH\CodeIgniter.php(499): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\FlowCheckout))
+ 6 SYSTEMPATH\CodeIgniter.php(368): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 FCPATH\index.php(67): CodeIgniter\CodeIgniter->run()
+CRITICAL - 2023-04-24 11:33:55 --> The route for "https://www.flow.cl/app/web/pay.php?token=0BDAC0B10EFA424AFD166A6270432BF6E72ABF2J" cannot be found.
+in SYSTEMPATH\HTTP\RedirectResponse.php on line 60.
+ 1 SYSTEMPATH\HTTP\RedirectResponse.php(60): CodeIgniter\HTTP\Exceptions\HTTPException::forInvalidRedirectRoute('https://www.flow.cl/app/web/pay.php?token=0BDAC0B10EFA424AFD166A6270432BF6E72ABF2J')
+ 2 SYSTEMPATH\Common.php(880): CodeIgniter\HTTP\RedirectResponse->route(false)
+ 3 APPPATH\Controllers\FlowCheckout.php(49): redirect('https://www.flow.cl/app/web/pay.php?token=0BDAC0B10EFA424AFD166A6270432BF6E72ABF2J')
+ 4 SYSTEMPATH\CodeIgniter.php(934): App\Controllers\FlowCheckout->confirmar()
+ 5 SYSTEMPATH\CodeIgniter.php(499): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\FlowCheckout))
+ 6 SYSTEMPATH\CodeIgniter.php(368): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 FCPATH\index.php(67): CodeIgniter\CodeIgniter->run()
+CRITICAL - 2023-04-24 11:34:23 --> The route for "https://www.flow.cl/app/web/pay.php?token=FA1A85522327CB35357A0CF1671E6214E1F68FBV" cannot be found.
+in SYSTEMPATH\HTTP\RedirectResponse.php on line 60.
+ 1 SYSTEMPATH\HTTP\RedirectResponse.php(60): CodeIgniter\HTTP\Exceptions\HTTPException::forInvalidRedirectRoute('https://www.flow.cl/app/web/pay.php?token=FA1A85522327CB35357A0CF1671E6214E1F68FBV')
+ 2 SYSTEMPATH\Common.php(880): CodeIgniter\HTTP\RedirectResponse->route(false)
+ 3 APPPATH\Controllers\FlowCheckout.php(49): redirect('https://www.flow.cl/app/web/pay.php?token=FA1A85522327CB35357A0CF1671E6214E1F68FBV')
+ 4 SYSTEMPATH\CodeIgniter.php(934): App\Controllers\FlowCheckout->confirmar()
+ 5 SYSTEMPATH\CodeIgniter.php(499): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\FlowCheckout))
+ 6 SYSTEMPATH\CodeIgniter.php(368): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 FCPATH\index.php(67): CodeIgniter\CodeIgniter->run()
+CRITICAL - 2023-04-24 11:34:40 --> The route for "https://www.flow.cl/app/web/pay.php?token=A82D3198B18CB9EED5A46F4DE8F5A5DF6A55C90Z" cannot be found.
+in SYSTEMPATH\HTTP\RedirectResponse.php on line 60.
+ 1 SYSTEMPATH\HTTP\RedirectResponse.php(60): CodeIgniter\HTTP\Exceptions\HTTPException::forInvalidRedirectRoute('https://www.flow.cl/app/web/pay.php?token=A82D3198B18CB9EED5A46F4DE8F5A5DF6A55C90Z')
+ 2 SYSTEMPATH\Common.php(880): CodeIgniter\HTTP\RedirectResponse->route(false)
+ 3 APPPATH\Controllers\FlowCheckout.php(49): redirect('https://www.flow.cl/app/web/pay.php?token=A82D3198B18CB9EED5A46F4DE8F5A5DF6A55C90Z')
+ 4 SYSTEMPATH\CodeIgniter.php(934): App\Controllers\FlowCheckout->confirmar()
+ 5 SYSTEMPATH\CodeIgniter.php(499): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\FlowCheckout))
+ 6 SYSTEMPATH\CodeIgniter.php(368): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 FCPATH\index.php(67): CodeIgniter\CodeIgniter->run()
+CRITICAL - 2023-04-24 11:37:49 --> The route for "https://www.flow.cl/app/web/pay.php?token=0365DBBA7F1B40164EC30527775770001CE0B55I" cannot be found.
+in SYSTEMPATH\HTTP\RedirectResponse.php on line 60.
+ 1 SYSTEMPATH\HTTP\RedirectResponse.php(60): CodeIgniter\HTTP\Exceptions\HTTPException::forInvalidRedirectRoute('https://www.flow.cl/app/web/pay.php?token=0365DBBA7F1B40164EC30527775770001CE0B55I')
+ 2 SYSTEMPATH\Common.php(880): CodeIgniter\HTTP\RedirectResponse->route(false)
+ 3 APPPATH\Controllers\FlowCheckout.php(49): redirect('https://www.flow.cl/app/web/pay.php?token=0365DBBA7F1B40164EC30527775770001CE0B55I')
+ 4 SYSTEMPATH\CodeIgniter.php(934): App\Controllers\FlowCheckout->confirmar()
+ 5 SYSTEMPATH\CodeIgniter.php(499): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\FlowCheckout))
+ 6 SYSTEMPATH\CodeIgniter.php(368): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 FCPATH\index.php(67): CodeIgniter\CodeIgniter->run()
+CRITICAL - 2023-04-24 13:46:01 --> Class 'App\Models\CotizacionModel' not found
+in APPPATH\Controllers\FlowCheckout.php on line 18.
+ 1 SYSTEMPATH\CodeIgniter.php(934): App\Controllers\FlowCheckout->generar('144392')
+ 2 SYSTEMPATH\CodeIgniter.php(499): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\FlowCheckout))
+ 3 SYSTEMPATH\CodeIgniter.php(368): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 FCPATH\index.php(67): CodeIgniter\CodeIgniter->run()
+CRITICAL - 2023-04-24 13:46:14 --> Class 'App\Models\CotizacionModel' not found
+in APPPATH\Controllers\FlowCheckout.php on line 18.
+ 1 SYSTEMPATH\CodeIgniter.php(934): App\Controllers\FlowCheckout->generar('144392http:', '127.0.0.1:8090', 'erp', 'flow', 'public', 'flow', 'generar', '144392')
+ 2 SYSTEMPATH\CodeIgniter.php(499): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\FlowCheckout))
+ 3 SYSTEMPATH\CodeIgniter.php(368): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 FCPATH\index.php(67): CodeIgniter\CodeIgniter->run()
+CRITICAL - 2023-04-24 13:48:27 --> Call to undefined function App\Controllers\int()
+in APPPATH\Controllers\FlowCheckout.php on line 30.
+ 1 SYSTEMPATH\CodeIgniter.php(934): App\Controllers\FlowCheckout->generar('344')
+ 2 SYSTEMPATH\CodeIgniter.php(499): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\FlowCheckout))
+ 3 SYSTEMPATH\CodeIgniter.php(368): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 FCPATH\index.php(67): CodeIgniter\CodeIgniter->run()
+CRITICAL - 2023-04-24 13:48:41 --> Call to undefined function App\Controllers\int()
+in APPPATH\Controllers\FlowCheckout.php on line 30.
+ 1 SYSTEMPATH\CodeIgniter.php(934): App\Controllers\FlowCheckout->generar('344')
+ 2 SYSTEMPATH\CodeIgniter.php(499): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\FlowCheckout))
+ 3 SYSTEMPATH\CodeIgniter.php(368): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 FCPATH\index.php(67): CodeIgniter\CodeIgniter->run()
+CRITICAL - 2023-04-24 13:49:16 --> Call to undefined function App\Controllers\int()
+in APPPATH\Controllers\FlowCheckout.php on line 30.
+ 1 SYSTEMPATH\CodeIgniter.php(934): App\Controllers\FlowCheckout->generar('344')
+ 2 SYSTEMPATH\CodeIgniter.php(499): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\FlowCheckout))
+ 3 SYSTEMPATH\CodeIgniter.php(368): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 FCPATH\index.php(67): CodeIgniter\CodeIgniter->run()
+CRITICAL - 2023-04-24 13:51:00 --> Missing service params: email
+in APPPATH\ThirdParty\flow\lib\FlowApi.class.php on line 35.
+ 1 APPPATH\Controllers\FlowCheckout.php(36): FlowApi->send('payment/create', [...], 'POST')
+ 2 SYSTEMPATH\CodeIgniter.php(934): App\Controllers\FlowCheckout->generar('344')
+ 3 SYSTEMPATH\CodeIgniter.php(499): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\FlowCheckout))
+ 4 SYSTEMPATH\CodeIgniter.php(368): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 5 FCPATH\index.php(67): CodeIgniter\CodeIgniter->run()

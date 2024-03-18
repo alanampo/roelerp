@@ -1,0 +1,42 @@
+ERROR - 2023-04-27 09:59:28 --> Error connecting to the database: mysqli_sql_exception: Access denied for user 'roeluser1_usercli'@'localhost' (using password: YES) in Z:\xampp\htdocs\erp\flow\system\Database\MySQLi\Connection.php:174
+Stack trace:
+#0 Z:\xampp\htdocs\erp\flow\system\Database\MySQLi\Connection.php(174): mysqli->real_connect('localhost', 'roeluser1_userc...', 'SergioVM2022!!', 'roeluser1_bdsys', 3306, '', 0)
+#1 Z:\xampp\htdocs\erp\flow\system\Database\BaseConnection.php(391): CodeIgniter\Database\MySQLi\Connection->connect(false)
+#2 Z:\xampp\htdocs\erp\flow\system\Database\BaseConnection.php(573): CodeIgniter\Database\BaseConnection->initialize()
+#3 Z:\xampp\htdocs\erp\flow\system\Database\BaseBuilder.php(1616): CodeIgniter\Database\BaseConnection->query('SELECT *\nFROM `...', Array, false)
+#4 Z:\xampp\htdocs\erp\flow\system\Model.php(200): CodeIgniter\Database\BaseBuilder->get()
+#5 Z:\xampp\htdocs\erp\flow\system\BaseModel.php(557): CodeIgniter\Model->doFind(true, '344')
+#6 Z:\xampp\htdocs\erp\flow\app\Controllers\FlowCheckout.php(23): CodeIgniter\BaseModel->find('344')
+#7 Z:\xampp\htdocs\erp\flow\system\CodeIgniter.php(934): App\Controllers\FlowCheckout->generar('344')
+#8 Z:\xampp\htdocs\erp\flow\system\CodeIgniter.php(499): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\FlowCheckout))
+#9 Z:\xampp\htdocs\erp\flow\system\CodeIgniter.php(368): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#10 Z:\xampp\htdocs\erp\flow\public\index.php(67): CodeIgniter\CodeIgniter->run()
+#11 {main}
+
+Next CodeIgniter\Database\Exceptions\DatabaseException: Access denied for user '****'@'localhost' (using password: YES) in Z:\xampp\htdocs\erp\flow\system\Database\MySQLi\Connection.php:218
+Stack trace:
+#0 Z:\xampp\htdocs\erp\flow\system\Database\BaseConnection.php(391): CodeIgniter\Database\MySQLi\Connection->connect(false)
+#1 Z:\xampp\htdocs\erp\flow\system\Database\BaseConnection.php(573): CodeIgniter\Database\BaseConnection->initialize()
+#2 Z:\xampp\htdocs\erp\flow\system\Database\BaseBuilder.php(1616): CodeIgniter\Database\BaseConnection->query('SELECT *\nFROM `...', Array, false)
+#3 Z:\xampp\htdocs\erp\flow\system\Model.php(200): CodeIgniter\Database\BaseBuilder->get()
+#4 Z:\xampp\htdocs\erp\flow\system\BaseModel.php(557): CodeIgniter\Model->doFind(true, '344')
+#5 Z:\xampp\htdocs\erp\flow\app\Controllers\FlowCheckout.php(23): CodeIgniter\BaseModel->find('344')
+#6 Z:\xampp\htdocs\erp\flow\system\CodeIgniter.php(934): App\Controllers\FlowCheckout->generar('344')
+#7 Z:\xampp\htdocs\erp\flow\system\CodeIgniter.php(499): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\FlowCheckout))
+#8 Z:\xampp\htdocs\erp\flow\system\CodeIgniter.php(368): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#9 Z:\xampp\htdocs\erp\flow\public\index.php(67): CodeIgniter\CodeIgniter->run()
+#10 {main}
+CRITICAL - 2023-04-27 09:59:28 --> Unable to connect to the database.
+Main connection [MySQLi]: Access denied for user '****'@'localhost' (using password: YES)
+in SYSTEMPATH\Database\BaseConnection.php on line 427.
+ 1 SYSTEMPATH\Database\BaseConnection.php(573): CodeIgniter\Database\BaseConnection->initialize()
+ 2 SYSTEMPATH\Database\BaseBuilder.php(1616): CodeIgniter\Database\BaseConnection->query('SELECT *
+FROM `cotizaciones`
+WHERE `cotizaciones`.`id` = :cotizaciones.id:', [...], false)
+ 3 SYSTEMPATH\Model.php(200): CodeIgniter\Database\BaseBuilder->get()
+ 4 SYSTEMPATH\BaseModel.php(557): CodeIgniter\Model->doFind(true, '344')
+ 5 APPPATH\Controllers\FlowCheckout.php(23): CodeIgniter\BaseModel->find('344')
+ 6 SYSTEMPATH\CodeIgniter.php(934): App\Controllers\FlowCheckout->generar('344')
+ 7 SYSTEMPATH\CodeIgniter.php(499): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\FlowCheckout))
+ 8 SYSTEMPATH\CodeIgniter.php(368): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 9 FCPATH\index.php(67): CodeIgniter\CodeIgniter->run()
