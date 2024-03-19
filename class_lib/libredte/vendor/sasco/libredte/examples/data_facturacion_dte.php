@@ -5,9 +5,9 @@ if (strpos($_SERVER['HTTP_HOST'], 'roelplant') !== false) {
     require $_SERVER['DOCUMENT_ROOT'] . '/class_lib/class_conecta_mysql.php';
     require $_SERVER['DOCUMENT_ROOT'] . '/class_lib/funciones.php';
 } else {
-    include $_SERVER['DOCUMENT_ROOT'] . "/erpold/class_lib/sesionSecurity.php";
-    require $_SERVER['DOCUMENT_ROOT'] . '/erpold/class_lib/class_conecta_mysql.php';
-    require $_SERVER['DOCUMENT_ROOT'] . '/erpold/class_lib/funciones.php';
+    include $_SERVER['DOCUMENT_ROOT'] . "/roelerp/class_lib/sesionSecurity.php";
+    require $_SERVER['DOCUMENT_ROOT'] . '/roelerp/class_lib/class_conecta_mysql.php';
+    require $_SERVER['DOCUMENT_ROOT'] . '/roelerp/class_lib/funciones.php';
 }
 
 set_time_limit(0);

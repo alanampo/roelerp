@@ -43,6 +43,7 @@ async function func_check() {
     pone_usuarios();
     pone_integracion();
     pone_comisiones();
+    pone_compras();
   } else {
     if (permisos.length) {
 
@@ -62,6 +63,9 @@ async function func_check() {
         }
         else if (array[i] == "estadisticaserp") {
           pone_estadisticas();
+        }
+        else if (array[i] == "compras") {
+          pone_compras();
         }
       }
     } else {
@@ -96,7 +100,31 @@ function pone_cotizaciones() {
   );
 }
 
+function pone_compras() {
+  if (isHome()) {
+    $(".col-compras")
+      .html(
+        `
+        <a href="ver_compras.php">
+          <div class="small-box" style="background-color:#FF0040"> 
+            <div class="inner"  style="height:7.3em;">    
+              <p style='color:white'>Compras</p>
+            </div>
+            <div class="icon">
+              <i style="color:rgba(0, 0, 0, 0.15);" class="fa fa-shopping-cart"></i>
+            </div>
+            <span class="small-box-footer" style="background-color:rgba(0, 0, 0, 0.1);">Ver Módulo <i class="fa fa-arrow-circle-right"></i></span>
+          </div>
+        </a>
+      `
+      )
+      .removeClass("d-none");
+  }
 
+  $("#contenedor_modulos").append(
+    '<li><a href="ver_compras.php"><i class="fa fa-arrow-circle-right"></i> Compras</a></li>'
+  );
+}
 function pone_facturacion() {
   if (isHome()) {
     $(".col-facturacion")

@@ -145,6 +145,7 @@
                                     <option value="tendencias">Tendencias</option>
                                     <option value="productos">Productos</option>
                                     <option value="panel">Panel de Control</option>
+                                    <option value="compras">Facturas de Compras</option>
                                 </select>
 
                             </div>

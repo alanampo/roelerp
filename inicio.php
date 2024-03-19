@@ -52,6 +52,8 @@
             <div class="col-6 col-md-3 col-situacion-especial d-none"></div>
 
             <div class="col-6 col-md-3 col-comisiones d-none"></div>
+
+            <div class="col-6 col-md-3 col-compras d-none"></div>
           </div>
         </section>
       </div>
