@@ -1,7 +1,5 @@
 <?php
 
-
-
 if (strpos($_SERVER['HTTP_HOST'], 'roelplant') !== false) {
     include $_SERVER['DOCUMENT_ROOT'] . "/class_lib/sesionSecurity.php";
     require $_SERVER['DOCUMENT_ROOT'] . '/class_lib/class_conecta_mysql.php';

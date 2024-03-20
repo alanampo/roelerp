@@ -44,6 +44,7 @@ async function func_check() {
     pone_integracion();
     pone_comisiones();
     pone_compras();
+    pone_situacion_proveedores();
   } else {
     if (permisos.length) {
 
@@ -66,6 +67,9 @@ async function func_check() {
         }
         else if (array[i] == "compras") {
           pone_compras();
+        }
+        else if (array[i] == "situacion-proveedores") {
+          pone_situacion_proveedores();
         }
       }
     } else {
@@ -224,6 +228,32 @@ function pone_situacion() {
 
   $("#contenedor_modulos").append(
     '<li><a href="ver_situacion.php"><i class="fa fa-arrow-circle-right"></i> Situación Clientes</a></li>'
+  );
+}
+
+function pone_situacion_proveedores() {
+  if (isHome()) {
+    $(".col-situacion-proveedores")
+      .html(
+        `
+        <a href="ver_situacion_proveedores.php">
+          <div class="small-box" style="background-color:#5F04B4"> 
+            <div class="inner"  style="height:7.3em;">    
+              <p style='color:white'>Situación Proveedores</p>
+            </div>
+            <div class="icon">
+              <i style="color:rgba(0, 0, 0, 0.15);" class="fa fa-users"></i>
+            </div>
+            <span class="small-box-footer" style="background-color:rgba(0, 0, 0, 0.1);">Ver Situación <i class="fa fa-arrow-circle-right"></i></span>
+          </div>
+        </a>
+      `
+      )
+      .removeClass("d-none");
+  }
+
+  $("#contenedor_modulos").append(
+    '<li><a href="ver_situacion_proveedores.php"><i class="fa fa-arrow-circle-right"></i> Situación Proveedores</a></li>'
   );
 }
 
