@@ -14,7 +14,8 @@ if (!$con) {
 mysqli_query($con, "SET NAMES 'utf8'");
 
 $consulta = $_POST["consulta"];
-function truncarStringConSuspensivos($cadena, $longitudMaxima) {
+function truncarStringConSuspensivos($cadena, $longitudMaxima)
+{
     // Verificar si la longitud de la cadena es mayor que la longitud máxima
     if (strlen($cadena) > $longitudMaxima) {
         // Truncar la cadena a la longitud máxima y agregar puntos suspensivos
@@ -26,7 +27,8 @@ function truncarStringConSuspensivos($cadena, $longitudMaxima) {
     }
 }
 
-function agregar_guion_ultimo_caracter($cadena) {
+function agregar_guion_ultimo_caracter($cadena)
+{
     // Verificar que la cadena tenga al menos 1 carácter
     if (strlen($cadena) < 1) {
         return $cadena;
@@ -36,7 +38,7 @@ function agregar_guion_ultimo_caracter($cadena) {
     $ultimo_caracter = substr($cadena, -1);
     // Obtener la parte de la cadena sin el último carácter
     $cadena_sin_ultimo = substr($cadena, 0, -1);
-    
+
     // Agregar el guion antes del último carácter
     $cadena_con_guion = $cadena_sin_ultimo . "-" . $ultimo_caracter;
 
@@ -89,7 +91,7 @@ GROUP BY
             // Unir los números modificados de nuevo en una cadena
             $rut = implode(", ", $numeros);
             echo "<tr style='cursor:pointer;'>";
-            echo "<td><span ".(strlen($rut)>30 ? "data-toggle='tooltip' data-placement='top' title='$rut'" : "").">".truncarStringConSuspensivos($rut, 30)."</span></td>";
+            echo "<td><span " . (strlen($rut) > 30 ? "data-toggle='tooltip' data-placement='top' title='$rut'" : "") . ">" . truncarStringConSuspensivos($rut, 30) . "</span></td>";
             echo "<td>$ww[razonSocial]</td>";
             echo "<td class='text-" . ($balance <= 0 ? "success" : "danger") . "'>$$deuda</td>";
             echo "<td><button onclick='detalleDeuda($ww[proveedor_id], \"$ww[razonSocial]\")' class='btn btn-primary btn fa fa-file'></button></td>";
@@ -102,60 +104,108 @@ GROUP BY
     } else {
         echo "<div class='callout callout-danger'><b>No se encontraron registros...</b></div>";
     }
-}  else if ($consulta == "grafico_por_cobrar") {
+} else if ($consulta == "grafico_por_cobrar") {
     $anio = $_POST["anio"];
     $aniofin = (int) $anio + 1;
 
-    $querymeses = "";
-    for ($i = 1; $i <= 12; $i++) {
-        $mes = $i;
+    try {
+        $querymeses = "";
 
-        $mesito = str_pad($mes, 2, '0', STR_PAD_LEFT);
-        $dt = strtotime("$anio-$mesito-01");
-        $fechafin = (string) date("Y-m-d", strtotime("+1 month", $dt));
-        $querymeses .= "
-            (SELECT (qfact.mes$i - qfact.pagos$i) as mes$i  FROM
-                (
-                SELECT                   
-                f.id, 
-                f.montoTotal as mes$i, 
-                (SELECT IFNULL(SUM(pa.monto),0) 
-                FROM facturas_compra_pagos pa 
-                WHERE pa.id_factura_compra = f.id) AS 'pagos$i' 
-                FROM facturas_compra f 
-                INNER JOIN proveedores p ON f.id_proveedor = p.id
-                WHERE
-                f.fecha >= '$anio-$mesito-01 00:00:00'
-                AND f.fecha < '$fechafin 00:00:00') qfact
-            ) as qp$i,";
-    }
-    $querymeses = rtrim($querymeses, ",");
+        $myquery = "
+        SELECT
+        (qfact.mes1 - qfact.mes1_pago) as mes1,
+        (qfact.mes2 - qfact.mes2_pago) as mes2,
+        (qfact.mes3 - qfact.mes3_pago) as mes3,
+        (qfact.mes4 - qfact.mes4_pago) as mes4,
+        (qfact.mes5 - qfact.mes5_pago) as mes5,
+        (qfact.mes6 - qfact.mes6_pago) as mes6,
+        (qfact.mes7 - qfact.mes7_pago) as mes7,
+        (qfact.mes8 - qfact.mes8_pago) as mes8,
+        (qfact.mes9 - qfact.mes9_pago) as mes9,
+        (qfact.mes10 - qfact.mes10_pago) as mes10,
+        (qfact.mes11 - qfact.mes11_pago) as mes11,
+        (qfact.mes12 - qfact.mes12_pago) as mes12        
+    FROM
+        (
+            SELECT
+                SUM(CASE WHEN f.fecha >= '$anio-01-01' AND f.fecha < '$anio-02-01' THEN f.montoTotal ELSE 0 END) AS mes1,
+                SUM(CASE WHEN f.fecha >= '$anio-02-01' AND f.fecha < '$anio-03-01' THEN f.montoTotal ELSE 0 END) AS mes2,
+                SUM(CASE WHEN f.fecha >= '$anio-03-01' AND f.fecha < '$anio-04-01' THEN f.montoTotal ELSE 0 END) AS mes3,
+                SUM(CASE WHEN f.fecha >= '$anio-04-01' AND f.fecha < '$anio-05-01' THEN f.montoTotal ELSE 0 END) AS mes4,
+                SUM(CASE WHEN f.fecha >= '$anio-05-01' AND f.fecha < '$anio-06-01' THEN f.montoTotal ELSE 0 END) AS mes5,
+                SUM(CASE WHEN f.fecha >= '$anio-06-01' AND f.fecha < '$anio-07-01' THEN f.montoTotal ELSE 0 END) AS mes6,
+                SUM(CASE WHEN f.fecha >= '$anio-07-01' AND f.fecha < '$anio-08-01' THEN f.montoTotal ELSE 0 END) AS mes7,
+                SUM(CASE WHEN f.fecha >= '$anio-08-01' AND f.fecha < '$anio-09-01' THEN f.montoTotal ELSE 0 END) AS mes8,
+                SUM(CASE WHEN f.fecha >= '$anio-09-01' AND f.fecha < '$anio-10-01' THEN f.montoTotal ELSE 0 END) AS mes9,
+                SUM(CASE WHEN f.fecha >= '$anio-10-01' AND f.fecha < '$anio-11-01' THEN f.montoTotal ELSE 0 END) AS mes10,
+                SUM(CASE WHEN f.fecha >= '$anio-11-01' AND f.fecha < '$anio-12-01' THEN f.montoTotal ELSE 0 END) AS mes11,
+                SUM(CASE WHEN f.fecha >= '$anio-12-01' AND f.fecha < '$aniofin-01-01' THEN f.montoTotal ELSE 0 END) AS mes12,
+                SUM(CASE WHEN p.id_factura_compra = f.id AND f.fecha >= '$anio-01-01' AND f.fecha < '$anio-02-01' THEN p.monto ELSE 0 END) AS mes1_pago,
+                SUM(CASE WHEN p.id_factura_compra = f.id AND f.fecha >= '$anio-02-01' AND f.fecha < '$anio-03-01' THEN p.monto ELSE 0 END) AS mes2_pago,
+                SUM(CASE WHEN p.id_factura_compra = f.id AND f.fecha >= '$anio-03-01' AND f.fecha < '$anio-04-01' THEN p.monto ELSE 0 END) AS mes3_pago,
+                SUM(CASE WHEN p.id_factura_compra = f.id AND f.fecha >= '$anio-04-01' AND f.fecha < '$anio-05-01' THEN p.monto ELSE 0 END) AS mes4_pago,
+                SUM(CASE WHEN p.id_factura_compra = f.id AND f.fecha >= '$anio-05-01' AND f.fecha < '$anio-06-01' THEN p.monto ELSE 0 END) AS mes5_pago,
+                SUM(CASE WHEN p.id_factura_compra = f.id AND f.fecha >= '$anio-06-01' AND f.fecha < '$anio-07-01' THEN p.monto ELSE 0 END) AS mes6_pago,
+                SUM(CASE WHEN p.id_factura_compra = f.id AND f.fecha >= '$anio-07-01' AND f.fecha < '$anio-08-01' THEN p.monto ELSE 0 END) AS mes7_pago,
+                SUM(CASE WHEN p.id_factura_compra = f.id AND f.fecha >= '$anio-08-01' AND f.fecha < '$anio-09-01' THEN p.monto ELSE 0 END) AS mes8_pago,
+                SUM(CASE WHEN p.id_factura_compra = f.id AND f.fecha >= '$anio-09-01' AND f.fecha < '$anio-10-01' THEN p.monto ELSE 0 END) AS mes9_pago,
+                SUM(CASE WHEN p.id_factura_compra = f.id AND f.fecha >= '$anio-10-01' AND f.fecha < '$anio-11-01' THEN p.monto ELSE 0 END) AS mes10_pago,
+                SUM(CASE WHEN p.id_factura_compra = f.id AND f.fecha >= '$anio-11-01' AND f.fecha < '$anio-12-01' THEN p.monto ELSE 0 END) AS mes11_pago,
+                SUM(CASE WHEN p.id_factura_compra = f.id AND f.fecha >= '$anio-12-01' AND f.fecha < '$aniofin-01-01' THEN p.monto ELSE 0 END) AS mes12_pago
+            FROM
+                facturas_compra f
+                LEFT JOIN facturas_compra_pagos p ON f.id = p.id_factura_compra
+            WHERE
+                f.fecha >= '$anio-01-01 00:00:00'
+                AND f.fecha < '$aniofin-01-01 00:00:00'
+        ) qfact;
 
-    $querydeudas = "SELECT * FROM
-        $querymeses
         ";
+            
 
 
+        $rdeudas = mysqli_query($con, $myquery);
 
-    $rdeudas = mysqli_query($con, $querydeudas);
-    if (mysqli_num_rows($rdeudas) > 0) {
-        $deudas = mysqli_fetch_assoc($rdeudas);
 
-        $array = [
-            (int) $deudas["mes1"],
-            (int) $deudas["mes2"],
-            (int) $deudas["mes3"],
-            (int) $deudas["mes4"],
-            (int) $deudas["mes5"],
-            (int) $deudas["mes6"],
-            (int) $deudas["mes7"],
-            (int) $deudas["mes8"],
-            (int) $deudas["mes9"],
-            (int) $deudas["mes10"],
-            (int) $deudas["mes11"],
-            (int) $deudas["mes12"],
-        ];
-        echo json_encode($array);
+        if (mysqli_num_rows($rdeudas) > 0) {
+            $deudas = mysqli_fetch_assoc($rdeudas);
+
+         
+            if ($anio == 2024){
+                $array = [
+                    0,
+                    0,
+                    (int) $deudas["mes3"],
+                    (int) $deudas["mes4"],
+                    (int) $deudas["mes5"],
+                    (int) $deudas["mes6"],
+                    (int) $deudas["mes7"],
+                    (int) $deudas["mes8"],
+                    (int) $deudas["mes9"],
+                    (int) $deudas["mes10"],
+                    (int) $deudas["mes11"],
+                    (int) $deudas["mes12"],
+                ];
+            }
+            else
+            $array = [
+                (int) $deudas["mes1"],
+                (int) $deudas["mes2"],
+                (int) $deudas["mes3"],
+                (int) $deudas["mes4"],
+                (int) $deudas["mes5"],
+                (int) $deudas["mes6"],
+                (int) $deudas["mes7"],
+                (int) $deudas["mes8"],
+                (int) $deudas["mes9"],
+                (int) $deudas["mes10"],
+                (int) $deudas["mes11"],
+                (int) $deudas["mes12"],
+            ];
+            echo json_encode($array);
+        }
+    } catch (\Throwable $th) {
+        var_dump($th);
     }
 } else if ($consulta == "grafico_clientes_deudores") {
     $query = "SELECT
@@ -204,7 +254,7 @@ GROUP BY
     ";
 
     $val = mysqli_query($con, $query);
-    
+
     if (mysqli_num_rows($val) > 0) {
         echo "<table id='tabla-historial-facturas' class='table table-bordered table-responsive w-100 d-block d-md-table'>";
         echo "<thead>";
@@ -227,7 +277,7 @@ GROUP BY
                 <tr style='cursor:pointer' x-id='$ww[folio]'>
                 <td>$ww[folio]</td>
                 <td><span class='d-none'>$ww[fecha]</span>$ww[fecha_formatted]</td>
-                <td>".agregar_guion_ultimo_caracter($ww["rut"])."</td>
+                <td>" . agregar_guion_ultimo_caracter($ww["rut"]) . "</td>
                 <td>$monto</td>
                 <td class='text-$classdeuda'>$deuda</td>
                 <td>
