@@ -1021,6 +1021,7 @@ function eliminarCotizacion(rowid) {
 }
 
 function printDataCotizacion(id, btn) {
+  currentCotizacion = null;
   if (btn) $(btn).prop("disabled", true);
   document.title = "cotizacion_" + id;
   $.ajax({
