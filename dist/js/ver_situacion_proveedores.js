@@ -1,6 +1,6 @@
 let currentCliente = null;
 let currentTab = null;
-
+let phpFileCompras = "class_lib/libredte/vendor/sasco/libredte/examples/data_ver_compras.php";
 const phpFile = "data_ver_situacion_proveedores.php";
 
 const meses = [
@@ -24,11 +24,12 @@ $(document).ready(function () {
   busca_clientes();
 
   $("#select-anio").html("");
-  const anio = new Date().getFullYear();
-  for (let i = 2022; i <= anio; i++) {
+  const anio = new Date().getFullYear()+10;
+  for (let i = 2024; i <= anio; i++) {
     $("#select-anio").append(`<option value="${i}">${i}</option>`);
   }
-  $("#select-anio").val(anio);
+  $(".selectpicker").selectpicker("refresh");
+  $("#select-anio").val(new Date().getFullYear());
   $(".selectpicker").selectpicker("refresh");
 });
 
@@ -117,6 +118,9 @@ function busca_clientes() {
           },
       ],
       });
+      $(function () {
+        $('[data-toggle="tooltip"]').tooltip()
+      })
     },
     error: function (jqXHR, estado, error) {
       $("#tabla_entradas").html(
@@ -567,6 +571,7 @@ function detalleDeuda(id_cliente, nombre_cliente){
     $("#modal-detalle-deuda").find(".modal-title").html("Detalle Deuda "+nombre_cliente)
   }
   $("#modal-detalle-deuda").attr("x-id-cliente", id_cliente)
+  $("#modal-detalle-deuda").attr("x-nombre-cliente", nombre_cliente)
   $("#modal-detalle-deuda").modal("show")
   $.ajax({
     beforeSend: function () {
@@ -574,7 +579,7 @@ function detalleDeuda(id_cliente, nombre_cliente){
     },
     url: phpFile,
     type: "POST",
-    data: { consulta: "cargar_detalle_deuda", id_cliente: id_cliente },
+    data: { consulta: "cargar_detalle_deuda", id_cliente: id_cliente, razonSocial: nombre_cliente },
     success: function (x) {
       $(".detalle-deuda").html(x);
     },

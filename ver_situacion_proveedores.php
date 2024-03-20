@@ -8,7 +8,7 @@
     <?php include "./class_lib/scripts.php"; ?>
     <script src="js/charts.min.js"></script>
     <script src="dist/js/check_permisos.js"></script>
-    <script src="dist/js/common/pagos.js?v=<?php echo $version ?>"></script>
+    <script src="dist/js/common/pagos_facturas_compra.js?v=<?php echo $version ?>"></script>
     <script src="dist/js/ver_situacion_proveedores.js?v=<?php echo $version ?>"></script>
 </head>
 
@@ -56,7 +56,7 @@
                                     PROVEEDORES</button>
                                 <button class="tablinks" onclick="abrirTab(event, 'porcobrar');">A PAGAR <i
                                         class="fa fa-line-chart text-muted"></i></button>
-                                <button class="tablinks" onclick="abrirTab(event, 'clientescondeuda');">DEUDA CON PROVEEDORES <i class="fa fa-line-chart text-muted"></i></button>
+                                <!-- <button class="tablinks" onclick="abrirTab(event, 'clientescondeuda');">DEUDA CON PROVEEDORES <i class="fa fa-line-chart text-muted"></i></button> -->
                             </div>
                         </div>
                     </div>
@@ -140,7 +140,7 @@
         </div>
     </div>
 
-    <?php include("modal_pagos.php") ?>
+    <?php include("modals/pagos.php");?>
 
 </body>
 

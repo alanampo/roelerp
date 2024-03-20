@@ -8,6 +8,7 @@
     <?php include "./class_lib/scripts.php"; ?>
     <script src="dist/js/check_permisos.js"></script>
     <script src="dist/js/ver_compras.js?v=<?php echo $version ?>"></script>
+    <script src="dist/js/common/pagos_facturas_compra.js?v=<?php echo $version ?>"></script>
     <script src="js/charts.min.js"></script>
 </head>
 
