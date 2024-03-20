@@ -46,18 +46,18 @@ function agregar_guion_ultimo_caracter($cadena) {
 if ($consulta == "get_situacion_proveedores") {
     $query = "SELECT
     GROUP_CONCAT(p.rut SEPARATOR ', ') as rut,
-    p.id AS proveedor_id,
+    MAX(p.id) AS proveedor_id,
     p.razonSocial AS razonSocial,
     SUM(f.montoTotal) AS total_facturas,
     IFNULL(SUM(pa.monto), 0) AS total_pagos
-    FROM
-        facturas_compra f
-    INNER JOIN proveedores p ON
-        f.id_proveedor = p.id
-    LEFT JOIN facturas_compra_pagos pa ON
-        pa.id_factura_compra = f.id
-    GROUP BY
-        p.razonSocial;
+FROM
+    facturas_compra f
+INNER JOIN proveedores p ON
+    f.id_proveedor = p.id
+LEFT JOIN facturas_compra_pagos pa ON
+    pa.id_factura_compra = f.id
+GROUP BY
+    p.razonSocial
     ";
     $val = mysqli_query($con, $query);
 
