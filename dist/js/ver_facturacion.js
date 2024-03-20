@@ -1177,6 +1177,7 @@ function loadGuias() {
 }
 
 function vistaPreviaGuiaDespacho(id, id_guia) {
+  currentCotizacion = null;
   $.ajax({
     url: "data_ver_cotizaciones.php",
     type: "POST",
@@ -1245,6 +1246,7 @@ function vistaPreviaGuiaDespacho(id, id_guia) {
 }
 
 function printDataCotizacion(id) {
+  currentCotizacion = null;
   $.ajax({
     url: "data_ver_cotizaciones.php",
     type: "POST",
@@ -1318,6 +1320,7 @@ function vistaPreviaReenviarFactura(
   caf,
   id_guia
 ) {
+  currentCotizacion = null;
   $.ajax({
     url: "data_ver_cotizaciones.php",
     type: "POST",
