@@ -77,15 +77,15 @@ function loadData(){
 function busca_clientes() {
   $.ajax({
     beforeSend: function () {
-      $("#tabla_entradas").html("Cargando clientes, espere...");
+      $("#tabla_entradas").html("Cargando, espere...");
     },
     url: phpFile,
     type: "POST",
-    data: { consulta: "busca_clientes" },
+    data: { consulta: "get_situacion_proveedores" },
     success: function (x) {
       $("#tabla_entradas").html(x);
 
-      $("#tabla").DataTable({
+      $("#tabla_hist").DataTable({
         order: [[1, "asc"]],
         pageLength: 50,
         language: {
@@ -110,6 +110,12 @@ function busca_clientes() {
             sortDescending: ": toca para ordenar en modo descendente",
           },
         },
+        columnDefs: [
+          {
+              targets: 0, // Primera columna (índice 0)
+              width: "250px", // Ancho máximo de 250px
+          },
+      ],
       });
     },
     error: function (jqXHR, estado, error) {

@@ -15,7 +15,66 @@ mysqli_query($con, "SET NAMES 'utf8'");
 
 $consulta = $_POST["consulta"];
 
-if ($consulta == "busca_clientes") {
+if ($consulta == "get_situacion_proveedores") {
+    $query = "SELECT
+    GROUP_CONCAT(p.rut SEPARATOR ', ') as rut,
+    p.id AS proveedor_id,
+    p.razonSocial AS razonSocial,
+    SUM(f.montoTotal) AS total_facturas,
+    IFNULL(SUM(pa.monto), 0) AS total_pagos
+    FROM
+        facturas_compra f
+    INNER JOIN proveedores p ON
+        f.id_proveedor = p.id
+    LEFT JOIN facturas_compra_pagos pa ON
+        pa.id_factura_compra = f.id
+    GROUP BY
+        p.razonSocial;
+    ";
+    $val = mysqli_query($con, $query);
+
+    if (mysqli_num_rows($val) > 0) {
+        echo "<div class='box box-primary'>";
+        echo "<div class='box-header with-border'>";
+        echo "<h3 class='box-title'>Situación Proveedores</h3>";
+        echo "</div>";
+        echo "<div class='box-body'>";
+        echo "<table id='tabla_hist' class='table table-bordered table-responsive w-100 d-block d-md-table'>";
+        echo "<thead>";
+        echo "<tr>";
+        echo "<th>RUT</th><th>Razón Social</th><th>Deuda</th><th></th>";
+        echo "</tr>";
+        echo "</thead>";
+        echo "<tbody>";
+
+        while ($ww = mysqli_fetch_array($val)) {
+            $balance = (float) $ww["total_facturas"] - (float) $ww["total_pagos"];
+            $deuda = $balance <= 0 ? 0 : number_format($balance, 0, ',', '.');
+
+            $numeros = explode(", ", $ww["rut"]);
+
+            // Recorrer cada número y agregar guion antes del último carácter
+            foreach ($numeros as &$numero) {
+                $numero = substr($numero, 0, -1) . "-" . substr($numero, -1);
+            }
+
+            // Unir los números modificados de nuevo en una cadena
+            $rut = implode(", ", $numeros);
+            echo "<tr style='cursor:pointer;'>";
+            echo "<td>$rut</td>";
+            echo "<td>$ww[razonSocial]</td>";
+            echo "<td class='text-" . ($balance <= 0 ? "success" : "danger") . "'>$$deuda</td>";
+            echo "<td><button onclick='detalleDeuda($ww[proveedor_id], \"$ww[razonSocial]\")' class='btn btn-primary btn fa fa-file'></button></td>";
+            echo "</tr>";
+        }
+        echo "</tbody>";
+        echo "</table>";
+        echo "</div>";
+        echo "</div>";
+    } else {
+        echo "<div class='callout callout-danger'><b>No se encontraron registros...</b></div>";
+    }
+} else if ($consulta == "busca_clientes") {
     $query = "SELECT
         c.id_cliente as id_cliente,
         c.nombre as nombre,
@@ -74,13 +133,11 @@ if ($consulta == "busca_clientes") {
             echo "<td><button onclick='detalleDeuda($id_cliente, \"$ww[nombre]\")' class='btn btn-primary btn fa fa-file'></button></td>";
             echo "<td><button onclick='generarFichaCliente($id_cliente)' class='btn btn-success btn fa fa-arrow-circle-right'></button></td>";
             echo "</tr>";
-
         }
         echo "</tbody>";
         echo "</table>";
         echo "</div>";
         echo "</div>";
-
     } else {
         echo "<div class='callout callout-danger'><b>No se encontraron clientes en la base de datos...</b></div>";
     }
@@ -197,7 +254,6 @@ if ($consulta == "busca_clientes") {
                     AND f.fecha < '$fechafin 00:00:00'
                 ) qpagos
             ) as qp$i,";
-
     }
     $querymeses = rtrim($querymeses, ",");
 
@@ -334,7 +390,6 @@ if ($consulta == "busca_clientes") {
                 </td>
                 </tr>";
             }
-
         }
         echo "</tbody>";
         echo "</table>";
