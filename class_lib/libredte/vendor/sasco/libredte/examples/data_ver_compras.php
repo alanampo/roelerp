@@ -260,7 +260,6 @@ if ($consulta == "get_compras") {
         print($th->getMessage());
     }
 } else if ($consulta == "get_historico_compras") {
-
     $query = "SELECT valor FROM config WHERE id = 'LAST_UPDATE_FACTURAS_COMPRA'";
     $val = mysqli_query($con, $query);
 
@@ -269,15 +268,36 @@ if ($consulta == "get_compras") {
         $lastUpdate = $row["valor"];
     }
     $success = false;
-    if (isset($_POST["isUpdating"]) && $_POST["isUpdating"] == 1) {
+    if ((isset($_POST["isUpdating"]) && $_POST["isUpdating"] == 1) || !isset($lastUpdate)) {
         $success = updateFacturas($config, $con);
         if ($success !== TRUE) {
             echo "<h4 class='text-danger'>Ocurrió un error al actualizar las facturas: $success</h4>";
             exit;
         }
+    } else if (isset($lastUpdate)) {
+        // Obtener la fecha y hora actual
+        $fechaActual = new DateTime();
+
+        // Crear un objeto DateTime desde la cadena con el formato especificado
+        $fechaGuardada = DateTime::createFromFormat("Y-m-d H:i:s", $lastUpdate);
+
+        if ($fechaGuardada !== false) {
+            // Calcular la diferencia entre las fechas
+            $diferencia = $fechaGuardada->diff($fechaActual);
+
+            // Obtener la diferencia en horas
+            $horasDiferencia = $diferencia->h + $diferencia->days * 24;
+
+            if ($horasDiferencia >= 24) {
+                $success = updateFacturas($config, $con);
+                if ($success !== TRUE) {
+                    echo "<h4 class='text-danger'>Ocurrió un error al actualizar las facturas: $success</h4>";
+                    exit;
+                }
+            } 
+        }
     }
 
-    
     $query = "SELECT p.razonSocial AS 'razonSocial', p.rut AS 'rut', f.fecha AS 'fecha', DATE_FORMAT(f.fecha, '%d/%m/%y') as fecha_formatted, f.folio AS 'folio', f.montoTotal AS 'montoTotal', f.iva AS 'iva', f.montoNeto AS 'montoNeto', f.id, (SELECT IFNULL(SUM(pa.monto),0) FROM facturas_compra_pagos pa WHERE pa.id_factura_compra = f.id) AS 'pagos' FROM facturas_compra f INNER JOIN proveedores p ON f.id_proveedor = p.id;
     ";
     $val = mysqli_query($con, $query);
@@ -285,7 +305,7 @@ if ($consulta == "get_compras") {
     if (mysqli_num_rows($val) > 0) {
         echo "<div class='box box-primary'>";
         echo "<div class='box-header with-border'>";
-        echo "<h3 class='box-title'>Facturas de Compra <small>Última actualización: ".(!isset($lastUpdate) ? "Nunca" : date("d/m/Y H:i", strtotime($lastUpdate)))."</small><button onclick='getComprasHistorico(true)' class='btn btn-sm btn-primary ml-2'>Actualizar</button></h3>";
+        echo "<h3 class='box-title'>Facturas de Compra <small>Última actualización: " . (!isset($lastUpdate) ? "Nunca" : date("d/m/Y H:i", strtotime($lastUpdate))) . "</small><button onclick='getComprasHistorico(true)' class='btn btn-sm btn-primary ml-2'>Actualizar</button></h3>";
         echo "</div>";
         echo "<div class='box-body'>";
         echo "<table id='tabla_hist' class='table table-bordered table-responsive w-100 d-block d-md-table'>";
@@ -402,8 +422,6 @@ function updateFacturas($config, $con)
     set_time_limit(360);
     $errors = array();
     try {
-
-
         $token = \sasco\LibreDTE\Sii\Autenticacion::getToken($config['firma']);
         if (!$token) {
             foreach (\sasco\LibreDTE\Log::readAll() as $error)
