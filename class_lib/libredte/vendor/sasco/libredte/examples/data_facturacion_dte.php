@@ -798,7 +798,7 @@ if ($consulta == "generar_factura") {
                 "comuna" => $comuna,
                 "condicion_pago" => $_POST["condicion_pago"],
             );
-            $DTEGenerado = generarFactura($mijson, $dataFolio, $folio, null, null);
+            $DTEGenerado = generarFactura($mijson, $dataFolio, $folio, null, null, ($observaciones && strlen($observaciones) > 0 ? $observaciones : NULL));
 
             if (!isset($DTEGenerado["errores"]) && isset($DTEGenerado["trackID"])) {
                 $track_id = $DTEGenerado["trackID"];
@@ -1521,7 +1521,7 @@ function getCondicionPago($val)
     return $condicion_pago;
 }
 
-function generarFactura($json, $dataFolio, $folio, $id_guia, $folio_guia)
+function generarFactura($json, $dataFolio, $folio, $id_guia, $folio_guia, $observaciones = null)
 {
     $arrayproductos = array();
     foreach ($json["productos"] as $producto) {
@@ -1542,6 +1542,7 @@ function generarFactura($json, $dataFolio, $folio, $id_guia, $folio_guia)
                 'IdDoc' => [
                     'TipoDTE' => 33,
                     'Folio' => $folio,
+                    'TermPagoGlosa' => $observaciones
                 ],
                 'Emisor' => $GLOBALS["Emisor"],
                 'Receptor' => [
