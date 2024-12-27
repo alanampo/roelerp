@@ -109,7 +109,20 @@ if ($consulta == "generar_factura") {
     $caf = $_POST["caf"];
     $folio = $_POST["folio"];
     $id_cotizacion = $_POST["id_cotizacion"];
-    $json = json_decode($_POST["data"], true);
+
+    $queryCotizaciones = "SELECT observaciones FROM cotizaciones WHERE id = $id_cotizacion";
+    $q = mysqli_query($con, $queryCotizaciones);
+    $observaciones = NULL;
+    if ($q) { 
+        $observaciones = mysqli_fetch_assoc($q);
+        $observaciones = $observaciones["observaciones"] && !empty($observaciones["observaciones"]) ? $observaciones["observaciones"] : NULL;
+    }
+    else{
+        echo json_encode(["error" => "Error al obtener las observaciones de la cotización"]);
+        die;
+    }
+
+    $json = json_decode($_POST["data"], true);    
 
     $id_guia = $_POST["id_guia"];
 
@@ -150,8 +163,8 @@ if ($consulta == "generar_factura") {
 
     if (mysqli_query($con, $query)) { // SE INSERTO LA FACTURA
         $id_fac = mysqli_insert_id($con);
-
-        $DTEGenerado = generarFactura($json, $dataFolio, $folio, $id_guia, $folio_guia);
+        //AGREGAR OBSERVACIONES
+        $DTEGenerado = generarFactura($json, $dataFolio, $folio, $id_guia, $folio_guia, $observaciones);
 
         if (!isset($DTEGenerado["errores"]) && isset($DTEGenerado["trackID"])) {
             $track_id = $DTEGenerado["trackID"];
@@ -799,7 +812,7 @@ if ($consulta == "generar_factura") {
                 "condicion_pago" => $_POST["condicion_pago"],
             );
             $DTEGenerado = generarFactura($mijson, $dataFolio, $folio, null, null, ($observaciones && strlen($observaciones) > 0 ? $observaciones : NULL));
-
+            
             if (!isset($DTEGenerado["errores"]) && isset($DTEGenerado["trackID"])) {
                 $track_id = $DTEGenerado["trackID"];
                 $datita = $DTEGenerado["data"];
