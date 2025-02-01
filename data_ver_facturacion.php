@@ -149,7 +149,7 @@ if ($consulta == "cargar_historial") { //FACTURAS
                 <td>$docRef</td>
                 <td $onclick><small>$ww[track_id]</small></td>
                 <td $onclick>$estado</td>
-                <td>" . ((strlen($ww["comentario"]) > 0 ? $ww["comentario"] : strlen($ww["comentario2"]) > 0) ? $ww["comentario2"] : "") . "</td>
+                <td>" . (($ww["comentario"] && strlen($ww["comentario"]) > 0 ? $ww["comentario"] : $ww["comentario2"] && strlen($ww["comentario2"]) > 0) ? $ww["comentario2"] : "") . "</td>
                 <td>$monto</td>
                 <td class='text-$classdeuda'>$deuda</td>
                 <td class='text-center'>
