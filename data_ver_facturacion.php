@@ -129,9 +129,11 @@ if ($consulta == "cargar_historial") { //FACTURAS
                 $productos = "";
                 foreach ($tmp as $producto) {
                     $tmp2 = explode("|", $producto);
-                    $productos.="<br><small>$tmp2[2] Bandejas de $tmp2[1] 
-                    <input type='checkbox' x-cantidad-band='$tmp2[2]' x-producto='$tmp2[1]' class='form-check-input' style='width:10px !important;height:10px !important; margin-top:8px; margin-left:5px'>
-                    </small>";
+                    if (isset($tmp2[2]) && isset($tmp2[1])){
+                        $productos.="<br><small>$tmp2[2] Bandejas de $tmp2[1] 
+                        <input type='checkbox' x-cantidad-band='$tmp2[2]' x-producto='$tmp2[1]' class='form-check-input' style='width:10px !important;height:10px !important; margin-top:8px; margin-left:5px'>
+                        </small>";
+                    }
                 }                
             }
             else{
@@ -147,7 +149,7 @@ if ($consulta == "cargar_historial") { //FACTURAS
                 <td>$docRef</td>
                 <td $onclick><small>$ww[track_id]</small></td>
                 <td $onclick>$estado</td>
-                <td>" . (isset($ww["comentario"]) && (strlen($ww["comentario"]) > 0 ? $ww["comentario"] : isset($ww2["comentario2"]) && strlen($ww["comentario2"]) > 0) ? $ww["comentario2"] : "") . "</td>
+                <td>" . ((strlen($ww["comentario"]) > 0 ? $ww["comentario"] : strlen($ww["comentario2"]) > 0) ? $ww["comentario2"] : "") . "</td>
                 <td>$monto</td>
                 <td class='text-$classdeuda'>$deuda</td>
                 <td class='text-center'>

@@ -665,7 +665,7 @@ async function printCotizacion(dataCotizacion) {
         </tr>                    
       `
       );
-      monto += parseInt(total.toString().replace(".", ""));
+      monto += parseInt(total.toString().replace(/\./g, ''));
       if (descuento) {
         const totaltemp = cantidad * precio;
         if (descuento.tipo == "fijo") {
@@ -957,7 +957,7 @@ function generarGuiaDespacho(folio, caf) {
           razon: razon,
           domicilio: domicilio,
           total: total,
-          rut: rut.replace(".", ""),
+          rut: rut.replace(/\./g, ''),
           rutTransporte: rutTransporte,
           rutChofer: rutChofer,
           patente: patente,

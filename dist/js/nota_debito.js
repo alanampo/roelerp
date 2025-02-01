@@ -676,7 +676,7 @@ async function printCotizacion(dataCotizacion) {
         </tr>                    
       `
       );
-      monto += parseInt(total.toString().replace(".", ""));
+      monto += parseInt(total.toString().replace(/\./g, ''));
       if (descuento) {
         const totaltemp = cantidad * precio;
         if (descuento.tipo == "fijo") {

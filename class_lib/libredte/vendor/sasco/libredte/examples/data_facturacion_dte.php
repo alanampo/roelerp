@@ -5,9 +5,9 @@ if (strpos($_SERVER['HTTP_HOST'], 'roelplant') !== false) {
     require $_SERVER['DOCUMENT_ROOT'] . '/class_lib/class_conecta_mysql.php';
     require $_SERVER['DOCUMENT_ROOT'] . '/class_lib/funciones.php';
 } else {
-    include $_SERVER['DOCUMENT_ROOT'] . "/roelerp/class_lib/sesionSecurity.php";
-    require $_SERVER['DOCUMENT_ROOT'] . '/roelerp/class_lib/class_conecta_mysql.php';
-    require $_SERVER['DOCUMENT_ROOT'] . '/roelerp/class_lib/funciones.php';
+    include $_SERVER['DOCUMENT_ROOT'] . "/erp/class_lib/sesionSecurity.php";
+    require $_SERVER['DOCUMENT_ROOT'] . '/erp/class_lib/class_conecta_mysql.php';
+    require $_SERVER['DOCUMENT_ROOT'] . '/erp/class_lib/funciones.php';
 }
 
 set_time_limit(0);
@@ -109,20 +109,7 @@ if ($consulta == "generar_factura") {
     $caf = $_POST["caf"];
     $folio = $_POST["folio"];
     $id_cotizacion = $_POST["id_cotizacion"];
-
-    $queryCotizaciones = "SELECT observaciones FROM cotizaciones WHERE id = $id_cotizacion";
-    $q = mysqli_query($con, $queryCotizaciones);
-    $observaciones = NULL;
-    if ($q) { 
-        $observaciones = mysqli_fetch_assoc($q);
-        $observaciones = $observaciones["observaciones"] && !empty($observaciones["observaciones"]) ? $observaciones["observaciones"] : NULL;
-    }
-    else{
-        echo json_encode(["error" => "Error al obtener las observaciones de la cotización"]);
-        die;
-    }
-
-    $json = json_decode($_POST["data"], true);    
+    $json = json_decode($_POST["data"], true);
 
     $id_guia = $_POST["id_guia"];
 
@@ -163,8 +150,8 @@ if ($consulta == "generar_factura") {
 
     if (mysqli_query($con, $query)) { // SE INSERTO LA FACTURA
         $id_fac = mysqli_insert_id($con);
-        //AGREGAR OBSERVACIONES
-        $DTEGenerado = generarFactura($json, $dataFolio, $folio, $id_guia, $folio_guia, $observaciones);
+
+        $DTEGenerado = generarFactura($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_cotizacion, $con);
 
         if (!isset($DTEGenerado["errores"]) && isset($DTEGenerado["trackID"])) {
             $track_id = $DTEGenerado["trackID"];
@@ -193,7 +180,7 @@ if ($consulta == "generar_factura") {
                 mysqli_rollback($con);
             }
         } else {
-            array_push($arrErrores, "ERROR_ENVIO_SII"." ".json_encode($DTEGenerado["errores"]));
+            array_push($arrErrores, "ERROR_ENVIO_SII" . " " . json_encode($DTEGenerado["errores"]));
         }
     } else {
         array_push($arrErrores, "ERROR_INSERT_FACTURA");
@@ -811,8 +798,8 @@ if ($consulta == "generar_factura") {
                 "comuna" => $comuna,
                 "condicion_pago" => $_POST["condicion_pago"],
             );
-            $DTEGenerado = generarFactura($mijson, $dataFolio, $folio, null, null, ($observaciones && strlen($observaciones) > 0 ? $observaciones : NULL));
-            
+            $DTEGenerado = generarFactura($mijson, $dataFolio, $folio, null, null);
+
             if (!isset($DTEGenerado["errores"]) && isset($DTEGenerado["trackID"])) {
                 $track_id = $DTEGenerado["trackID"];
                 $datita = $DTEGenerado["data"];
@@ -829,9 +816,9 @@ if ($consulta == "generar_factura") {
 
                     $val = mysqli_query($con, "SELECT mail FROM clientes WHERE id_cliente = $id_cliente");
                     $email = NULL;
-                    if (mysqli_num_rows($val)){
+                    if (mysqli_num_rows($val)) {
                         $d = mysqli_fetch_assoc($val);
-                        
+
                         if (isset($d["mail"]) && filter_var(isset($d["mail"]), FILTER_VALIDATE_EMAIL)) {
                             $email = $d["mail"];
                         }
@@ -1338,6 +1325,7 @@ if ($consulta == "generar_factura") {
 
 }
 
+
 function checkEstadoAndUpdate($id_fac, $tipoDTE, $con, $track_id)
 {
     $tablas = ["facturas", "notas_credito", "guias_despacho", "notas_debito"];
@@ -1365,7 +1353,7 @@ function generarPDF($data, $dir_logo, $track_id, $email)
     $Caratula = $EnvioDte->getCaratula();
     $Documentos = $EnvioDte->getDocumentos();
 
-// directorio temporal para guardar los PDF
+    // directorio temporal para guardar los PDF
     $dir = sys_get_temp_dir() . '/dte_' . $Caratula['RutEmisor'] . '_' . $Caratula['RutReceptor'] . '_' . str_replace(['-', ':', 'T'], '', $Caratula['TmstFirmaEnv']);
     if (is_dir($dir)) {
         \sasco\LibreDTE\File::rmdir($dir);
@@ -1375,7 +1363,7 @@ function generarPDF($data, $dir_logo, $track_id, $email)
         die('No fue posible crear directorio temporal para DTEs');
     }
 
-// procesar cada DTEs e ir agregándolo al PDF
+    // procesar cada DTEs e ir agregándolo al PDF
     foreach ($Documentos as $DTE) {
         if (!$DTE->getDatos()) {
             die('No se pudieron obtener los datos del DTE');
@@ -1406,7 +1394,7 @@ function generarPDF($data, $dir_logo, $track_id, $email)
             $subject = "Factura $id";
 
             $message = "Te enviamos una copia de la Factura N° $id correspondiente a tu compra.";
-            
+
             $from_name = "Roelplant";
             $from_mail = "ventas@roelplant.cl";
             $replyto = "ventas@roelplant.cl";
@@ -1513,7 +1501,7 @@ function getDataLogo()
         $dataimg = str_replace("data:image/jpg;base64,", "", $dataimg);
         file_put_contents($dir_logotmp, base64_decode($dataimg));
         return $dir_logotmp;
-    } catch (\Throwable$th) {
+    } catch (\Throwable $th) {
         die("Error al cargar el logo para las impresiones");
     }
     return null;
@@ -1534,10 +1522,20 @@ function getCondicionPago($val)
     return $condicion_pago;
 }
 
-function generarFactura($json, $dataFolio, $folio, $id_guia, $folio_guia, $observaciones = null)
+function generarFactura($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_cotizacion = null, $con = null)
 {
+    if (isset($con) && isset($id_cotizacion)) {
+        $dataCotizacion = getDataCotizacion($con, $id_cotizacion, false);
+        if (!isset($dataCotizacion)) {
+            die("No se encontró la cotización");
+        }
+    }
+    else{
+        $dataCotizacion = $json;
+    }
+
     $arrayproductos = array();
-    foreach ($json["productos"] as $producto) {
+    foreach ($dataCotizacion["productos"] as $producto) {
         array_push($arrayproductos, array(
             'NmbItem' => $producto["variedad"] . " (" . $producto["codigo"] . ") " . ($producto["especie"] && strlen($producto["especie"]) > 0 ? $producto["especie"] : ""),
             'QtyItem' => (int) $producto["cantidad"],
@@ -1547,7 +1545,7 @@ function generarFactura($json, $dataFolio, $folio, $id_guia, $folio_guia, $obser
         ));
     }
 
-    $condicion_pago = getCondicionPago($json["condicion_pago"]);
+    $condicion_pago = getCondicionPago($dataCotizacion["condicion_pago"]);
 
     $set_pruebas = [
         [
@@ -1555,15 +1553,14 @@ function generarFactura($json, $dataFolio, $folio, $id_guia, $folio_guia, $obser
                 'IdDoc' => [
                     'TipoDTE' => 33,
                     'Folio' => $folio,
-                    'TermPagoGlosa' => $observaciones
                 ],
                 'Emisor' => $GLOBALS["Emisor"],
                 'Receptor' => [
-                    'RUTRecep' => $json["rut"],
-                    'RznSocRecep' => $json["cliente"],
-                    'GiroRecep' => $json["giro"] ? strtoupper($json["giro"]) : "-",
-                    'DirRecep' => $json["domicilio"],
-                    'CmnaRecep' => $json["comuna"] ? strtoupper($json["comuna"]) : "-",
+                    'RUTRecep' => $dataCotizacion["rut"],
+                    'RznSocRecep' => $dataCotizacion["cliente"],
+                    'GiroRecep' => $dataCotizacion["giro"] ? strtoupper($dataCotizacion["giro"]) : "-",
+                    'DirRecep' => $dataCotizacion["domicilio"],
+                    'CmnaRecep' => $dataCotizacion["comuna"] ? strtoupper($dataCotizacion["comuna"]) : "-",
                 ],
             ],
             'Detalle' => $arrayproductos,
@@ -2084,10 +2081,10 @@ function getDataCotizacion($con, $id_cotizacion, $directa)
                     "total" => $total,
                     "subtotal" => $subtotal,
                     "descuento" => $ww2["tipo_descuento"] != null && $ww2["tipo_descuento"] > 0 ?
-                    array(
-                        "tipo" => $ww2["tipo_descuento"] == 1 ? "porcentual" : "fijo",
-                        "valor" => $ww2["valor_descuento"],
-                    ) : null,
+                        array(
+                            "tipo" => $ww2["tipo_descuento"] == 1 ? "porcentual" : "fijo",
+                            "valor" => $ww2["valor_descuento"],
+                        ) : null,
                 ));
             }
             $array = array(

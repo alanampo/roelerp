@@ -632,7 +632,7 @@ async function printCotizacion(dataCotizacion) {
         </tr>                    
       `
       );
-      monto += parseInt(total.toString().replace(".", ""));
+      monto += parseInt(total.toString().replace(/\./g, ''));
       if (descuento) {
         const totaltemp = cantidad * precio;
         if (descuento.tipo == "fijo") {
@@ -912,7 +912,7 @@ function generarFactura(id_cotizacion, id_guia, folioFACT, caf) {
           razon: razon,
           domicilio: domicilio,
           total: total,
-          rut: rut.replace(".","")
+          rut: rut.replace(/\./g, '')
         },
         success: function (x) {
           console.log(x)

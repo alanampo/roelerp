@@ -1255,6 +1255,7 @@ function printDataCotizacion(id) {
       id: id,
     },
     success: function (x) {
+      
       console.log(x);
       if (x && x.length) {
         try {
