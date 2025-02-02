@@ -31,7 +31,7 @@ mysqli_query($con, "SET NAMES 'utf8mb4'");
 $consulta = $_POST["consulta"];
 $GLOBALS['empresa'] = null;
 $dir_logo = null;
-if ($consulta == "generar_factura" || $consulta == "enviar_mail" || $consulta == "generar_factura_directa" || $consulta == "anular_factura" || $consulta == "anular_factura_antigua" || $consulta == "anular_nc" || $consulta == "get_estado_dte" || $consulta == "imprimir_dte" || $consulta == "generar_guia_despacho" || $consulta == "generar_guia_despacho_desde_cotizaciones" || $consulta == "check_estado_real" || $consulta == "reenviar_factura" || $consulta == "reenviar_nota_credito" || $consulta == "reenviar_nota_debito" || $consulta == "reenviar_guia_despacho" || $consulta == "get_ambiente" || $consulta == "generar_boleta") {
+if ($consulta == "generar_factura" || $consulta == "enviar_mail" || $consulta == "generar_factura_directa" || $consulta == "generar_boleta_directa" || $consulta == "anular_factura" || $consulta == "anular_factura_antigua" || $consulta == "anular_nc" || $consulta == "get_estado_dte" || $consulta == "imprimir_dte" || $consulta == "generar_guia_despacho" || $consulta == "generar_guia_despacho_desde_cotizaciones" || $consulta == "check_estado_real" || $consulta == "reenviar_factura" || $consulta == "reenviar_nota_credito" || $consulta == "reenviar_nota_debito" || $consulta == "reenviar_guia_despacho" || $consulta == "get_ambiente" || $consulta == "generar_boleta") {
     $query = "SELECT
             d.rut,
             d.razon_social as razon,
@@ -1037,7 +1037,173 @@ else if ($consulta == "prueba") {
         echo (json_encode($arrErrores));
     }
     mysqli_close($con);
-} else if ($consulta == "generar_guia_despacho") {
+}
+else if ($consulta == "generar_boleta_directa") {
+    $caf = $_POST["caf"];
+    $folio = $_POST["folioBOL"];
+    $id_cliente = $_POST["id_cliente"];
+    $json = json_decode($_POST["jsonarray"], true);
+    $monto = $_POST["total"];
+    $giro = mysqli_real_escape_string($con, $_POST["giro"]);
+    $razon = mysqli_real_escape_string($con, $_POST["razon"]);
+    $domicilio = mysqli_real_escape_string($con, $_POST["domicilio"]);
+    $comuna = mysqli_real_escape_string($con, $_POST["comuna"]);
+    $rut = mysqli_real_escape_string($con, $_POST["rut"]);
+    $observaciones = mysqli_real_escape_string($con, $_POST["observaciones"]);
+    $arrErrores = array();
+    $dir_logo = getDataLogo();
+
+    $tmpFolios = getDataFolios($con, $caf, null);
+    if ($tmpFolios == null) {
+        die("[ERROR_GET_CAF]");
+    }
+    $dataFolio = $tmpFolios["data"];
+
+    mysqli_autocommit($con, false);
+
+    $query = "INSERT INTO cotizaciones_directas (
+            id_cliente,
+            observaciones,
+            fecha,
+            condicion_pago,
+            monto)
+            VALUES (
+                $id_cliente,
+                '$observaciones',
+                NOW(),
+                $_POST[condicion_pago],
+                '$monto'
+            )";
+
+    if (!mysqli_query($con, $query)) {
+        array_push($errores, mysqli_error($con));
+        array_push($arrErrores, "ERROR_INSERT_COTD");
+    }
+
+    $id_cotizacion_directa = mysqli_insert_id($con);
+
+    foreach ($json as $producto) {
+        $id_variedad = $producto["id_variedad"];
+        $cantidad = $producto["cantidad"];
+        $id_especie = $producto["id_especie"];
+        $precio = $producto["precio"];
+        $descuento = $producto["descuento"];
+
+        $tipo_descuento = "NULL";
+        $valor_descuento = "NULL";
+        if ($descuento != null && isset($descuento) && isset($descuento["tipo"]) && $descuento["tipo"] != null) {
+            if ($descuento["tipo"] == "porcentual") {
+                $tipo_descuento = 1;
+                $valor_descuento = $descuento["valor"];
+            } else if ($descuento["tipo"] == "fijo") {
+                $tipo_descuento = 2;
+                $valor_descuento = $descuento["valor"];
+            }
+        }
+
+        $id_especie = strlen($id_especie) > 0 ? $id_especie : "NULL";
+        $query = "INSERT INTO cotizaciones_directas_productos (
+                        id_variedad,
+                        cantidad,
+                        id_cotizacion_directa,
+                        id_especie,
+                        precio_unitario,
+                        tipo_descuento,
+                        valor_descuento
+                        )
+                        VALUES (
+                            $id_variedad,
+                            $cantidad,
+                            $id_cotizacion_directa,
+                            $id_especie,
+                            '$precio',
+                            $tipo_descuento,
+                            $valor_descuento
+                        );";
+        if (!mysqli_query($con, $query)) {
+            array_push($errores, mysqli_error($con));
+            array_push($arrErrores, "ERROR_INSERT_COTD_PROD");
+        }
+    }
+
+    $query = "INSERT INTO boletas (
+                folio,
+                fecha,
+                id_cotizacion_directa,
+                caf,
+                id_usuario,
+                estado
+            ) VALUES (
+                $folio,
+                NOW(),
+                $id_cotizacion_directa,
+                $caf,
+                $_SESSION[id_usuario],
+                'NOENV'
+            )";
+
+    if (!mysqli_query($con, $query)) {
+        array_push($errores, mysqli_error($con));
+        array_push($arrErrores, "ERROR_INSERT_BOLETA");
+    }
+
+    if (count($arrErrores) === 0) {
+        $id_fac = mysqli_insert_id($con);
+        if (mysqli_commit($con)) {
+            $mijson = array(
+                "productos" => $json,
+                "rut" => $rut,
+                "cliente" => $razon,
+                "giro" => $giro,
+                "domicilio" => $domicilio,
+                "comuna" => $comuna,
+                "condicion_pago" => $_POST["condicion_pago"],
+            );
+            $DTEGenerado = generarBoleta($mijson, $dataFolio, $folio, null, null);
+
+            if (!isset($DTEGenerado["errores"]) && isset($DTEGenerado["trackID"])) {
+                $track_id = $DTEGenerado["trackID"];
+                $datita = $DTEGenerado["data"];
+                mysqli_autocommit($con, false);
+                $query = "UPDATE boletas SET track_id = '$track_id', data = '$datita', estado = 'EPR' WHERE rowid = $id_fac";
+                if (!mysqli_query($con, $query)) {
+                    array_push($errores, mysqli_error($con));
+                    array_push($arrErrores, "SII_SUCCESS_BUT_ERROR_UPDATE_TRACKID");
+                }
+
+                if (mysqli_commit($con)) {
+                    checkEstadoAndUpdate($id_fac, 0, $con, $track_id);
+                    $dir_logo = getDataLogo();
+
+                    $val = mysqli_query($con, "SELECT mail FROM clientes WHERE id_cliente = $id_cliente");
+                    $email = NULL;
+                    if (mysqli_num_rows($val)) {
+                        $d = mysqli_fetch_assoc($val);
+
+                        if (isset($d["mail"]) && filter_var(isset($d["mail"]), FILTER_VALIDATE_EMAIL)) {
+                            $email = $d["mail"];
+                        }
+
+                    }
+                    generarPDF(base64_decode($datita), $dir_logo, $track_id, $email, true);
+                } else {
+                    mysqli_rollback($con);
+                }
+            } else {
+                array_push($arrErrores, "ERROR_ENVIO_SII");
+            }
+        } else {
+            array_push($arrErrores, "ERROR_INSERT_BOLETA");
+            array_push($errores, mysqli_error($con));
+        }
+    }
+
+    if (count($arrErrores) > 0) {
+        echo (json_encode($arrErrores));
+    }
+    mysqli_close($con);
+}
+else if ($consulta == "generar_guia_despacho") {
     $id_cliente = $_POST["id_cliente"];
     $condicion_pago = $_POST["condicion_pago"];
     $giro = $_POST["giro"];
