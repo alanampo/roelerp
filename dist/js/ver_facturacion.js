@@ -895,8 +895,8 @@ function generarBoleta(id_cotizacion, id_guia, folio, caf) {
   });
 }
 
-function reenviarFactura(rowid_factura) {
-  swal("Reenviar FACTURA al SII?", "", {
+function reenviarFactura(rowid_factura, esBoleta) {
+  swal("Reenviar "+(esBoleta ? "BOLETA" : "FACTURA")+" al SII?", "", {
     icon: "info",
     buttons: {
       cancel: "NO",
@@ -923,6 +923,7 @@ function reenviarFactura(rowid_factura) {
             caf: caf,
             id_guia: id_guia && id_guia.length ? id_guia : null,
             data: JSON.stringify(currentCotizacion.data),
+            esBoleta: esBoleta ? 1 : 0
           },
           success: function (x) {
             console.log(x);
@@ -932,29 +933,29 @@ function reenviarFactura(rowid_factura) {
               reloadData();
               window
                 .open(
-                  `verpdf.php?tipo=FACT&folio=${folio}&file=${data.path}`,
+                  `verpdf.php?tipo=${esBoleta ? "BOL" : "FACT"}&folio=${folio}&file=${data.path}`,
                   "_blank"
                 )
                 .focus();
               $(".loading-wrapper").css({ display: "none" });
               $("#modal-vistaprevia").modal("hide");
               swal(
-                "Enviaste la Factura correctamente!",
-                "Chequea su estado clickeando sobre el TRACK ID en Historial de Facturas",
+                "Enviaste la "+(esBoleta ? "Boleta" : "Factura")+" correctamente!",
+                "Chequea su estado clickeando sobre el TRACK ID en Historial de "+(esBoleta ? "Boleta" : "Factura")+"s",
                 "success"
               );
             } else if (x.includes("SII_SUCCESS_BUT")) {
               $(".loading-wrapper").css({ display: "none" });
               swal(
-                "La Factura SE ENVIÓ AL SII, pero hubo un error al actualizar los datos en LA BD.",
+                "La "+(esBoleta ? "Boleta" : "Factura")+" SE ENVIÓ AL SII, pero hubo un error al actualizar los datos en LA BD.",
                 "POR FAVOR COMUNICATE CON SOPORTE ANTES DE CONTINUAR" + x,
                 "error"
               );
             } else if (x.includes("ERROR_ENVIO_SII")) {
               $(".loading-wrapper").css({ display: "none" });
-              swal("Error al Enviar la Factura al SII", "", "error");
+              swal("Error al Enviar la "+(esBoleta ? "Boleta" : "Factura")+" al SII", "", "error");
             } else {
-              swal("Ocurrió un error al generar la Factura", x, "error");
+              swal("Ocurrió un error al generar la "+(esBoleta ? "Boleta" : "Factura"), x, "error");
               $(".loading-wrapper").css({ display: "none" });
             }
           },
@@ -1026,6 +1027,8 @@ function getEstadoDTE(trackID, facturaID, tipoDoc, estadoActual, rowid) {
         ? "Guía de Despacho"
         : tipoDoc == 3
         ? "Nota Débito"
+        : tipoDoc == 4
+        ? "Boleta"
         : "DTE"
     } N° ${facturaID} <small class='text-muted'>(${trackID})</small>`
   );
@@ -1202,15 +1205,15 @@ function loadNotas() {
   });
 }
 
-function modalAnularFactura(rowid, folio, esFactDirecta, id_cliente) {
+function modalAnularFactura(rowid, folio, esFactDirecta, id_cliente, esBoleta) {
   $("#modal-anular-factura").attr("x-id-cliente", id_cliente);
   $("#modal-anular-factura").attr("x-fact-directa", esFactDirecta);
-  getFoliosDisponibles(null, rowid, 61, folio, null);
+  getFoliosDisponibles(null, rowid, 61, folio, null, esBoleta);
   $("#input-comentario").val("");
   $("#modal-anular-factura").modal("show");
 }
 
-function anularFactura(rowid, folioRef, folioNC, cafNC) {
+function anularFactura(rowid, folioRef, folioNC, cafNC, esBoleta) {
   const caf = cafNC;
   const folio = folioNC;
   const comentario = $("#input-comentario").val().trim();
@@ -1236,6 +1239,7 @@ function anularFactura(rowid, folioRef, folioNC, cafNC) {
         $("#modal-anular-factura").attr("x-fact-directa") == "true"
           ? true
           : false,
+      esBoleta: esBoleta ? 1 : 0
     },
     success: function (x) {
       console.log(x);
@@ -1247,7 +1251,7 @@ function anularFactura(rowid, folioRef, folioNC, cafNC) {
         $(".loading-wrapper").css({ display: "none" });
         $("#modal-anular-factura").modal("hide");
         swal(
-          "Anulaste la Factura correctamente!",
+          `Anulaste la ${esBoleta ? "Boleta" : "Factura"} correctamente!`,
           "Chequea su estado clickeando sobre el TRACK ID",
           "success"
         );
@@ -1468,7 +1472,8 @@ function vistaPreviaReenviarFactura(
   folio,
   rowid_factura,
   caf,
-  id_guia
+  id_guia,
+  esBoleta
 ) {
   currentCotizacion = null;
   $.ajax({
@@ -1527,7 +1532,7 @@ function vistaPreviaReenviarFactura(
 
           $(".row-select-folio").html(`
             <div class="col col-md-6">
-              <button onclick="reenviarFactura(${rowid_factura})" class="btn btn-success"><i class="fa fa-arrow-circle-right"></i> REENVIAR FACTURA</button>
+              <button onclick="reenviarFactura(${rowid_factura}, ${esBoleta.toString()})" class="btn btn-success"><i class="fa fa-arrow-circle-right"></i> REENVIAR ${esBoleta ? "BOLETA" : "FACTURA"}</button>
             </div>
           
           `);
@@ -1547,6 +1552,7 @@ function eliminarDTE(rowid, tipoDTE) {
     "Nota de Crédito",
     "Guía de Despacho",
     "Nota de Débito",
+    "Boleta"
   ];
   swal(`Estás seguro/a de ELIMINAR la ${tipos[tipoDTE]}?`, "", {
     icon: "warning",

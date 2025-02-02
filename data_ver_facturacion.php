@@ -252,7 +252,7 @@ else if ($consulta == "cargar_historial_boletas") { //BOLETAS
 
             $esFactDirecta = ($ww["id_cotizacion_directa"] != null ? "true" : "false");
 
-            $btn_cancelar_factura = ($ww["estado"] == "ACEPTADO" ? "<button onclick='modalAnularBoleta($ww[rowid], $ww[folio], $esFactDirecta, $ww[id_cliente])' class='btn btn-danger fa fa-ban btn-sm mr-2'></button>" : "");
+            $btn_cancelar_factura = ($ww["estado"] == "ACEPTADO" ? "<button onclick='modalAnularFactura($ww[rowid], $ww[folio], $esFactDirecta, $ww[id_cliente], true)' class='btn btn-danger fa fa-ban btn-sm mr-2'></button>" : "");
             $btn_print = ($ww["track_id"] ? "<button onclick='printDTE(this, $ww[rowid], $ww[folio], 10)' class='btn btn-primary fa fa-print btn-sm mr-2'></button>" : "");
 
             $montoint = (int)$ww["monto"];
@@ -262,19 +262,19 @@ else if ($consulta == "cargar_historial_boletas") { //BOLETAS
             $onclick = "";
 
             if ($ww["estado"] === "NOENV" && !$ww["track_id"]) {
-                $onclick = "onclick='vistaPreviaReenviarBoleta(" . ($ww['id_cotizacion'] != null ? $ww['id_cotizacion'] : $ww['id_cotizacion_directa']) . ", " . ($ww['id_cotizacion_directa'] ? "true" : "false") . ", $ww[folio], $ww[rowid], $ww[caf], $id_guia)'";
+                $onclick = "onclick='vistaPreviaReenviarFactura(" . ($ww['id_cotizacion'] != null ? $ww['id_cotizacion'] : $ww['id_cotizacion_directa']) . ", " . ($ww['id_cotizacion_directa'] ? "true" : "false") . ", $ww[folio], $ww[rowid], $ww[caf], $id_guia, true)'";
             } else if ($ww["estado"] === "NOENV" || !isset($ww["estado"]) || $ww["estado"] === "EPR" || $ww["estado"] === "RECHAZADO" || $ww["estado"] === "ACEPTADO") {
-                $onclick = "onclick='getEstadoDTE($ww[track_id], $ww[folio], 0, \"$ww[estado]\", $ww[rowid])'";
+                $onclick = "onclick='getEstadoDTE($ww[track_id], $ww[folio], 4, \"$ww[estado]\", $ww[rowid])'";
             }
 
-            $btn_eliminar = ($ww["estado"] == "NOENV" && !$ww["track_id"]) ? "<button class='btn btn-danger fa fa-trash btn-sm ml-2' onClick='eliminarDTE($ww[rowid], 0)'></button>" : "";
+            $btn_eliminar = ($ww["estado"] == "NOENV" && !$ww["track_id"]) ? "<button class='btn btn-danger fa fa-trash btn-sm ml-2' onClick='eliminarDTE($ww[rowid], 4)'></button>" : "";
 
             $docRef = "";
 
             if (isset($ww["id_guia_despacho"])) {
                 $docRef = "GUÍA DESP. $ww[id_guia_despacho]";
             } else if (isset($ww["id_cotizacion_directa"])) {
-                $docRef = "FACT.<br>DIRECTA";
+                $docRef = "BOL.<br>DIRECTA";
                 $productos = $ww["productos_cotizados_directa"];
             } else if (isset($ww["id_cotizacion"])) {
                 $docRef = $ww["id_cotizacion"];
@@ -492,7 +492,7 @@ else if ($consulta == "cargar_cotizacion") {
                 <td>$estado</td>
                 <td class='text-center'>
                         <div class='d-flex flex-row justify-content-center align-items-center'>
-                            <button onclick='printDataCotizacion($ww[id], true)' class='btn btn-success fa fa-edit mr-4'></button>
+                            <button onclick='printDataCotizacion($ww[id], ".($isBoleta ? "true" : "false").")' class='btn btn-success fa fa-edit mr-4'></button>
                         </div>
                 </td>
                 </tr>";
@@ -963,9 +963,32 @@ UNION
         if (!mysqli_query($con, $query)) {
             $errors[] = mysqli_error($con);
         }
+        $query = "UPDATE boletas SET id_guia_despacho = NULL WHERE id_guia_despacho = $rowid;";
+        if (!mysqli_query($con, $query)) {
+            $errors[] = mysqli_error($con);
+        }
     }
+    else if ($tipoDTE == 4) { // ES BOLETA
+        $query = "SELECT * FROM guias_despacho WHERE id_boleta = $rowid";
+        $guias = mysqli_query($con, $query);
+        $query = "SELECT * FROM notas_credito WHERE id_boleta = $rowid";
+        $notas = mysqli_query($con, $query);
 
-    $tablas = ["facturas", "notas_credito", "guias_despacho", "notas_debito"];
+        mysqli_autocommit($con, false);
+        if (mysqli_num_rows($guias) > 0) {
+            $query = "UPDATE guias_despacho SET id_factura = NULL, id_boleta = NULL WHERE id_boleta = $rowid;";
+            if (!mysqli_query($con, $query)) {
+                $errors[] = mysqli_error($con);
+            }
+        }
+        if (mysqli_num_rows($notas) > 0) {
+            $query = "UPDATE notas_credito SET id_factura = NULL, id_boleta = NULL WHERE id_boleta = $rowid;";
+            if (!mysqli_query($con, $query)) {
+                $errors[] = mysqli_error($con);
+            }
+        }
+    }
+    $tablas = ["facturas", "notas_credito", "guias_despacho", "notas_debito", "boletas"];
 
     $query = "DELETE FROM $tablas[$tipoDTE] WHERE rowid = $rowid;";
     if (!mysqli_query($con, $query)) {

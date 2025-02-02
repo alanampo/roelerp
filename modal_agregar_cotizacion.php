@@ -33,7 +33,7 @@
             title="Selecciona Variedad"
             class="selectpicker"
             data-style="btn-info"
-            data-container="container-vari"
+            data-container="#modal-agregar-producto"
             data-size="10"
             data-live-search="true"
             data-dropup-auto="false"

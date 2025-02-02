@@ -69,12 +69,15 @@ a {
 
 .modal-add-cotizacion {
   background-color: #fefefe;
-  margin: 0 30%; /* 15% from the top and centered */
   padding: 10px;
   border: 1px solid #888;
-  width: 40% !important; /* Could be more or less, depending on screen size */
-  height: 80%;
-  overflow-y: auto;
+  min-width: 60vw !important; /* Could be more or less, depending on screen size */
+  height: 90vh;
+  overflow: auto;
+  position: fixed; /* Posición fija para centrar en la pantalla */
+  top: 50%; /* Lo mueve al 50% del viewport */
+  left: 50%; /* Lo mueve al 50% del viewport */
+  transform: translate(-50%, -50%); /* Centra exactamente en el medio */
 }
 
 .modal-vistaprevia {
@@ -125,6 +128,11 @@ a {
   padding: 10px;
   border: 1px solid #888;
   width: 40%; /* Could be more or less, depending on screen size */
+}
+
+.dropdown-menu li a {
+  white-space: normal !important; /* Permite que el texto se ajuste */
+  word-wrap: break-word; /* Rompe palabras largas */
 }
 
 .modal-control {

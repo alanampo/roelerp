@@ -194,7 +194,7 @@ $fecha = $dias[date('w')] . " " . date('d') . " de " . $meses[date('n') - 1] . "
                 <div class="col text-right">
                   <button
                     onclick="location.href = 'boleta_directa.php'"
-                    class="btn btn-primary btn-sm"
+                    class="btn btn-warning btn-sm"
                   >
                     <i class="fa fa-plus-square"></i> BOLETA DIRECTA
                   </button>

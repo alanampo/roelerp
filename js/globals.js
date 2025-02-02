@@ -65,7 +65,8 @@ function getFoliosDisponibles(
   rowid,
   tipoDocumento,
   folioRef,
-  id_guia
+  id_guia,
+  esBoleta
 ) {
   $(".row-select-folio").html(``);
   $.ajax({
@@ -101,7 +102,7 @@ function getFoliosDisponibles(
               </div>`
                   : tipoDocumento == 61
                   ? `<div class="col-12 mb-2">
-              <h5>Anular Factura N° ${folioRef} (Emitir Nota de Crédito)</h5>
+              <h5>Anular ${esBoleta ? "Boleta" : "Factura"} N° ${folioRef} (Emitir Nota de Crédito)</h5>
               </div>`
                   : tipoDocumento == 52
                   ? `<div class="col-12 mb-2">
@@ -141,7 +142,7 @@ function getFoliosDisponibles(
                       ? `<button id="btn-generar" class="btn btn-success btn-block"
                       onclick="generarGuiaDespacho(${data.folio}, ${data.rowid_caf})"><i class="fa fa-arrow-circle-right"></i> GENERAR GUÍA</button>`
                       : `<button id="btn-anular" class="btn btn-danger btn-block"
-                      onclick="anularFactura(${rowid}, ${folioRef}, ${data.folio}, ${data.rowid_caf})"><i class="fa fa-ban"></i> ANULAR</button>`
+                      onclick="anularFactura(${rowid}, ${folioRef}, ${data.folio}, ${data.rowid_caf}, ${esBoleta})"><i class="fa fa-ban"></i> ANULAR</button>`
                   }
               </div>
           `);

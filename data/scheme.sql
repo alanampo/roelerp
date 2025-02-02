@@ -71,3 +71,17 @@ CREATE TABLE `boletas_pagos` (
   CONSTRAINT `boletas_pagos_ibfk_1` FOREIGN KEY (`rowid_boleta`) REFERENCES `boletas` (`rowid`),
   CONSTRAINT `boletas_pagos_ibfk_2` FOREIGN KEY (`rowid_cotizacion`) REFERENCES `cotizaciones` (`id`)
 );
+
+ALTER TABLE `notas_credito` ADD `id_boleta` INT NULL DEFAULT NULL AFTER `id_factura`;
+
+ALTER TABLE notas_credito
+ADD CONSTRAINT fk_id_boleta
+FOREIGN KEY (id_boleta) 
+REFERENCES boletas(rowid);
+
+ALTER TABLE `guias_despacho` ADD `id_boleta` INT NULL DEFAULT NULL AFTER `id_factura`;
+
+ALTER TABLE guias_despacho
+ADD CONSTRAINT fk_id_boleta2
+FOREIGN KEY (id_boleta) 
+REFERENCES boletas(rowid);

@@ -252,7 +252,7 @@ else if ($consulta == "generar_boleta") {
             }
 
             if ($id_guia != null && $id_guia != "null") {
-                $query = "UPDATE guias_despacho SET id_factura = '$id_fac' WHERE rowid = $id_guia";
+                $query = "UPDATE guias_despacho SET id_boleta = '$id_fac' WHERE rowid = $id_guia";
                 if (!mysqli_query($con, $query)) {
                     array_push($errores, mysqli_error($con));
                     array_push($arrErrores, "SII_SUCCESS_BUT_ERROR_UPDATE_IDFAC_GUIA");
@@ -260,7 +260,7 @@ else if ($consulta == "generar_boleta") {
             }
 
             if (mysqli_commit($con)) {
-                checkEstadoAndUpdate($id_fac, 0, $con, $track_id);
+                checkEstadoAndUpdate($id_fac, 4, $con, $track_id);
                 $dir_logo = getDataLogo();
                 generarPDF(base64_decode($datita), $dir_logo, $track_id, $json["email"], true);
                 //MODIFICAR ACA
@@ -381,23 +381,29 @@ else if ($consulta == "prueba") {
     $id_fac = $_POST["rowid_factura"];
     $id_guia = $_POST["id_guia"];
     $dataFolio = getDataFolios($con, $_POST["caf"], $id_guia);
-
+    $esBoleta = $_POST["esBoleta"] == 1 ? TRUE : FALSE;
     if (isset($dataFolio["data"])) {
-        $DTEGenerado = generarFactura($json, $dataFolio["data"], $_POST["folio"], $id_guia, $dataFolio["folio_guia"]);
+        if (!$esBoleta !== TRUE){
+            $DTEGenerado = generarFactura($json, $dataFolio["data"], $_POST["folio"], $id_guia, $dataFolio["folio_guia"]);
+        }   
+        else{
+            $DTEGenerado = generarBoleta($json, $dataFolio["data"], $_POST["folio"], $id_guia, $dataFolio["folio_guia"]);
+        }
+        
         $errores = [];
         $arrErrores = [];
         if (!isset($DTEGenerado["errores"]) && isset($DTEGenerado["trackID"])) {
             $track_id = $DTEGenerado["trackID"];
             $datita = $DTEGenerado["data"];
             mysqli_autocommit($con, false);
-            $query = "UPDATE facturas SET track_id = '$track_id', data = '$datita', estado = 'EPR' WHERE rowid = $id_fac";
+            $query = "UPDATE ".($esBoleta ? "boletas" : "facturas")." SET track_id = '$track_id', data = '$datita', estado = 'EPR' WHERE rowid = $id_fac";
             if (!mysqli_query($con, $query)) {
                 array_push($errores, mysqli_error($con));
                 array_push($arrErrores, "SII_SUCCESS_BUT_ERROR_UPDATE_TRACKID");
             }
 
             if (isset($id_guia) && strlen($id_guia) > 0) {
-                $query = "UPDATE guias_despacho SET id_factura = '$id_fac' WHERE rowid = $id_guia";
+                $query = "UPDATE guias_despacho SET id_".($esBoleta ? "boleta" : "factura")." = '$id_fac' WHERE rowid = $id_guia";
                 if (!mysqli_query($con, $query)) {
                     array_push($errores, mysqli_error($con));
                     array_push($arrErrores, "SII_SUCCESS_BUT_ERROR_UPDATE_IDFAC_GUIA");
@@ -405,9 +411,9 @@ else if ($consulta == "prueba") {
             }
 
             if (mysqli_commit($con)) {
-                checkEstadoAndUpdate($id_fac, 0, $con, $track_id);
+                checkEstadoAndUpdate($id_fac, 4, $con, $track_id);
                 $dir_logo = getDataLogo();
-                generarPDF(base64_decode($datita), $dir_logo, $track_id, null);
+                generarPDF(base64_decode($datita), $dir_logo, $track_id, null, $esBoleta);
             } else {
                 mysqli_rollback($con);
             }
@@ -424,10 +430,10 @@ else if ($consulta == "prueba") {
     $rowid_factura = $_POST["rowid_factura"];
     $folio_factura = $_POST["folio_factura"];
     $esFactDirecta = (boolean) json_decode(strtolower($_POST["esDirecta"]));
-
+    $esBoleta = $_POST["esBoleta"] == 1 ? TRUE : FALSE;
     $dir_logo = getDataLogo();
 
-    $dataFactura = getDataFactura($con, $rowid_factura, $esFactDirecta);
+    $dataFactura = getDataFactura($con, $rowid_factura, $esFactDirecta, $esBoleta);
     if ($dataFactura == null) {
         die("[ERROR_GET_DATA_FACTURA]");
     }
@@ -440,14 +446,14 @@ else if ($consulta == "prueba") {
     $dataFolio = $tmpFolios["data"];
     $condicion_pago = getCondicionPago($dataFactura["condicion_pago"]);
     $arrErrores = [];
-    $DTEGenerado = generarNotaCredito($dataFolio, $folio, $folio_factura, $dataFactura);
+    $DTEGenerado = generarNotaCredito($dataFolio, $folio, $folio_factura, $dataFactura, $esBoleta);
 
     if (!isset($DTEGenerado["errores"]) && isset($DTEGenerado["trackID"])) {
         mysqli_autocommit($con, false);
         $track_id = $DTEGenerado["trackID"];
         $datita = $DTEGenerado["data"];
 
-        $query = "UPDATE facturas SET estado = 'ANU' WHERE rowid = $rowid_factura;";
+        $query = "UPDATE ".($esBoleta ? "boletas" : "facturas")." SET estado = 'ANU' WHERE rowid = $rowid_factura;";
         if (!mysqli_query($con, $query)) {
             array_push($errores, mysqli_error($con));
             array_push($arrErrores, "SII_SUCCESS_BUT_ERROR_UPDATE_ESTADO_FACTURA");
@@ -524,15 +530,18 @@ else if ($consulta == "prueba") {
     $folio_factura = $_POST["folioRef"];
     $caf = $_POST["caf"];
     $id_cliente = $_POST["id_cliente"];
+    $esBoleta = $_POST["esBoleta"] == 1 ? TRUE : FALSE;
     $esFactDirecta = (boolean) json_decode(strtolower($_POST["esFactDirecta"]));
     $comentario = mysqli_real_escape_string($con, $_POST["comentario"]);
     $arrErrores = array();
     $dir_logo = getDataLogo();
 
+    $tabla = $esBoleta ? "boleta" : "factura";
+
     $query = "INSERT INTO notas_credito (
         folio,
         fecha,
-        id_factura,
+        id_$tabla,
         caf,
         comentario,
         id_cliente,
@@ -549,7 +558,7 @@ else if ($consulta == "prueba") {
 
     if (mysqli_query($con, $query)) { // SE INSERTO LA NOTA DE CREDITO
         $id_nc = mysqli_insert_id($con);
-        $dataFactura = getDataFactura($con, $rowid_factura, $esFactDirecta);
+        $dataFactura = getDataFactura($con, $rowid_factura, $esFactDirecta, $esBoleta);
         if ($dataFactura == null) {
             die("[ERROR_GET_DATA_FACTURA]");
         }
@@ -562,14 +571,14 @@ else if ($consulta == "prueba") {
         $dataFolio = $tmpFolios["data"];
         $condicion_pago = getCondicionPago($dataFactura["condicion_pago"]);
 
-        $DTEGenerado = generarNotaCredito($dataFolio, $folio, $folio_factura, $dataFactura);
+        $DTEGenerado = generarNotaCredito($dataFolio, $folio, $folio_factura, $dataFactura, $esBoleta);
 
         if (!isset($DTEGenerado["errores"]) && isset($DTEGenerado["trackID"])) {
             mysqli_autocommit($con, false);
             $track_id = $DTEGenerado["trackID"];
             $datita = $DTEGenerado["data"];
 
-            $query = "UPDATE facturas SET estado = 'ANU' WHERE rowid = $rowid_factura;";
+            $query = "UPDATE ".$tabla."s SET estado = 'ANU' WHERE rowid = $rowid_factura;";
             if (!mysqli_query($con, $query)) {
                 array_push($errores, mysqli_error($con));
                 array_push($arrErrores, "SII_SUCCESS_BUT_ERROR_UPDATE_ESTADO_FACTURA");
@@ -857,7 +866,7 @@ else if ($consulta == "prueba") {
         die("[ERROR_GET_DATA_CLIENTE]");
     }
 } else if ($consulta == "get_ambiente") {
-    if (\sasco\LibreDTE\Sii::getAmbiente() == \sasco\LibreDTE\Sii::CERTIFICACION) {
+    if (\sasco\LibreDTE\Sii::getAmbiente() == \sasco\LibreDTE\Sii::PRODUCCION) {
         echo "MODO PRODUCCION";
     } else if (\sasco\LibreDTE\Sii::getAmbiente() == \sasco\LibreDTE\Sii::CERTIFICACION) {
         echo "MODO PRUEBAS";
@@ -1515,7 +1524,7 @@ else if ($consulta == "prueba") {
 
 function checkEstadoAndUpdate($id_fac, $tipoDTE, $con, $track_id)
 {
-    $tablas = ["facturas", "notas_credito", "guias_despacho", "notas_debito"];
+    $tablas = ["facturas", "notas_credito", "guias_despacho", "notas_debito", "boletas"];
     $estado = getEstadoDte($track_id);
     if ($estado != null) {
         $result = json_decode($estado, true);
@@ -1937,8 +1946,9 @@ function getDataFolios($con, $caf, $id_guia = null)
     return null;
 }
 
-function getDataFactura($con, $rowid_factura, $esFactDirecta)
+function getDataFactura($con, $rowid_factura, $esFactDirecta, $esBoleta = false)
 {
+    $tabla = $esBoleta ? "boletas" : "facturas";
     $query = "SELECT
             cl.nombre as cliente,
             cl.rut,
@@ -1954,11 +1964,11 @@ function getDataFactura($con, $rowid_factura, $esFactDirecta)
     if ((bool) $esFactDirecta === true) {
         $query .= " INNER JOIN cotizaciones_directas co ON co.id_cliente = cl.id_cliente
                 LEFT JOIN comunas com ON cl.comuna = com.id
-                WHERE co.id = (SELECT f.id_cotizacion_directa FROM facturas f WHERE f.rowid = $rowid_factura)";
+                WHERE co.id = (SELECT f.id_cotizacion_directa FROM $tabla f WHERE f.rowid = $rowid_factura)";
     } else {
         $query .= " INNER JOIN cotizaciones co ON co.id_cliente = cl.id_cliente
                 LEFT JOIN comunas com ON cl.comuna = com.id
-                WHERE co.id = (SELECT f.id_cotizacion FROM facturas f WHERE f.rowid = $rowid_factura)";
+                WHERE co.id = (SELECT f.id_cotizacion FROM $tabla f WHERE f.rowid = $rowid_factura)";
     }
 
     $val = mysqli_query($con, $query);
@@ -1984,7 +1994,7 @@ function getDataFactura($con, $rowid_factura, $esFactDirecta)
                 variedades_producto v  ON v.id = cp.id_variedad
                 INNER JOIN tipos_producto t ON t.id = v.id_tipo
                 LEFT JOIN especies_provistas e ON e.id = cp.id_especie
-                WHERE cp.id_cotizacion" . ($esFactDirecta ? "_directa" : "") . " = (SELECT " . ($esFactDirecta === true ? "f.id_cotizacion_directa" : "f.id_cotizacion") . " FROM facturas f WHERE f.rowid = $rowid_factura)
+                WHERE cp.id_cotizacion" . ($esFactDirecta ? "_directa" : "") . " = (SELECT " . ($esFactDirecta === true ? "f.id_cotizacion_directa" : "f.id_cotizacion") . " FROM $tabla f WHERE f.rowid = $rowid_factura)
                 ";
 
         $val2 = mysqli_query($con, $query2);
@@ -2017,7 +2027,7 @@ function getDataFactura($con, $rowid_factura, $esFactDirecta)
     }
 }
 
-function generarNotaCredito($dataFolio, $folio, $folio_factura, $dataFactura)
+function generarNotaCredito($dataFolio, $folio, $folio_factura, $dataFactura, $esBoleta = false)
 {
     // datos de los DTE (cada elemento del arreglo $set_pruebas es un DTE)
     $set_pruebas = [
@@ -2046,10 +2056,10 @@ function generarNotaCredito($dataFolio, $folio, $folio_factura, $dataFactura)
             'Detalle' => $dataFactura["productos"],
             'Referencia' => [
                 [
-                    'TpoDocRef' => 33,
+                    'TpoDocRef' => $esBoleta ? 39 : 33,
                     'FolioRef' => $folio_factura,
                     'CodRef' => 1,
-                    'RazonRef' => "ANULA FACTURA",
+                    'RazonRef' => "ANULA ".($esBoleta ? "BOLETA" : "FACTURA"),
                 ],
             ],
         ],
