@@ -1864,6 +1864,92 @@ function sendMailFactura(btn, rowid, folio, tipoDTE, monto, email) {
   });
 }
 
+function sendMailBoleta(btn, rowid, folio, tipoDTE, monto, email) {
+  if (!email || !email.length || !validEmail(email)) {
+    swal("El email del cliente no es válido", "", "error");
+    return;
+  }
+
+  if (!monto || isNaN(monto)) {
+    swal("El monto de la Boleta no es valido", "", "error");
+    return;
+  }
+  //0 FACT - 1 NC - 2 GD
+  swal(`Enviar Boleta por Email?`, "", {
+    icon: "info",
+    buttons: {
+      cancel: "NO",
+      sinlink: {
+        text: "ENVIAR SIN LINK",
+        value: "sinlink",
+      },
+      catch: {
+        text: "ENVIAR CON LINK",
+        value: "catch",
+      },
+    },
+  }).then((value) => {
+    const enviarMail = (resp) => {
+      $.ajax({
+        beforeSend: function () {},
+        url: "class_lib/libredte/vendor/sasco/libredte/examples/data_facturacion_dte.php",
+        type: "POST",
+        data: {
+          link: resp,
+          consulta: "enviar_mail",
+          rowid: rowid,
+          folio: folio,
+          tipoDTE: tipoDTE,
+          email: email,
+          esBoleta: 1
+        },
+        success: function (x) {
+          console.log(x);
+          if (x.includes("success")) {
+            swal("Enviaste la Boleta por Email correctamente!", "", "success");
+          } else {
+            swal(`Ocurrió un error al enviar el Email`, x, "error");
+          }
+          setTimeout(() => {
+            if (btn) $(btn).prop("disabled", false);
+          }, 5000);
+        },
+        error: function (jqXHR, estado, error) {},
+      });
+    };
+
+    switch (value) {
+      case "catch":
+        $.get(
+          "flow/public/flow/linkfactura/" +
+            folio +
+            "/" +
+            monto.toString() +
+            "/" +
+            email,
+          function (resp) {
+            console.log(resp);
+            if (resp.includes("http")) {
+              $(btn).prop("disabled", true);
+              enviarMail(resp);
+            }
+          }
+        )
+          .done(function () {})
+          .fail(function () {
+            swal("Error al generar el Link de Pago", "", "error");
+          });
+        break;
+
+      case "sinlink":
+        enviarMail(null);
+
+      default:
+        break;
+    }
+  });
+}
+
 function generarSolicitudDespacho() {
   if (!$("#tabla-historial-facturas input:checked").length) return;
 

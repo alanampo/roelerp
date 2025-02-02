@@ -499,9 +499,10 @@ else if ($consulta == "prueba") {
     $folio = (int) $_POST["folio"];
     $email = $_POST["email"];
 
+    $esBoleta = $_POST["esBoleta"] == 1 ? TRUE : FALSE;
     $dir_logo = getDataLogo();
     $tablas = ["facturas", "notas_credito", "guias_despacho", "notas_debito"];
-
+    $tablas[10] = "boletas";
     $query = "SELECT d.data FROM $tablas[$tipoDTE] d
      WHERE d.rowid = $rowid;";
     $val = mysqli_query($con, $query);
@@ -510,7 +511,7 @@ else if ($consulta == "prueba") {
         $re = mysqli_fetch_assoc($val);
         $data = $re["data"];
         $data = base64_decode($re["data"]);
-        if (generarPDFMail($data, $dir_logo, $folio, $email, $_POST["link"])) {
+        if (generarPDFMail($data, $dir_logo, $folio, $email, $_POST["link"], $esBoleta)) {
             echo "success";
         }
     }
@@ -1606,7 +1607,7 @@ function generarPDF($data, $dir_logo, $track_id, $email, $esBoleta = false)
     }
 }
 
-function generarPDFMail($data, $dir_logo, $id, $email, $link)
+function generarPDFMail($data, $dir_logo, $id, $email, $link, $esBoleta = false)
 {
     // Cargar EnvioDTE y extraer arreglo con datos de carátula y DTEs
     $EnvioDte = new \sasco\LibreDTE\Sii\EnvioDte();
@@ -1642,11 +1643,11 @@ function generarPDFMail($data, $dir_logo, $id, $email, $link)
     $content = file_get_contents($path);
     $content = chunk_split(base64_encode($content));
     $uid = md5(uniqid(time()));
-    $file_name = "factura_$id.pdf";
+    $file_name = ($esBoleta ? "boleta" : "factura")."_$id.pdf";
 
-    $subject = "Factura $id";
+    $subject = ($esBoleta ? "Boleta" : "Factura")." $id";
 
-    $message = "Te enviamos una copia de la Factura N° $id correspondiente a tu compra.";
+    $message = "Te enviamos una copia de la ".($esBoleta ? "Boleta" : "Factura")." N° $id correspondiente a tu compra.";
     if (isset($link) && strlen($link) > 0) {
         $message .= " Puedes realizar el pago ingresando al siguiente link: $link";
     }

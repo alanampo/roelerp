@@ -256,7 +256,7 @@ else if ($consulta == "cargar_historial_boletas") { //BOLETAS
             $btn_print = ($ww["track_id"] ? "<button onclick='printDTE(this, $ww[rowid], $ww[folio], 10)' class='btn btn-primary fa fa-print btn-sm mr-2'></button>" : "");
 
             $montoint = (int)$ww["monto"];
-            $btn_enviar = ($ww["track_id"] ? "<button onclick='sendMailBoleta(this, $ww[rowid], $ww[folio], 0, $montoint, $email)' class='btn btn-info fa fa-envelope btn-sm'></button>" : "");
+            $btn_enviar = ($ww["track_id"] ? "<button onclick='sendMailBoleta(this, $ww[rowid], $ww[folio], 10, $montoint, $email)' class='btn btn-info fa fa-envelope btn-sm'></button>" : "");
 
             $id_guia = (isset($ww["id_guia_despacho"]) ? $ww["id_guia_despacho"] : "null");
             $onclick = "";
