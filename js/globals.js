@@ -89,7 +89,13 @@ function getFoliosDisponibles(
                   ? `<div class="col-12 mb-2">
               <h5>Generar Factura</h5>
               </div>`
-                  : tipoDocumento == 56
+                  :
+                  tipoDocumento == 39
+                  ? `<div class="col-12 mb-2">
+              <h5>Generar Boleta</h5>
+              </div>`
+                  :
+                  tipoDocumento == 56
                   ? `<div class="col-12 mb-2">
               <h5>Anular NC N° ${folioRef} (Emitir Nota de Débito)</h5>
               </div>`
@@ -122,7 +128,16 @@ function getFoliosDisponibles(
                       }, ${
                           id_guia ? id_guia : "null"
                         }, ${data.folio}, ${data.rowid_caf})"><i class="fa fa-arrow-circle-right"></i> GENERAR FACTURA</button>`
-                      : tipoDocumento == 52
+                        :
+                        tipoDocumento == 39
+                        ? `<button id="btn-generar" class="btn btn-success btn-block"
+                        onclick="generarBoleta(${
+                          id_cotizacion ? id_cotizacion : "null"
+                        }, ${
+                            id_guia ? id_guia : "null"
+                          }, ${data.folio}, ${data.rowid_caf})"><i class="fa fa-arrow-circle-right"></i> GENERAR BOLETA</button>`
+                        
+                        : tipoDocumento == 52
                       ? `<button id="btn-generar" class="btn btn-success btn-block"
                       onclick="generarGuiaDespacho(${data.folio}, ${data.rowid_caf})"><i class="fa fa-arrow-circle-right"></i> GENERAR GUÍA</button>`
                       : `<button id="btn-anular" class="btn btn-danger btn-block"

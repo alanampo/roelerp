@@ -62,6 +62,9 @@ if ($consulta == "cargar_historial_caf") {
             else if ($tipo_doc == 52) {
                 $tipo_doc = "Guía Despacho Electrónica ($tipo_doc)";
             }
+            else if ($tipo_doc == 39) {
+                $tipo_doc = "Boleta Electrónica ($tipo_doc)";
+            }
             else if ($tipo_doc == 56) {
                 $tipo_doc = "Nota de Débito ($tipo_doc)";
             }

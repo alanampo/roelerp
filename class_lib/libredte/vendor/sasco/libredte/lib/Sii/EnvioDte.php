@@ -119,9 +119,9 @@ class EnvioDte extends \sasco\LibreDTE\Sii\Base\Envio
     public function enviar($retry = null, $gzip = false)
     {
         // si es boleta no se envía al SII
-        if ($this->tipo) {
-            return false;
-        }
+        // if ($this->tipo) {
+        //     return false;
+        // }
         // enviar al SII
         return parent::enviar($retry, $gzip);
     }

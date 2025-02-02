@@ -172,7 +172,166 @@ if ($consulta == "cargar_historial") { //FACTURAS
     } else {
         echo "<div class='callout callout-danger'><b>No se encontraron facturas emitidas...</b></div>";
     }
-} else if ($consulta == "cargar_cotizacion") {
+}
+else if ($consulta == "cargar_historial_boletas") { //BOLETAS
+    $mostrarProductos = (int)$_POST["mostrarProductos"];
+
+    mysqli_query($con, "SET SESSION SQL_BIG_SELECTS=1");
+    $query = "SELECT
+            f.rowid,
+            f.folio,
+            f.caf,
+            f.id_guia_despacho,
+            co.id,
+            cl.nombre as cliente,
+            cl.id_cliente,
+            cl.mail,
+            cl.telefono,
+            cl.domicilio,
+            com.nombre as comuna,
+            com.ciudad as ciudad,
+            f.track_id,
+            DATE_FORMAT(f.fecha, '%d/%m/%y %H:%i') as fecha,
+            DATE_FORMAT(f.fecha, '%Y%m%d%H%i') as fecha_raw,
+            co.observaciones as comentario,
+            cod.observaciones as comentario2,
+            f.id_cotizacion,
+            f.id_cotizacion_directa,
+            f.estado,
+            (IFNULL(co.monto,0) + IFNULL(cod.monto,0)) as monto,
+            (SELECT IFNULL(SUM(pag.monto),0) FROM boletas_pagos pag WHERE pag.rowid_boleta = f.rowid) as sumapagos,
+            
+            (SELECT GROUP_CONCAT(productos_pedidos) FROM  
+                (SELECT CONCAT(v.id, '|', v.nombre, '|', cot.cantidad) as productos_pedidos, cot.id as id_cotprod, cot.id_cotizacion as id_coti
+                  FROM variedades_producto v INNER JOIN cotizaciones_productos cot ON cot.id_variedad = v.id
+                ) t1 WHERE co.id IS NOT NULL AND t1.id_coti = co.id) as productos_cotizados,
+
+            (SELECT GROUP_CONCAT(productos_pedidos) FROM  
+                (SELECT CONCAT(v.id, '|', v.nombre, '|', cot.cantidad) as productos_pedidos, cot.id as id_cotprod, cot.id_cotizacion_directa as id_coti
+                  FROM variedades_producto v INNER JOIN cotizaciones_directas_productos cot ON cot.id_variedad = v.id
+                ) t1 WHERE cod.id IS NOT NULL AND t1.id_coti = cod.id) as productos_cotizados_directa
+
+
+            FROM boletas f
+            LEFT JOIN cotizaciones co
+            ON f.id_cotizacion = co.id
+            LEFT JOIN cotizaciones_directas cod
+            ON f.id_cotizacion_directa = cod.id
+            INNER JOIN clientes cl ON cl.id_cliente = co.id_cliente OR cl.id_cliente = cod.id_cliente
+            LEFT JOIN comunas com ON com.id = cl.comuna
+            ;
+            ";
+
+    $val = mysqli_query($con, $query);
+
+    if (mysqli_num_rows($val) > 0) {
+        echo "<div class='box box-primary'>";
+        echo "<div class='box-header with-border'>";
+        echo "<h3 class='box-title text-warning font-weight-bold'>Boletas Emitidas <button class='btn btn-sm btn-secondary ml-2' onclick='loadHistorialBoletas(true);' style='font-size: .675rem'> VER PRODUCTOS</button></h3>";
+        echo "</div>";
+        echo "<div class='box-body'>";
+        echo "<table id='tabla-historial-boletas' class='table table-bordered table-responsive w-100 d-block d-md-table'>";
+        echo "<thead>";
+        echo "<tr>";
+        echo "<th>N°</th><th>Cliente</th><th>Fecha</th><th>Cot. N°</th><th>Track ID</th><th>Estado</th><th style='max-width:200px'>Comentario</th><th>Monto</th><th>Deuda</th><th></th>";
+        echo "</tr>";
+        echo "</thead>";
+        echo "<tbody>";
+
+        while ($ww = mysqli_fetch_array($val)) {
+            $estado = boxEstadoFactura($ww["estado"], true);
+            $monto = $ww["monto"] != null ? "$" . number_format($ww["monto"], 0, ',', '.') : "";
+            
+            $email = isset($ww["mail"]) ? "\"".trim($ww["mail"])."\"" : "null";
+            $deuda = (int) $ww["monto"] - (int) $ww["sumapagos"];
+            $classdeuda = ($deuda <= 0 ? "success" : "danger");
+            $deuda = $ww["estado"] == "ACEPTADO" ? ("$" . number_format($deuda >= 0 ? $deuda : 0, 0, ',', '.')) : "";
+
+            $boton_eliminar = ($_SESSION["id_usuario"] == 1 ? "<button class='btn btn-danger fa fa-trash btn-sm' onClick='eliminarCotizacion($ww[rowid])'></button>" : "");
+            $btn_add_pago = $ww["estado"] == "ACEPTADO" ? "<button style='padding-left:11px;padding-right:11px' onclick='agregarPago($ww[rowid], $ww[folio], $ww[monto])' class='btn btn-success fa fa-usd btn-sm mr-2'> </button>" : "";
+
+            $esFactDirecta = ($ww["id_cotizacion_directa"] != null ? "true" : "false");
+
+            $btn_cancelar_factura = ($ww["estado"] == "ACEPTADO" ? "<button onclick='modalAnularBoleta($ww[rowid], $ww[folio], $esFactDirecta, $ww[id_cliente])' class='btn btn-danger fa fa-ban btn-sm mr-2'></button>" : "");
+            $btn_print = ($ww["track_id"] ? "<button onclick='printDTE(this, $ww[rowid], $ww[folio], 10)' class='btn btn-primary fa fa-print btn-sm mr-2'></button>" : "");
+
+            $montoint = (int)$ww["monto"];
+            $btn_enviar = ($ww["track_id"] ? "<button onclick='sendMailBoleta(this, $ww[rowid], $ww[folio], 0, $montoint, $email)' class='btn btn-info fa fa-envelope btn-sm'></button>" : "");
+
+            $id_guia = (isset($ww["id_guia_despacho"]) ? $ww["id_guia_despacho"] : "null");
+            $onclick = "";
+
+            if ($ww["estado"] === "NOENV" && !$ww["track_id"]) {
+                $onclick = "onclick='vistaPreviaReenviarBoleta(" . ($ww['id_cotizacion'] != null ? $ww['id_cotizacion'] : $ww['id_cotizacion_directa']) . ", " . ($ww['id_cotizacion_directa'] ? "true" : "false") . ", $ww[folio], $ww[rowid], $ww[caf], $id_guia)'";
+            } else if ($ww["estado"] === "NOENV" || !isset($ww["estado"]) || $ww["estado"] === "EPR" || $ww["estado"] === "RECHAZADO" || $ww["estado"] === "ACEPTADO") {
+                $onclick = "onclick='getEstadoDTE($ww[track_id], $ww[folio], 0, \"$ww[estado]\", $ww[rowid])'";
+            }
+
+            $btn_eliminar = ($ww["estado"] == "NOENV" && !$ww["track_id"]) ? "<button class='btn btn-danger fa fa-trash btn-sm ml-2' onClick='eliminarDTE($ww[rowid], 0)'></button>" : "";
+
+            $docRef = "";
+
+            if (isset($ww["id_guia_despacho"])) {
+                $docRef = "GUÍA DESP. $ww[id_guia_despacho]";
+            } else if (isset($ww["id_cotizacion_directa"])) {
+                $docRef = "FACT.<br>DIRECTA";
+                $productos = $ww["productos_cotizados_directa"];
+            } else if (isset($ww["id_cotizacion"])) {
+                $docRef = $ww["id_cotizacion"];
+                $productos = $ww["productos_cotizados"];
+            }
+
+            
+            if (isset($productos) && $mostrarProductos == 1){
+                $tmp = explode(",", $productos);
+                $productos = "";
+                foreach ($tmp as $producto) {
+                    $tmp2 = explode("|", $producto);
+                    if (isset($tmp2[2]) && isset($tmp2[1])){
+                        $productos.="<br><small>$tmp2[2] Bandejas de $tmp2[1] 
+                        <input type='checkbox' x-cantidad-band='$tmp2[2]' x-producto='$tmp2[1]' class='form-check-input' style='width:10px !important;height:10px !important; margin-top:8px; margin-left:5px'>
+                        </small>";
+                    }
+                }                
+            }
+            else{
+                $productos = "";
+            }
+
+            
+            echo "
+                <tr class='text-center' style='cursor:pointer' x-id='$ww[rowid]'>
+                <td>$ww[folio]</td>
+                <td><span class='label-cliente' x-domicilio='$ww[domicilio]' x-comuna='$ww[comuna]' x-ciudad='$ww[ciudad]' x-telefono='$ww[telefono]' onclick='setChecked(this)'>$ww[cliente] ($ww[id_cliente])</span><br>$productos</td>
+                <td><span class='d-none'>$ww[fecha_raw]</span>$ww[fecha]</td>
+                <td>$docRef</td>
+                <td $onclick><small>$ww[track_id]</small></td>
+                <td $onclick>$estado</td>
+                <td>" . (($ww["comentario"] && strlen($ww["comentario"]) > 0 ? $ww["comentario"] : $ww["comentario2"] && strlen($ww["comentario2"]) > 0) ? $ww["comentario2"] : "") . "</td>
+                <td>$monto</td>
+                <td class='text-$classdeuda'>$deuda</td>
+                <td class='text-center'>
+                        <div class='ml-1 d-flex flex-row justify-content-center align-items-center'>
+                            $btn_print
+                            $btn_add_pago
+                        </div>
+                        <div class='mt-2 d-flex flex-row justify-content-center align-items-center'>
+                            $btn_cancelar_factura
+                            $btn_eliminar
+                            $btn_enviar
+                        </div>
+                </td>
+                </tr>";
+        }
+        echo "</tbody>";
+        echo "</table>";
+        echo "</div>";
+        echo "</div>";
+    } else {
+        echo "<div class='callout callout-danger'><b>No se encontraron boletas emitidas...</b></div>";
+    }
+}
+else if ($consulta == "cargar_cotizacion") {
     $id = $_POST["id"];
 
     $query = "SELECT
@@ -279,6 +438,8 @@ if ($consulta == "cargar_historial") { //FACTURAS
         print_r(mysqli_error($con));
     }
 } else if ($consulta == "cargar_historial_cotizaciones") {
+    $isBoleta = $_POST["isBoleta"] == 1 ? TRUE : FALSE;
+
     mysqli_query($con, "SET SESSION SQL_BIG_SELECTS=1");
     $query = "SELECT
             co.id,
@@ -293,7 +454,9 @@ if ($consulta == "cargar_historial") { //FACTURAS
             FROM cotizaciones co
             INNER JOIN clientes cl ON cl.id_cliente = co.id_cliente
             LEFT JOIN facturas f ON f.id_cotizacion = co.id
+            LEFT JOIN boletas b ON b.id_cotizacion = co.id
             WHERE f.id_cotizacion IS NULL
+            AND b.id_cotizacion IS NULL
             AND co.estado >= 0 AND co.estado <= 1
             ;
             ";
@@ -307,7 +470,7 @@ if ($consulta == "cargar_historial") { //FACTURAS
         echo "<h3 class='box-title text-danger font-weight-bold'>Cotizaciones</h3>";
         echo "</div>";
         echo "<div class='box-body'>";
-        echo "<table id='tabla_cotizaciones' class='table table-bordered table-responsive w-100 d-block d-md-table'>";
+        echo "<table id='tabla_cotizaciones".($isBoleta ? "_boletas" : "")."' class='table table-bordered table-responsive w-100 d-block d-md-table'>";
         echo "<thead>";
         echo "<tr>";
         echo "<th>N°</th><th>Cliente</th><th>Fecha</th><th style='max-width:200px'>Comentario</th><th>Monto</th><th>Estado</th><th></th>";
@@ -329,7 +492,7 @@ if ($consulta == "cargar_historial") { //FACTURAS
                 <td>$estado</td>
                 <td class='text-center'>
                         <div class='d-flex flex-row justify-content-center align-items-center'>
-                            <button onclick='printDataCotizacion($ww[id])' class='btn btn-success fa fa-edit mr-4'></button>
+                            <button onclick='printDataCotizacion($ww[id], true)' class='btn btn-success fa fa-edit mr-4'></button>
                         </div>
                 </td>
                 </tr>";
@@ -363,7 +526,7 @@ if ($consulta == "cargar_historial") { //FACTURAS
             $folios_anulados = array();
 
             // CHEQUEAR FOLIOS OCUPADOS (FACTURAS EMITIDAS)
-            $tablas = ["33" => "facturas", "61" => "notas_credito", "52" => "guias_despacho", "56" => "notas_debito"];
+            $tablas = ["33" => "facturas", "39" => "boletas", "61" => "notas_credito", "52" => "guias_despacho", "56" => "notas_debito"];
             $queryfacturas = "SELECT folio FROM $tablas[$tipo_doc] WHERE folio >= $rango_d AND folio <= $rango_h";
 
             $val2 = mysqli_query($con, $queryfacturas);

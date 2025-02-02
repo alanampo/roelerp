@@ -28,6 +28,10 @@ function abrirTab(evt, tabName) {
   if (tabName == "historial") {
     $(".tab-historial").addClass("d-block");
     loadHistorial();
+  }
+  else if (tabName == "historialboletas") {
+    $(".tab-historial-boletas").addClass("d-block");
+    loadHistorialBoletas();
   } else if (tabName == "notas") {
     $(".tab-notas").addClass("d-block");
     loadNotas();
@@ -40,6 +44,10 @@ function abrirTab(evt, tabName) {
   } else if (tabName == "cotizaciones") {
     $(".tab-cotizaciones").addClass("d-block");
     loadHistorialCotizaciones();
+  }
+  else if (tabName == "cotizacionesboletas") {
+    $(".tab-cotizaciones-boletas").addClass("d-block");
+    loadHistorialCotizaciones(true);
   }
 }
 
@@ -443,6 +451,54 @@ function loadHistorial(mostrarProductos) {
   });
 }
 
+function loadHistorialBoletas(mostrarProductos) {
+  $.ajax({
+    beforeSend: function () {
+      $("#tabla_facturas").html("Buscando, espere...");
+    },
+    url: "data_ver_facturacion.php",
+    type: "POST",
+    data: {
+      consulta: "cargar_historial_boletas",
+      mostrarProductos: mostrarProductos ? 1 : 0,
+    },
+    success: function (x) {
+      $("#tabla_boletas").html(x);
+      $("#tabla-historial-boletas").DataTable({
+        pageLength: 50,
+        order: [[2, "desc"]],
+        language: {
+          lengthMenu: "Mostrando _MENU_ boletas por página",
+          zeroRecords: "No hay boletas",
+          info: "Página _PAGE_ de _PAGES_",
+          infoEmpty: "No hay boletas",
+          infoFiltered: "(filtrado de _MAX_ boletas en total)",
+          lengthMenu: "Mostrar _MENU_ boletas",
+          loadingRecords: "Cargando...",
+          processing: "Procesando...",
+          search: "Buscar:",
+          zeroRecords: "No se encontraron boletas",
+          paginate: {
+            first: "Primera",
+            last: "Última",
+            next: "Siguiente",
+            previous: "Anterior",
+          },
+          aria: {
+            sortAscending: ": toca para ordenar en modo ascendente",
+            sortDescending: ": toca para ordenar en modo descendente",
+          },
+        },
+      });
+    },
+    error: function (jqXHR, estado, error) {
+      $("#tabla_entradas").html(
+        "Ocurrió un error al cargar los datos: " + estado + " " + error
+      );
+    },
+  });
+}
+
 function modalCambiarEstado(id) {
   $("#modal-estado").attr("x-id", id);
   $("#modal-estado").modal("show");
@@ -629,7 +685,7 @@ function GuardarPedido() {
   }
 }
 
-function loadHistorialCotizaciones() {
+function loadHistorialCotizaciones(isBoleta) {
   $.ajax({
     beforeSend: function () {
       $("#tabla_cotizaciones_container").html("Buscando, espere...");
@@ -638,10 +694,11 @@ function loadHistorialCotizaciones() {
     type: "POST",
     data: {
       consulta: "cargar_historial_cotizaciones",
+      isBoleta: isBoleta ? 1 : 0
     },
     success: function (x) {
-      $("#tabla_cotizaciones_container").html(x);
-      $("#tabla_cotizaciones").DataTable({
+      $("#tabla_cotizaciones"+(isBoleta ? "_boletas":"")+"_container").html(x);
+      $("#tabla_cotizaciones"+(isBoleta ? "_boletas":"")).DataTable({
         pageLength: 50,
         order: [[0, "desc"]],
         language: {
@@ -669,7 +726,7 @@ function loadHistorialCotizaciones() {
       });
     },
     error: function (jqXHR, estado, error) {
-      $("#tabla_cotizaciones_container").html(
+      $("#tabla_cotizaciones"+(isBoleta ? "_boletas":"")+"_container").html(
         "Ocurrió un error al cargar los datos: " + estado + " " + error
       );
     },
@@ -743,6 +800,87 @@ function generarFactura(id_cotizacion, id_guia, folio, caf) {
               );
             } else {
               swal("Ocurrió un error al generar la Factura", x, "error");
+              $(".loading-wrapper").css({ display: "none" });
+            }
+          },
+          error: function (jqXHR, estado, error) {},
+        });
+
+        break;
+
+      default:
+        break;
+    }
+  });
+}
+
+function generarBoleta(id_cotizacion, id_guia, folio, caf) {
+  swal("Generar BOLETA?", "", {
+    icon: "info",
+    buttons: {
+      cancel: "NO",
+      catch: {
+        text: "SI, GENERAR",
+        value: "catch",
+      },
+    },
+  }).then((value) => {
+    switch (value) {
+      case "catch":
+        if (!folio) {
+          swal("No hay Folios!", "", "error");
+          return;
+        }
+
+        //$("#modal-vistaprevia").modal("hide")
+        $(".loading-wrapper").css({ display: "flex" });
+        $.ajax({
+          type: "POST",
+          url: "class_lib/libredte/vendor/sasco/libredte/examples/data_facturacion_dte.php",
+          data: {
+            consulta: "generar_boleta",
+            id_cotizacion: id_cotizacion,
+            folio: folio,
+            caf: caf,
+            data: JSON.stringify(currentCotizacion.data),
+            id_guia: id_guia,
+          },
+          success: function (x) {
+            console.log(x);
+            if (x.includes("path")) {
+              const data = JSON.parse(x);
+              //checkEstadoAfterSendingDTE(data.trackID, id_cotizacion, "FAC")
+              reloadData();
+              window.open(
+                `verpdf.php?tipo=BOL&folio=${folio}&file=${data.path}`,
+                "_blank"
+              );
+
+              $(".loading-wrapper").css({ display: "none" });
+              $("#modal-vistaprevia").modal("hide");
+              swal(
+                "Generaste la Boleta correctamente!",
+                "Chequea su estado clickeando sobre el TRACK ID en Historial de Boletas",
+                "success"
+              );
+            } else if (x.includes("SII_SUCCESS_BUT")) {
+              $(".loading-wrapper").css({ display: "none" });
+              $("#modal-vistaprevia").modal("hide");
+              swal(
+                "La Boleta SE ENVIÓ AL SII, pero hubo un error al actualizar los datos en LA BD.",
+                "POR FAVOR COMUNICATE CON SOPORTE ANTES DE CONTINUAR" + x,
+                "error"
+              );
+            } else if (x.includes("ERROR_ENVIO_SII")) {
+              $(".loading-wrapper").css({ display: "none" });
+              $("#modal-vistaprevia").modal("hide");
+              swal(
+                "La Boleta se guardó en el Sistema, pero hubo un error al enviarla al SII.",
+                "Deberás buscar la Boleta en el Historial e intentar reenviarla.",
+                "error"
+              );
+            } else {
+              swal("Ocurrió un error al generar la Boleta", x, "error");
               $(".loading-wrapper").css({ display: "none" });
             }
           },
@@ -833,6 +971,7 @@ function reenviarFactura(rowid_factura) {
 
 function printDTE(obj, rowid, folio, tipoDTE) {
   //0 FACTURA - 1 NOTA DE CREDITO
+  //10 - BOLETA
   $(obj).prop("disabled", true);
   $.ajax({
     type: "POST",
@@ -855,7 +994,9 @@ function printDTE(obj, rowid, folio, tipoDTE) {
                 : tipoDTE == 0
                 ? "FACT"
                 : tipoDTE == 2
+                
                 ? "GD"
+                : tipoDTE == 10 ? "BOL"
                 : tipoDTE == 3
                 ? "ND"
                 : "XX"
@@ -996,7 +1137,11 @@ function updateEstadoDTE(rowid, newEstado, tipoDoc) {
 function reloadData() {
   if (currentTab == "historial") {
     loadHistorial();
-  } else if (currentTab == "notas") {
+  }
+  else if (currentTab == "historialboletas") {
+    loadHistorial();
+  }
+  else if (currentTab == "notas") {
     loadNotas();
   } else if (currentTab == "notas-debito") {
     loadNotasDebito();
@@ -1004,6 +1149,9 @@ function reloadData() {
     loadGuias();
   } else if (currentTab == "cotizaciones") {
     loadHistorialCotizaciones();
+  }
+  else if (currentTab == "cotizacionesboletas") {
+    loadHistorialCotizaciones(true);
   }
 }
 
@@ -1245,7 +1393,7 @@ function vistaPreviaGuiaDespacho(id, id_guia) {
   });
 }
 
-function printDataCotizacion(id) {
+function printDataCotizacion(id, isBoleta) {
   currentCotizacion = null;
   $.ajax({
     url: "data_ver_cotizaciones.php",
@@ -1253,6 +1401,7 @@ function printDataCotizacion(id) {
     data: {
       consulta: "cargar_cotizacion",
       id: id,
+      isBoleta: isBoleta ? 1 : 0
     },
     success: function (x) {
       
@@ -1296,7 +1445,7 @@ function printDataCotizacion(id) {
             false
           );
 
-          getFoliosDisponibles(id, null, 33, null, null);
+          getFoliosDisponibles(id, null, isBoleta ? 39 : 33, null, null);
         } catch (error) {
           console.log(error);
         }
@@ -2346,4 +2495,19 @@ function printGuiaTransito(tipo) {
     document.getElementById("miVentana").style.display = "none";
     document.title = "Guía de Libre Tránsito";
   }
+}
+
+
+function testToken(){
+  $.ajax({
+    url: "class_lib/libredte/vendor/sasco/libredte/examples/data_facturacion_dte.php",
+    type: "POST",
+    async: false,
+    data: {
+      consulta: "prueba",
+    },
+    success: function (x) {
+      console.log(x)
+    }
+  });
 }

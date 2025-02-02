@@ -14,6 +14,7 @@ set_time_limit(0);
 
 header('Content-type: text/plain; charset=ISO-8859-1');
 include 'inc.php';
+error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 $errores = array();
 
@@ -30,7 +31,7 @@ mysqli_query($con, "SET NAMES 'utf8mb4'");
 $consulta = $_POST["consulta"];
 $GLOBALS['empresa'] = null;
 $dir_logo = null;
-if ($consulta == "generar_factura" || $consulta == "enviar_mail" || $consulta == "generar_factura_directa" || $consulta == "anular_factura" || $consulta == "anular_factura_antigua" || $consulta == "anular_nc" || $consulta == "get_estado_dte" || $consulta == "imprimir_dte" || $consulta == "generar_guia_despacho" || $consulta == "generar_guia_despacho_desde_cotizaciones" || $consulta == "check_estado_real" || $consulta == "reenviar_factura" || $consulta == "reenviar_nota_credito" || $consulta == "reenviar_nota_debito" || $consulta == "reenviar_guia_despacho" || $consulta == "get_ambiente") {
+if ($consulta == "generar_factura" || $consulta == "enviar_mail" || $consulta == "generar_factura_directa" || $consulta == "anular_factura" || $consulta == "anular_factura_antigua" || $consulta == "anular_nc" || $consulta == "get_estado_dte" || $consulta == "imprimir_dte" || $consulta == "generar_guia_despacho" || $consulta == "generar_guia_despacho_desde_cotizaciones" || $consulta == "check_estado_real" || $consulta == "reenviar_factura" || $consulta == "reenviar_nota_credito" || $consulta == "reenviar_nota_debito" || $consulta == "reenviar_guia_despacho" || $consulta == "get_ambiente" || $consulta == "generar_boleta") {
     $query = "SELECT
             d.rut,
             d.razon_social as razon,
@@ -85,7 +86,7 @@ if ($consulta == "generar_factura" || $consulta == "enviar_mail" || $consulta ==
     $_SESSION["footer2"] = $GLOBALS["empresa"]["footer2"];
 
     $GLOBALS["Firma"] = new \sasco\LibreDTE\FirmaElectronica($config2['firma']);
-
+    
     $GLOBALS["caratula"] = [
         'RutEnvia' => $GLOBALS["Firma"]->getID(),
         'RutReceptor' => '60803000-K',
@@ -191,6 +192,189 @@ if ($consulta == "generar_factura") {
         echo (json_encode($arrErrores));
     }
     mysqli_close($con);
+} 
+else if ($consulta == "generar_boleta") {
+    $caf = $_POST["caf"];
+    $folio = $_POST["folio"];
+    $id_cotizacion = $_POST["id_cotizacion"];
+    $json = json_decode($_POST["data"], true);
+
+    $id_guia = $_POST["id_guia"];
+
+    $arrErrores = [];
+
+    $tmpFolios = getDataFolios($con, $caf, $id_guia);
+    if ($tmpFolios == null) {
+        die("[ERROR_GET_CAF]");
+    }
+
+    $dataFolio = $tmpFolios["data"];
+    $folio_guia = $tmpFolios["folio_guia"];
+
+    $id_cotizacion_directa = "NULL";
+
+    if (isset($id_guia) && strlen($id_guia) > 0) {
+        $id_cotizacion_directa = $id_cotizacion;
+        $id_cotizacion = "NULL";
+    }
+
+    $query = "INSERT INTO boletas (
+            folio,
+            fecha,
+            id_cotizacion,
+            id_cotizacion_directa,
+            caf,
+            id_usuario,
+            estado
+        ) VALUES (
+            $folio,
+            NOW(),
+            $id_cotizacion,
+            $id_cotizacion_directa,
+            $caf,
+            $_SESSION[id_usuario],
+            'NOENV'
+        )";
+
+    if (mysqli_query($con, $query)) { // SE INSERTO LA BOLETA
+        $id_fac = mysqli_insert_id($con);
+
+        $DTEGenerado = generarBoleta($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_cotizacion, $con);
+
+        if (!isset($DTEGenerado["errores"]) && isset($DTEGenerado["trackID"])) {
+            $track_id = $DTEGenerado["trackID"];
+            $datita = $DTEGenerado["data"];
+            mysqli_autocommit($con, false);
+            $query = "UPDATE boletas SET track_id = '$track_id', estado = 'EPR', data = '$datita'" . ($id_guia != null && $id_guia != "null" ? ", id_guia_despacho = $id_guia" : "") . " WHERE rowid = $id_fac";
+            if (!mysqli_query($con, $query)) {
+                array_push($errores, mysqli_error($con));
+                array_push($arrErrores, "SII_SUCCESS_BUT_ERROR_UPDATE_TRACKID");
+            }
+
+            if ($id_guia != null && $id_guia != "null") {
+                $query = "UPDATE guias_despacho SET id_factura = '$id_fac' WHERE rowid = $id_guia";
+                if (!mysqli_query($con, $query)) {
+                    array_push($errores, mysqli_error($con));
+                    array_push($arrErrores, "SII_SUCCESS_BUT_ERROR_UPDATE_IDFAC_GUIA");
+                }
+            }
+
+            if (mysqli_commit($con)) {
+                checkEstadoAndUpdate($id_fac, 0, $con, $track_id);
+                $dir_logo = getDataLogo();
+                generarPDF(base64_decode($datita), $dir_logo, $track_id, $json["email"], true);
+                //MODIFICAR ACA
+            } else {
+                mysqli_rollback($con);
+            }
+        } else {
+            array_push($arrErrores, "ERROR_ENVIO_SII" . " " . json_encode($DTEGenerado["errores"]));
+        }
+    } else {
+        array_push($arrErrores, "ERROR_INSERT_BOLETA");
+        array_push($errores, mysqli_error($con));
+    }
+
+    if (count($arrErrores) > 0) {
+        echo (json_encode($arrErrores));
+    }
+    mysqli_close($con);
+}
+else if ($consulta == "prueba") {
+    //generaboleta
+    $config = [
+        'firma' => [
+            'file' => 'new.p12',
+            //'data' => '', // contenido del archivo certificado.p12
+            'pass' => '2270',
+        ],
+        "verificar_ssl" => false
+    ];
+
+    $firma = new \sasco\LibreDTE\FirmaElectronica($config['firma']);
+    
+    $token = \sasco\LibreDTE\Sii\Autenticacion::getToken($firma);
+
+    $tmpFolios = getDataFolios($con, 16);
+    if ($tmpFolios == null) {
+        die("[ERROR_GET_CAF]");
+    }
+
+    $dataFolio = $tmpFolios["data"];
+
+
+    $set_pruebas = [
+        [
+            'Encabezado' => [
+                'IdDoc' => [
+                    'TipoDTE' => 39,
+                    'Folio' => 5001,
+                ],
+                'Emisor' => $GLOBALS["Emisor"],
+                'Receptor' => [
+                    'RUTRecep' => "11522399-2",
+                    'RznSocRecep' => "RUBEN ROILAR SILVA",
+                    'GiroRecep' => "VIVERO",
+                    'DirRecep' => "VIVERO LAS LILAS . SANTO DOMINGO",
+                    'CmnaRecep' => "SANTO DOMINGO",
+                ],
+            ],
+            'Detalle' => [
+                [
+                    'NmbItem' => 'koyak el chupete',
+                    'QtyItem' => 12,
+                    'PrcItem' => 170,
+                ],
+                [
+                    'NmbItem' => 'cuaderno pre U',
+                    'QtyItem' => 20,
+                    'PrcItem' => 1050,
+                ],
+            ],
+            'Referencia' => [
+                'TpoDocRef' => 39,
+                'FolioRef' => 5001,
+                'RazonRef' => "CONTADO",
+            ],
+        ],
+    ];
+
+    $Folios = [];
+    $Folios[39] = new \sasco\LibreDTE\Sii\Folios($dataFolio);
+    $EnvioDTE = new \sasco\LibreDTE\Sii\EnvioDte();
+
+    // generar cada DTE, timbrar, firmar y agregar al sobre de EnvioDTE
+    foreach ($set_pruebas as $documento) {
+        $DTE = new \sasco\LibreDTE\Sii\Dte($documento);
+        if (!$DTE->timbrar($Folios[$DTE->getTipo()])) {
+            break;
+        }
+
+        if (!$DTE->firmar($GLOBALS["Firma"])) {
+            break;
+        }
+
+        $EnvioDTE->agregar($DTE);
+    }
+
+    // enviar dtes y mostrar resultado del envío: track id o bien =false si hubo error
+    $EnvioDTE->setCaratula($GLOBALS["caratula"]);
+    $EnvioDTE->setFirma($GLOBALS["Firma"]);
+
+    $dataDTE = $EnvioDTE->generar();
+    $datita = base64_encode($dataDTE);
+
+    $track_id = $EnvioDTE->enviar();
+    
+    $err = array();
+    foreach (\sasco\LibreDTE\Log::readAll() as $error) {
+        array_push($err, $error);
+    }
+
+    var_dump($err);
+    var_dump($track_id);
+    die;
+
 } else if ($consulta == "reenviar_factura") {
     $json = json_decode($_POST["data"], true);
 
@@ -296,8 +480,10 @@ if ($consulta == "generar_factura") {
     $tipoDTE = (int) $_POST["tipoDTE"];
 
     $dir_logo = getDataLogo();
+    
+    $tablas = ["facturas", "notas_credito", "guias_despacho", "notas_debito", "boletas"];
 
-    $tablas = ["facturas", "notas_credito", "guias_despacho", "notas_debito"];
+    $tablas[10] = "boletas";
 
     $query = "SELECT data FROM $tablas[$tipoDTE] WHERE rowid = $rowid;";
     $val = mysqli_query($con, $query);
@@ -670,7 +856,7 @@ if ($consulta == "generar_factura") {
         die("[ERROR_GET_DATA_CLIENTE]");
     }
 } else if ($consulta == "get_ambiente") {
-    if (\sasco\LibreDTE\Sii::getAmbiente() == \sasco\LibreDTE\Sii::PRODUCCION) {
+    if (\sasco\LibreDTE\Sii::getAmbiente() == \sasco\LibreDTE\Sii::CERTIFICACION) {
         echo "MODO PRODUCCION";
     } else if (\sasco\LibreDTE\Sii::getAmbiente() == \sasco\LibreDTE\Sii::CERTIFICACION) {
         echo "MODO PRUEBAS";
@@ -1345,7 +1531,7 @@ function checkEstadoAndUpdate($id_fac, $tipoDTE, $con, $track_id)
     }
 }
 
-function generarPDF($data, $dir_logo, $track_id, $email)
+function generarPDF($data, $dir_logo, $track_id, $email, $esBoleta = false)
 {
     // Cargar EnvioDTE y extraer arreglo con datos de carátula y DTEs
     $EnvioDte = new \sasco\LibreDTE\Sii\EnvioDte();
@@ -1389,11 +1575,11 @@ function generarPDF($data, $dir_logo, $track_id, $email)
             $content = file_get_contents($path);
             $content = chunk_split(base64_encode($content));
             $uid = md5(uniqid(time()));
-            $file_name = "factura_$id.pdf";
+            $file_name = (!$esBoleta ? "factura" : "boleta")."_$id.pdf";
 
-            $subject = "Factura $id";
+            $subject = (!$esBoleta ? "Factura" : "Boleta")." $id";
 
-            $message = "Te enviamos una copia de la Factura N° $id correspondiente a tu compra.";
+            $message = "Te enviamos una copia de la ".(!$esBoleta ? "Factura" : "Boleta")." N° $id correspondiente a tu compra.";
 
             $from_name = "Roelplant";
             $from_mail = "ventas@roelplant.cl";
@@ -1529,8 +1715,7 @@ function generarFactura($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_co
         if (!isset($dataCotizacion)) {
             die("No se encontró la cotización");
         }
-    }
-    else{
+    } else {
         $dataCotizacion = $json;
     }
 
@@ -1619,8 +1804,103 @@ function generarFactura($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_co
         );
     }
 }
+function generarBoleta($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_cotizacion = null, $con = null)
+{
+    if (isset($con) && isset($id_cotizacion)) {
+        $dataCotizacion = getDataCotizacion($con, $id_cotizacion, false);
+        if (!isset($dataCotizacion)) {
+            die("No se encontró la cotización");
+        }
+    } else {
+        $dataCotizacion = $json;
+    }
 
-function getDataFolios($con, $caf, $id_guia)
+    $arrayproductos = array();
+    foreach ($dataCotizacion["productos"] as $producto) {
+        array_push($arrayproductos, array(
+            'NmbItem' => $producto["variedad"] . " (" . $producto["codigo"] . ") " . ($producto["especie"] && strlen($producto["especie"]) > 0 ? $producto["especie"] : ""),
+            'QtyItem' => (int) $producto["cantidad"],
+            'PrcItem' => (int) $producto["precio"],
+            'DescuentoPct' => $producto["descuento"] && $producto["descuento"]["tipo"] == "porcentual" ? (int) $producto["descuento"]["valor"] : false,
+            'DescuentoMonto' => $producto["descuento"] && $producto["descuento"]["tipo"] == "fijo" ? (int) $producto["descuento"]["valor"] : false,
+        ));
+    }
+
+    $condicion_pago = getCondicionPago($dataCotizacion["condicion_pago"]);
+
+    $set_pruebas = [
+        [
+            'Encabezado' => [
+                'IdDoc' => [
+                    'TipoDTE' => 39,
+                    'Folio' => $folio,
+                ],
+                'Emisor' => $GLOBALS["Emisor"],
+                'Receptor' => [
+                    'RUTRecep' => $dataCotizacion["rut"],
+                    'RznSocRecep' => $dataCotizacion["cliente"],
+                    'GiroRecep' => $dataCotizacion["giro"] ? strtoupper($dataCotizacion["giro"]) : "-",
+                    'DirRecep' => $dataCotizacion["domicilio"],
+                    'CmnaRecep' => $dataCotizacion["comuna"] ? strtoupper($dataCotizacion["comuna"]) : "-",
+                ],
+            ],
+            'Detalle' => $arrayproductos,
+            'Referencia' => [
+                'TpoDocRef' => ($id_guia != null && $id_guia != "null" ? 52 : 39),
+                'FolioRef' => ($id_guia != null && $id_guia != "null" ? $folio_guia : $folio),
+                'RazonRef' => $condicion_pago,
+            ],
+        ],
+    ];
+
+    $Folios = [];
+    $Folios[39] = new \sasco\LibreDTE\Sii\Folios($dataFolio);
+    $EnvioDTE = new \sasco\LibreDTE\Sii\EnvioDte();
+
+    // generar cada DTE, timbrar, firmar y agregar al sobre de EnvioDTE
+    foreach ($set_pruebas as $documento) {
+        $DTE = new \sasco\LibreDTE\Sii\Dte($documento);
+        if (!$DTE->timbrar($Folios[$DTE->getTipo()])) {
+            break;
+        }
+
+        if (!$DTE->firmar($GLOBALS["Firma"])) {
+            break;
+        }
+
+        $EnvioDTE->agregar($DTE);
+    }
+
+    // enviar dtes y mostrar resultado del envío: track id o bien =false si hubo error
+    $EnvioDTE->setCaratula($GLOBALS["caratula"]);
+    $EnvioDTE->setFirma($GLOBALS["Firma"]);
+
+    $dataDTE = $EnvioDTE->generar();
+    $datita = base64_encode($dataDTE);
+
+    $track_id = $EnvioDTE->enviar();
+
+    $err = array();
+    foreach (\sasco\LibreDTE\Log::readAll() as $error) {
+        array_push($err, $error);
+    }
+
+    if (count($err) > 0) {
+        return array(
+            "errores" => $err,
+        );
+    } else if (!$track_id) {
+        return array(
+            "errores" => "Error al enviar al SII",
+        );
+    } else {
+        return array(
+            "trackID" => $track_id,
+            "data" => $datita,
+        );
+    }
+}
+function getDataFolios($con, $caf, $id_guia = null)
 {
     $query = "SELECT data FROM folios_caf WHERE id = $caf;";
     $val = mysqli_query($con, $query);
@@ -2129,4 +2409,146 @@ function getEstadoDte($track_id)
         ));
     }
     return null;
+}
+function obtenerToken($xml_firmado)
+{
+    $url = 'https://apicert.sii.cl/recursos/v1/boleta.electronica.token';
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $xml_firmado);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Content-Type: application/xml',
+        'Accept: application/xml'
+    ]);
+
+    $response = curl_exec($ch);
+    curl_close($ch);
+
+    if (!$response) {
+        die("Error obteniendo el token.");
+    }
+    var_dump($response);
+    die;
+    $xml = simplexml_load_string($response);
+    return (string) $xml->SII_RESP_BODY->TOKEN;
+}
+function obtenerSemilla()
+{
+    $url = 'https://apicert.sii.cl/recursos/v1/boleta.electronica.semilla';
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, ['Accept: application/xml']);
+
+    $response = curl_exec($ch);
+    curl_close($ch);
+
+    if (!$response) {
+        die("Error obteniendo la semilla.");
+    }
+
+    $doc = new DOMDocument();
+    $doc->loadXML($response);
+
+    $semilla = $doc->getElementsByTagName("SEMILLA")->item(0)->nodeValue;
+    return (string) $semilla;
+}
+
+function generarXML($semilla)
+{
+    return '<?xml version="1.0" encoding="UTF-8"?><getToken><item><Semilla>' . $semilla . '</Semilla></item></getToken>';
+}
+function firmarXML($xml, $certFile)
+{
+    // Cargar el certificado y la clave privada
+    $certificate = file_get_contents($certFile);
+    $privateKey = openssl_pkey_get_private($certificate);
+
+    if (!$privateKey) {
+        throw new Exception("No se pudo cargar la clave privada.");
+    }
+
+    // Canonicalizar el XML (C14N)
+    $canonicalXml = canonicalizeXML($xml);
+
+    // Calcular el hash SHA-1 del XML canónico
+    $hash = sha1($canonicalXml, true);
+
+    // Firmar el hash con la clave privada
+    openssl_sign($hash, $signature, $privateKey, OPENSSL_ALGO_SHA1);
+
+    // Codificar la firma en Base64
+    $signatureBase64 = base64_encode($signature);
+
+    // Extraer el certificado en formato Base64 (sin saltos de línea)
+    $certificateBase64 = base64_encode($certificate);
+    $certificateBase64 = str_replace(["\r", "\n"], '', $certificateBase64); // Eliminar saltos de línea
+
+    // Crear el elemento Signature
+    $signatureXml = '<Signature xmlns="http://www.w3.org/2000/09/xmldsig#"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"/><Reference URI=""><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/></Transforms><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/><DigestValue>' . base64_encode($hash) . '</DigestValue></Reference></SignedInfo><SignatureValue>' . $signatureBase64 . '</SignatureValue><KeyInfo><X509Data><X509Certificate>' . $certificateBase64 . '</X509Certificate></X509Data></KeyInfo></Signature>';
+
+    // Insertar la firma en el XML original
+    $xmlFirmado = str_replace('</getToken>', $signatureXml . '</getToken>', $xml);
+
+    return $xmlFirmado;
+}
+
+function canonicalizeXML($xml)
+{
+    $dom = new DOMDocument();
+    $dom->loadXML($xml);
+    return $dom->C14N();
+}
+
+
+function verificarFirma($xmlFirmado)
+{
+    $dom = new DOMDocument();
+    $dom->loadXML($xmlFirmado);
+
+    // Obtener el DigestValue del XML firmado
+    $digestValue = $dom->getElementsByTagName('DigestValue')->item(0)->nodeValue;
+
+    // Eliminar el elemento Signature para obtener el XML original
+    $signatureNode = $dom->getElementsByTagName('Signature')->item(0);
+    $signatureNode->parentNode->removeChild($signatureNode);
+
+    // Canonicalizar el XML original
+    $xmlOriginal = $dom->C14N();
+
+    // Calcular el hash SHA-1 del XML original
+    $hashCalculado = sha1($xmlOriginal, true);
+    $digestCalculado = base64_encode($hashCalculado);
+
+    // Comparar los valores
+    if ($digestValue === $digestCalculado) {
+        echo "La firma es válida.";
+    } else {
+        echo "La firma es inválida.";
+    }
+}
+
+function enviarXMLAlSII($xmlFirmado)
+{
+    $url = "https://apicert.sii.cl/recursos/v1/boleta.electronica.token";
+    $headers = [
+        'Content-Type: application/xml',
+        'Accept: application/xml'
+    ];
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $xmlFirmado);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+    $response = curl_exec($ch);
+    curl_close($ch);
+
+    return $response;
 }

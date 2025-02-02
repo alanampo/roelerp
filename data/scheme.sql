@@ -29,3 +29,45 @@ CREATE TABLE IF NOT EXISTS config (
     id VARCHAR(100) PRIMARY KEY NOT NULL,
     valor VARCHAR(255)
 );
+
+
+CREATE TABLE `boletas` (
+  `rowid` int(11) NOT NULL AUTO_INCREMENT,
+  `folio` int(11) NOT NULL,
+  `fecha` datetime DEFAULT NULL,
+  `id_cotizacion` int(11) DEFAULT NULL,
+  `caf` int(11) DEFAULT NULL,
+  `track_id` varchar(30) DEFAULT NULL,
+  `data` text DEFAULT NULL,
+  `estado` varchar(30) DEFAULT NULL,
+  `id_usuario` int(11) DEFAULT NULL,
+  `id_cotizacion_directa` int(11) DEFAULT NULL,
+  `id_guia_despacho` int(11) DEFAULT NULL,
+  PRIMARY KEY (`rowid`),
+  UNIQUE KEY `folio` (`folio`),
+  KEY `caf` (`caf`),
+  KEY `id_cotizacion` (`id_cotizacion`),
+  KEY `fk_id_vendedor` (`id_usuario`),
+  KEY `fk_id_coti_directa` (`id_cotizacion_directa`),
+  KEY `fk_id_gd1` (`id_guia_despacho`),
+  CONSTRAINT `boletas_ibfk_1` FOREIGN KEY (`caf`) REFERENCES `folios_caf` (`id`),
+  CONSTRAINT `boletas_ibfk_2` FOREIGN KEY (`id_cotizacion`) REFERENCES `cotizaciones` (`id`),
+  CONSTRAINT `fk_id_coti_directa_boleta` FOREIGN KEY (`id_cotizacion_directa`) REFERENCES `cotizaciones_directas` (`id`),
+  CONSTRAINT `fk_id_gd1_boleta` FOREIGN KEY (`id_guia_despacho`) REFERENCES `guias_despacho` (`rowid`),
+  CONSTRAINT `fk_id_vendedor_boleta` FOREIGN KEY (`id_usuario`) REFERENCES `usuarios` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+
+CREATE TABLE `boletas_pagos` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `comentario` varchar(100) DEFAULT NULL,
+  `monto` int(11) DEFAULT NULL,
+  `fecha` datetime DEFAULT NULL,
+  `rowid_boleta` int(11) DEFAULT NULL,
+  `comprobante` longblob DEFAULT NULL,
+  `rowid_cotizacion` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `rowid_boleta` (`rowid_boleta`),
+  KEY `rowid_cotizacion` (`rowid_cotizacion`),
+  CONSTRAINT `boletas_pagos_ibfk_1` FOREIGN KEY (`rowid_boleta`) REFERENCES `boletas` (`rowid`),
+  CONSTRAINT `boletas_pagos_ibfk_2` FOREIGN KEY (`rowid_cotizacion`) REFERENCES `cotizaciones` (`id`)
+);

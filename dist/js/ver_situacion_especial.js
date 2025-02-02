@@ -602,6 +602,7 @@ function printDTE(obj, rowid, folio, tipoDTE) {
                 ? "FACT"
                 : tipoDTE == 2
                 ? "GD"
+                : tipoDTE == 10 ? "BOL"
                 : "XX"
             }&folio=${folio}&file=${data.path}`,
             "_blank"

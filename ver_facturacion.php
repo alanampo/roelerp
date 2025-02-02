@@ -46,7 +46,7 @@ $fecha = $dias[date('w')] . " " . date('d') . " de " . $meses[date('n') - 1] . "
               <small>
                 <?php echo $fecha; ?>
               </small>
-              <button class="btn btn-sm btn-primary ml-3" onclick="generarSolicitudDespacho()">SOLICITUD DESPACHO</button>
+              <button class="btn btn-sm btn-primary ml-3" onclick="testToken()">SOLICITUD DESPACHO</button>
 
               
             </h1>
@@ -65,7 +65,10 @@ $fecha = $dias[date('w')] . " " . date('d') . " de " . $meses[date('n') - 1] . "
                     class="tablinks"
                     onclick="abrirTab(event, 'historial');"
                   >
-                    HISTORIAL FACTURAS
+                    FACTURAS
+                  </button>
+                  <button class="tablinks" onclick="abrirTab(event, 'historialboletas');">
+                    BOLETAS
                   </button>
                   <button class="tablinks" onclick="abrirTab(event, 'notas');">
                     NOTAS DE CRÉDITO
@@ -86,6 +89,13 @@ $fecha = $dias[date('w')] . " " . date('d') . " de " . $meses[date('n') - 1] . "
                   >
                     NUEVA FACTURA
                   </button>
+                  <button
+                    id="tabboletas"
+                    class="tablinks"
+                    onclick="abrirTab(event, 'cotizacionesboletas');"
+                  >
+                    NUEVA BOLETA
+                  </button>
                 </div>
               </div>
             </div>
@@ -94,6 +104,14 @@ $fecha = $dias[date('w')] . " " . date('d') . " de " . $meses[date('n') - 1] . "
               <div class="row mt-2 mb-5">
                 <div class="col">
                   <div id="tabla_facturas"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="tabco tab-historial-boletas d-none">
+              <div class="row mt-2 mb-5">
+                <div class="col">
+                  <div id="tabla_boletas"></div>
                 </div>
               </div>
             </div>
@@ -167,6 +185,24 @@ $fecha = $dias[date('w')] . " " . date('d') . " de " . $meses[date('n') - 1] . "
               <div class="row mt-2 mb-5">
                 <div class="col">
                   <div id="tabla_cotizaciones_container"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="tabco tab-cotizaciones-boletas d-none">
+              <div class="row">
+                <div class="col text-right">
+                  <button
+                    onclick="location.href = 'boleta_directa.php'"
+                    class="btn btn-primary btn-sm"
+                  >
+                    <i class="fa fa-plus-square"></i> BOLETA DIRECTA
+                  </button>
+                </div>
+              </div>
+              <div class="row mt-2 mb-5">
+                <div class="col">
+                  <div id="tabla_cotizaciones_boletas_container"></div>
                 </div>
               </div>
             </div>
