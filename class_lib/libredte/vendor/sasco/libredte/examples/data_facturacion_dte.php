@@ -280,102 +280,7 @@ else if ($consulta == "generar_boleta") {
     }
     mysqli_close($con);
 }
-else if ($consulta == "prueba") {
-    //generaboleta
-    $config = [
-        'firma' => [
-            'file' => 'new.p12',
-            //'data' => '', // contenido del archivo certificado.p12
-            'pass' => '2270',
-        ],
-        "verificar_ssl" => false
-    ];
-
-    $firma = new \sasco\LibreDTE\FirmaElectronica($config['firma']);
-    
-    $token = \sasco\LibreDTE\Sii\Autenticacion::getToken($firma);
-
-    $tmpFolios = getDataFolios($con, 16);
-    if ($tmpFolios == null) {
-        die("[ERROR_GET_CAF]");
-    }
-
-    $dataFolio = $tmpFolios["data"];
-
-
-    $set_pruebas = [
-        [
-            'Encabezado' => [
-                'IdDoc' => [
-                    'TipoDTE' => 39,
-                    'Folio' => 5001,
-                ],
-                'Emisor' => $GLOBALS["Emisor"],
-                'Receptor' => [
-                    'RUTRecep' => "11522399-2",
-                    'RznSocRecep' => "RUBEN ROILAR SILVA",
-                    'GiroRecep' => "VIVERO",
-                    'DirRecep' => "VIVERO LAS LILAS . SANTO DOMINGO",
-                    'CmnaRecep' => "SANTO DOMINGO",
-                ],
-            ],
-            'Detalle' => [
-                [
-                    'NmbItem' => 'koyak el chupete',
-                    'QtyItem' => 12,
-                    'PrcItem' => 170,
-                ],
-                [
-                    'NmbItem' => 'cuaderno pre U',
-                    'QtyItem' => 20,
-                    'PrcItem' => 1050,
-                ],
-            ],
-            'Referencia' => [
-                'TpoDocRef' => 39,
-                'FolioRef' => 5001,
-                'RazonRef' => "CONTADO",
-            ],
-        ],
-    ];
-
-    $Folios = [];
-    $Folios[39] = new \sasco\LibreDTE\Sii\Folios($dataFolio);
-    $EnvioDTE = new \sasco\LibreDTE\Sii\EnvioDte();
-
-    // generar cada DTE, timbrar, firmar y agregar al sobre de EnvioDTE
-    foreach ($set_pruebas as $documento) {
-        $DTE = new \sasco\LibreDTE\Sii\Dte($documento);
-        if (!$DTE->timbrar($Folios[$DTE->getTipo()])) {
-            break;
-        }
-
-        if (!$DTE->firmar($GLOBALS["Firma"])) {
-            break;
-        }
-
-        $EnvioDTE->agregar($DTE);
-    }
-
-    // enviar dtes y mostrar resultado del envío: track id o bien =false si hubo error
-    $EnvioDTE->setCaratula($GLOBALS["caratula"]);
-    $EnvioDTE->setFirma($GLOBALS["Firma"]);
-
-    $dataDTE = $EnvioDTE->generar();
-    $datita = base64_encode($dataDTE);
-
-    $track_id = $EnvioDTE->enviar();
-    
-    $err = array();
-    foreach (\sasco\LibreDTE\Log::readAll() as $error) {
-        array_push($err, $error);
-    }
-
-    var_dump($err);
-    var_dump($track_id);
-    die;
-
-} else if ($consulta == "reenviar_factura") {
+else if ($consulta == "reenviar_factura") {
     $json = json_decode($_POST["data"], true);
 
     $id_fac = $_POST["rowid_factura"];
@@ -884,7 +789,7 @@ else if ($consulta == "prueba") {
     $domicilio = mysqli_real_escape_string($con, $_POST["domicilio"]);
     $comuna = mysqli_real_escape_string($con, $_POST["comuna"]);
     $rut = mysqli_real_escape_string($con, $_POST["rut"]);
-    $observaciones = mysqli_real_escape_string($con, $_POST["observaciones"]);
+    $observaciones = $_POST["observaciones"];
     $arrErrores = array();
     $dir_logo = getDataLogo();
 
@@ -993,6 +898,7 @@ else if ($consulta == "prueba") {
                 "domicilio" => $domicilio,
                 "comuna" => $comuna,
                 "condicion_pago" => $_POST["condicion_pago"],
+                'comentario' => $observaciones && strlen($observaciones) ? $observaciones : null
             );
             $DTEGenerado = generarFactura($mijson, $dataFolio, $folio, null, null);
 
@@ -1158,6 +1064,7 @@ else if ($consulta == "generar_boleta_directa") {
                 "domicilio" => $domicilio,
                 "comuna" => $comuna,
                 "condicion_pago" => $_POST["condicion_pago"],
+                'comentario' => $observaciones && strlen($observaciones) > 0 ? $observaciones : null
             );
             $DTEGenerado = generarBoleta($mijson, $dataFolio, $folio, null, null);
 
@@ -1895,18 +1802,38 @@ function generarFactura($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_co
         $dataCotizacion = $json;
     }
 
+    $comentario = $dataCotizacion["comentario"] ?? $dataCotizacion["observaciones"] ?? null;
+
+
     $arrayproductos = array();
+    $i = 0;
     foreach ($dataCotizacion["productos"] as $producto) {
-        array_push($arrayproductos, array(
-            'NmbItem' => $producto["variedad"] . " (" . $producto["codigo"] . ") " . ($producto["especie"] && strlen($producto["especie"]) > 0 ? $producto["especie"] : ""),
-            'QtyItem' => (int) $producto["cantidad"],
-            'PrcItem' => (int) $producto["precio"],
-            'DescuentoPct' => $producto["descuento"] && $producto["descuento"]["tipo"] == "porcentual" ? (int) $producto["descuento"]["valor"] : false,
-            'DescuentoMonto' => $producto["descuento"] && $producto["descuento"]["tipo"] == "fijo" ? (int) $producto["descuento"]["valor"] : false,
-        ));
+        if ($i == count($dataCotizacion["productos"]) - 1 && $comentario && mb_strlen($comentario) > 0100){
+            array_push($arrayproductos, array(
+                'NmbItem' => $producto["variedad"] . " (" . $producto["codigo"] . ") " . ($producto["especie"] && strlen($producto["especie"]) > 0 ? $producto["especie"] : ""),
+                'DscItem' => $comentario,
+                'QtyItem' => (int) $producto["cantidad"],
+                'PrcItem' => (int) $producto["precio"],
+                'DescuentoPct' => $producto["descuento"] && $producto["descuento"]["tipo"] == "porcentual" ? (int) $producto["descuento"]["valor"] : false,
+                'DescuentoMonto' => $producto["descuento"] && $producto["descuento"]["tipo"] == "fijo" ? (int) $producto["descuento"]["valor"] : false,
+            ));
+        }
+        else{
+            array_push($arrayproductos, array(
+                'NmbItem' => $producto["variedad"] . " (" . $producto["codigo"] . ") " . ($producto["especie"] && strlen($producto["especie"]) > 0 ? $producto["especie"] : ""),
+                'QtyItem' => (int) $producto["cantidad"],
+                'PrcItem' => (int) $producto["precio"],
+                'DescuentoPct' => $producto["descuento"] && $producto["descuento"]["tipo"] == "porcentual" ? (int) $producto["descuento"]["valor"] : false,
+                'DescuentoMonto' => $producto["descuento"] && $producto["descuento"]["tipo"] == "fijo" ? (int) $producto["descuento"]["valor"] : false,
+            ));
+        }
+        
+        $i++;
     }
 
     $condicion_pago = getCondicionPago($dataCotizacion["condicion_pago"]);
+
+    
 
     $set_pruebas = [
         [
@@ -1914,6 +1841,7 @@ function generarFactura($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_co
                 'IdDoc' => [
                     'TipoDTE' => 33,
                     'Folio' => $folio,
+                    'TermPagoGlosa' => $comentario && mb_strlen($comentario) <= 100 ? $comentario : NULL,
                 ],
                 'Emisor' => $GLOBALS["Emisor"],
                 'Receptor' => [
@@ -1963,6 +1891,7 @@ function generarFactura($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_co
     $err = array();
     foreach (\sasco\LibreDTE\Log::readAll() as $error) {
         array_push($err, $error);
+        die(json_encode($error));
     }
 
     if (count($err) > 0) {
@@ -1980,6 +1909,14 @@ function generarFactura($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_co
         );
     }
 }
+
+function limpiarYRecortar($texto, $limite = 100) {
+    // Eliminar espacios extra y normalizar a un solo espacio
+    $textoLimpio = preg_replace('/\s+/', ' ', trim($texto));
+
+    // Recortar a 100 caracteres si es necesario
+    return mb_substr($textoLimpio, 0, $limite);
+}
 function generarBoleta($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_cotizacion = null, $con = null)
 {
     if (isset($con) && isset($id_cotizacion)) {
@@ -1990,7 +1927,7 @@ function generarBoleta($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_cot
     } else {
         $dataCotizacion = $json;
     }
-
+    
     $arrayproductos = array();
     foreach ($dataCotizacion["productos"] as $producto) {
         array_push($arrayproductos, array(
@@ -2003,13 +1940,14 @@ function generarBoleta($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_cot
     }
 
     $condicion_pago = getCondicionPago($dataCotizacion["condicion_pago"]);
-
+    $comentario = $dataCotizacion["comentario"] ?? $dataCotizacion["observaciones"] ?? null;
     $set_pruebas = [
         [
             'Encabezado' => [
                 'IdDoc' => [
                     'TipoDTE' => 39,
                     'Folio' => $folio,
+                    'TermPagoGlosa' => $comentario
                 ],
                 'Emisor' => $GLOBALS["Emisor"],
                 'Receptor' => [

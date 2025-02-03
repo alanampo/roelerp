@@ -459,7 +459,7 @@ class PDF extends \TCPDF
      * @author Esteban De La Fuente Rubio, DeLaF (esteban[at]delaf.cl)
      * @version 2014-09-20
      */
-    public function MultiTexto($txt, $x=null, $y=null, $align='', $w=0, $border=0, $fill=false)
+    public function MultiTexto($txt, $x=null, $y=null, $align='', $w=0, $border=0, $fill=false, $ishtml = false)
     {
         if ($x==null) $x = $this->GetX();
         if ($y==null) $y = $this->GetY();
@@ -467,7 +467,7 @@ class PDF extends \TCPDF
         $textstrokewidth = $this->textstrokewidth;
         $this->setTextRenderingMode(0, true, false);
         $this->SetXY($x, $y);
-        $this->MultiCell($w, 0, $txt, $border, $align, $fill);
+        $this->MultiCell($w, 0, $txt, $border, $align, $fill, 1, "", "", true, 0, $ishtml);
         // restore previous rendering mode
         $this->textrendermode = $textrendermode;
         $this->textstrokewidth = $textstrokewidth;

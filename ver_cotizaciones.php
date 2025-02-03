@@ -165,8 +165,8 @@
                             </div>
                             <div class="col-md-4 form-group">
                                 <label class="col-form-label" for="input-comentario">Comentario:</label>
-                                <input type="search" autocomplete="off" class="form-control w-100 lg-w-75"
-                                    name="input-comentario" id="input-comentario" maxlength="100" />
+                                <textarea autocomplete="off" class="form-control w-100 lg-w-75" name="input-comentario"
+                                id="input-comentario" maxlength="400"></textarea>
                             </div>
                         </div>
 

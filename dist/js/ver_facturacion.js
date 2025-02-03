@@ -297,7 +297,7 @@ async function printCotizacion(dataCotizacion, isPrinting) {
           
         </tr>                    
       `);
-      monto += parseInt(total.toString().replace(".", ""));
+      monto += parseInt(total.toString().replace(/\./g, ""));
       montodescuento += subtotal - total;
     });
   }
@@ -621,7 +621,7 @@ function GuardarPedido() {
       let montodescuento = 0.0;
       productosCotizados.forEach(function (producto, i) {
         const { total, subtotal } = producto;
-        const totalito = parseInt(total.toString().replace(".", ""));
+        const totalito = parseInt(total.toString().replace(/\./g, ""));
         monto += totalito;
         montodescuento += subtotal - totalito;
       });

@@ -39,7 +39,7 @@ if ($consulta == "cargar_datos_cliente") {
     }
 } else if ($consulta == "guardar_cotizacion") {
     $id_cliente = $_POST['id_cliente'];
-    $observaciones = mysqli_real_escape_string($con, $_POST['observaciones']);
+    $observaciones = $_POST['observaciones'];
     $str = json_decode($_POST['jsonarray'], true);
     $id_usuario = $_SESSION["id_usuario"];
     $condicion_pago = $_POST["condicion_pago"];
