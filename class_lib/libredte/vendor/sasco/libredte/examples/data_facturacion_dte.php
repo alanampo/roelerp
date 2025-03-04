@@ -86,7 +86,7 @@ if ($consulta == "generar_factura" || $consulta == "enviar_mail" || $consulta ==
     $_SESSION["footer2"] = $GLOBALS["empresa"]["footer2"];
 
     $GLOBALS["Firma"] = new \sasco\LibreDTE\FirmaElectronica($config2['firma']);
-    
+
     $GLOBALS["caratula"] = [
         'RutEnvia' => $GLOBALS["Firma"]->getID(),
         'RutReceptor' => '60803000-K',
@@ -175,8 +175,17 @@ if ($consulta == "generar_factura") {
             if (mysqli_commit($con)) {
                 checkEstadoAndUpdate($id_fac, 0, $con, $track_id);
                 $dir_logo = getDataLogo();
-                generarPDF(base64_decode($datita), $dir_logo, $track_id, $json["email"]);
+
                 //MODIFICAR ACA
+
+                try {
+                    generarPDF(base64_decode($datita), $dir_logo, $track_id, $json["email"]);
+                    generarPDFMailInterno(base64_decode($datita), $dir_logo, $folio, $esBoleta = false);
+                } catch (\Throwable $th) {
+                    //throw $th;
+                }
+
+
             } else {
                 mysqli_rollback($con);
             }
@@ -192,8 +201,7 @@ if ($consulta == "generar_factura") {
         echo (json_encode($arrErrores));
     }
     mysqli_close($con);
-} 
-else if ($consulta == "generar_boleta") {
+} else if ($consulta == "generar_boleta") {
     $caf = $_POST["caf"];
     $folio = $_POST["folio"];
     $id_cotizacion = $_POST["id_cotizacion"];
@@ -262,8 +270,13 @@ else if ($consulta == "generar_boleta") {
             if (mysqli_commit($con)) {
                 checkEstadoAndUpdate($id_fac, 4, $con, $track_id);
                 $dir_logo = getDataLogo();
-                generarPDF(base64_decode($datita), $dir_logo, $track_id, $json["email"], true);
-                //MODIFICAR ACA
+                try {
+                    generarPDF(base64_decode($datita), $dir_logo, $track_id, $json["email"], true);
+                    //MODIFICAR ACA
+                } catch (\Throwable $th) {
+                    //throw $th;
+                }
+
             } else {
                 mysqli_rollback($con);
             }
@@ -279,8 +292,7 @@ else if ($consulta == "generar_boleta") {
         echo (json_encode($arrErrores));
     }
     mysqli_close($con);
-}
-else if ($consulta == "reenviar_factura") {
+} else if ($consulta == "reenviar_factura") {
     $json = json_decode($_POST["data"], true);
 
     $id_fac = $_POST["rowid_factura"];
@@ -288,27 +300,26 @@ else if ($consulta == "reenviar_factura") {
     $dataFolio = getDataFolios($con, $_POST["caf"], $id_guia);
     $esBoleta = $_POST["esBoleta"] == 1 ? TRUE : FALSE;
     if (isset($dataFolio["data"])) {
-        if (!$esBoleta !== TRUE){
+        if (!$esBoleta !== TRUE) {
             $DTEGenerado = generarFactura($json, $dataFolio["data"], $_POST["folio"], $id_guia, $dataFolio["folio_guia"]);
-        }   
-        else{
+        } else {
             $DTEGenerado = generarBoleta($json, $dataFolio["data"], $_POST["folio"], $id_guia, $dataFolio["folio_guia"]);
         }
-        
+
         $errores = [];
         $arrErrores = [];
         if (!isset($DTEGenerado["errores"]) && isset($DTEGenerado["trackID"])) {
             $track_id = $DTEGenerado["trackID"];
             $datita = $DTEGenerado["data"];
             mysqli_autocommit($con, false);
-            $query = "UPDATE ".($esBoleta ? "boletas" : "facturas")." SET track_id = '$track_id', data = '$datita', estado = 'EPR' WHERE rowid = $id_fac";
+            $query = "UPDATE " . ($esBoleta ? "boletas" : "facturas") . " SET track_id = '$track_id', data = '$datita', estado = 'EPR' WHERE rowid = $id_fac";
             if (!mysqli_query($con, $query)) {
                 array_push($errores, mysqli_error($con));
                 array_push($arrErrores, "SII_SUCCESS_BUT_ERROR_UPDATE_TRACKID");
             }
 
             if (isset($id_guia) && strlen($id_guia) > 0) {
-                $query = "UPDATE guias_despacho SET id_".($esBoleta ? "boleta" : "factura")." = '$id_fac' WHERE rowid = $id_guia";
+                $query = "UPDATE guias_despacho SET id_" . ($esBoleta ? "boleta" : "factura") . " = '$id_fac' WHERE rowid = $id_guia";
                 if (!mysqli_query($con, $query)) {
                     array_push($errores, mysqli_error($con));
                     array_push($arrErrores, "SII_SUCCESS_BUT_ERROR_UPDATE_IDFAC_GUIA");
@@ -318,7 +329,14 @@ else if ($consulta == "reenviar_factura") {
             if (mysqli_commit($con)) {
                 checkEstadoAndUpdate($id_fac, 4, $con, $track_id);
                 $dir_logo = getDataLogo();
-                generarPDF(base64_decode($datita), $dir_logo, $track_id, null, $esBoleta);
+                try {
+                    generarPDF(base64_decode($datita), $dir_logo, $track_id, null, $esBoleta);
+                    generarPDFMailInterno(base64_decode($datita), $dir_logo, $_POST["folio"], $esBoleta = false);
+                    //MODIFICAR ACA
+                } catch (\Throwable $th) {
+                    //throw $th;
+                }
+
             } else {
                 mysqli_rollback($con);
             }
@@ -358,7 +376,7 @@ else if ($consulta == "reenviar_factura") {
         $track_id = $DTEGenerado["trackID"];
         $datita = $DTEGenerado["data"];
 
-        $query = "UPDATE ".($esBoleta ? "boletas" : "facturas")." SET estado = 'ANU' WHERE rowid = $rowid_factura;";
+        $query = "UPDATE " . ($esBoleta ? "boletas" : "facturas") . " SET estado = 'ANU' WHERE rowid = $rowid_factura;";
         if (!mysqli_query($con, $query)) {
             array_push($errores, mysqli_error($con));
             array_push($arrErrores, "SII_SUCCESS_BUT_ERROR_UPDATE_ESTADO_FACTURA");
@@ -372,8 +390,12 @@ else if ($consulta == "reenviar_factura") {
 
         if (count($arrErrores) === 0) {
             if (mysqli_commit($con)) {
-                checkEstadoAndUpdate($rowid, 1, $con, $track_id);
-                generarPDF(base64_decode($datita), $dir_logo, $track_id, null);
+                try {
+                    checkEstadoAndUpdate($rowid, 1, $con, $track_id);
+                    generarPDF(base64_decode($datita), $dir_logo, $track_id, null);
+                } catch (\Throwable $th) {
+                    //throw $th;
+                }
             } else {
                 mysqli_rollback($con);
             }
@@ -391,7 +413,7 @@ else if ($consulta == "reenviar_factura") {
     $tipoDTE = (int) $_POST["tipoDTE"];
 
     $dir_logo = getDataLogo();
-    
+
     $tablas = ["facturas", "notas_credito", "guias_despacho", "notas_debito", "boletas"];
 
     $tablas[10] = "boletas";
@@ -483,7 +505,7 @@ else if ($consulta == "reenviar_factura") {
             $track_id = $DTEGenerado["trackID"];
             $datita = $DTEGenerado["data"];
 
-            $query = "UPDATE ".$tabla."s SET estado = 'ANU' WHERE rowid = $rowid_factura;";
+            $query = "UPDATE " . $tabla . "s SET estado = 'ANU' WHERE rowid = $rowid_factura;";
             if (!mysqli_query($con, $query)) {
                 array_push($errores, mysqli_error($con));
                 array_push($arrErrores, "SII_SUCCESS_BUT_ERROR_UPDATE_ESTADO_FACTURA");
@@ -927,6 +949,7 @@ else if ($consulta == "reenviar_factura") {
 
                     }
                     generarPDF(base64_decode($datita), $dir_logo, $track_id, $email);
+                    generarPDFMailInterno(base64_decode($datita), $dir_logo, $folio, $esBoleta = false);
                 } else {
                     mysqli_rollback($con);
                 }
@@ -943,8 +966,7 @@ else if ($consulta == "reenviar_factura") {
         echo (json_encode($arrErrores));
     }
     mysqli_close($con);
-}
-else if ($consulta == "generar_boleta_directa") {
+} else if ($consulta == "generar_boleta_directa") {
     $caf = $_POST["caf"];
     $folio = $_POST["folioBOL"];
     $id_cliente = $_POST["id_cliente"];
@@ -1109,8 +1131,7 @@ else if ($consulta == "generar_boleta_directa") {
         echo (json_encode($arrErrores));
     }
     mysqli_close($con);
-}
-else if ($consulta == "generar_guia_despacho") {
+} else if ($consulta == "generar_guia_despacho") {
     $id_cliente = $_POST["id_cliente"];
     $condicion_pago = $_POST["condicion_pago"];
     $giro = $_POST["giro"];
@@ -1658,11 +1679,11 @@ function generarPDF($data, $dir_logo, $track_id, $email, $esBoleta = false)
             $content = file_get_contents($path);
             $content = chunk_split(base64_encode($content));
             $uid = md5(uniqid(time()));
-            $file_name = (!$esBoleta ? "factura" : "boleta")."_$id.pdf";
+            $file_name = (!$esBoleta ? "factura" : "boleta") . "_$id.pdf";
 
-            $subject = (!$esBoleta ? "Factura" : "Boleta")." $id";
+            $subject = (!$esBoleta ? "Factura" : "Boleta") . " $id";
 
-            $message = "Te enviamos una copia de la ".(!$esBoleta ? "Factura" : "Boleta")." N° $id correspondiente a tu compra.";
+            $message = "Te enviamos una copia de la " . (!$esBoleta ? "Factura" : "Boleta") . " N° $id correspondiente a tu compra.";
 
             $from_name = "Roelplant";
             $from_mail = "ventas@roelplant.cl";
@@ -1725,11 +1746,11 @@ function generarPDFMail($data, $dir_logo, $id, $email, $link, $esBoleta = false)
     $content = file_get_contents($path);
     $content = chunk_split(base64_encode($content));
     $uid = md5(uniqid(time()));
-    $file_name = ($esBoleta ? "boleta" : "factura")."_$id.pdf";
+    $file_name = ($esBoleta ? "boleta" : "factura") . "_$id.pdf";
 
-    $subject = ($esBoleta ? "Boleta" : "Factura")." $id";
+    $subject = ($esBoleta ? "Boleta" : "Factura") . " $id";
 
-    $message = "Te enviamos una copia de la ".($esBoleta ? "Boleta" : "Factura")." N° $id correspondiente a tu compra.";
+    $message = "Te enviamos una copia de la " . ($esBoleta ? "Boleta" : "Factura") . " N° $id correspondiente a tu compra.";
     if (isset($link) && strlen($link) > 0) {
         $message .= " Puedes realizar el pago ingresando al siguiente link: $link";
     }
@@ -1759,6 +1780,93 @@ function generarPDFMail($data, $dir_logo, $id, $email, $link, $esBoleta = false)
     }
     return false;
 }
+
+
+function generarPDFMailInterno($data, $dir_logo, $id, $esBoleta = false)
+{
+    $email = "plantinera@roelplant.cl";
+    // Cargar EnvioDTE y extraer arreglo con datos de carátula y DTEs
+    $EnvioDte = new \sasco\LibreDTE\Sii\EnvioDte();
+    $EnvioDte->loadXML($data);
+    $Caratula = $EnvioDte->getCaratula();
+    $Documentos = $EnvioDte->getDocumentos();
+
+    // directorio temporal para guardar los PDF
+    $dir = sys_get_temp_dir() . '/dte_' . $Caratula['RutEmisor'] . '_' . $Caratula['RutReceptor'] . '_' . str_replace(['-', ':', 'T'], '', $Caratula['TmstFirmaEnv']);
+    if (is_dir($dir)) {
+        \sasco\LibreDTE\File::rmdir($dir);
+    }
+
+    if (!mkdir($dir)) {
+        die('No fue posible crear directorio temporal para DTEs');
+    }
+
+    // procesar cada DTEs e ir agregándolo al PDF
+    $DTE = $Documentos[0];
+    if (!$DTE->getDatos()) {
+        die('No se pudieron obtener los datos del DTE');
+    }
+
+    $pdf = new \sasco\LibreDTE\Sii\Dte\PDF\Dte(false); // =false hoja carta, =true papel contínuo (false por defecto si no se pasa)
+    $pdf->setFooterText(true, $_SESSION["footer1"], $_SESSION["footer2"]);
+    $pdf->setLogo($dir_logo); // debe ser PNG!
+    $pdf->setResolucion(['FchResol' => $Caratula['FchResol'], 'NroResol' => $Caratula['NroResol']]);
+    $pdf->agregar($DTE->getDatos(), $DTE->getTED());
+
+    $path = $dir . 'dte_' . $Caratula['RutEmisor'] . '_' . $DTE->getID() . '.pdf';
+    $pdf->Output($path, 'F');
+
+    // Convertir el archivo PDF a base64
+    $content_pdf = file_get_contents($path);
+    $content_pdf = chunk_split(base64_encode($content_pdf));
+
+    // Convertir el archivo XML a base64
+    $content_xml = chunk_split(base64_encode($data));
+
+    $uid = md5(uniqid(time()));
+    $file_name_pdf = ($esBoleta ? "boleta" : "factura") . "_$id.pdf";
+    $file_name_xml = ($esBoleta ? "boleta" : "factura") . "_$id.xml";
+
+    $subject = ($esBoleta ? "Boleta" : "Factura") . " $id";
+
+    $message = "Te enviamos una copia de la " . ($esBoleta ? "Boleta" : "Factura") . " N° $id";
+
+    $from_name = "Roelplant";
+    $from_mail = "ventas@roelplant.cl";
+    $replyto = "ventas@roelplant.cl";
+
+    $header = "From: " . $from_name . " <" . $from_mail . ">\r\n";
+    $header .= "Reply-To: " . $replyto . "\r\n";
+    $header .= "MIME-Version: 1.0\r\n";
+    $header .= "Content-Type: multipart/mixed; boundary=\"" . $uid . "\"\r\n\r\n";
+
+    $nmessage = "--" . $uid . "\r\n";
+    $nmessage .= "Content-type:text/plain; charset=iso-8859-1\r\n";
+    $nmessage .= "Content-Transfer-Encoding: 7bit\r\n\r\n";
+    $nmessage .= $message . "\r\n\r\n";
+
+    // Adjuntar el archivo PDF
+    $nmessage .= "--" . $uid . "\r\n";
+    $nmessage .= "Content-Type: application/octet-stream; name=\"" . $file_name_pdf . "\"\r\n";
+    $nmessage .= "Content-Transfer-Encoding: base64\r\n";
+    $nmessage .= "Content-Disposition: attachment; filename=\"" . $file_name_pdf . "\"\r\n\r\n";
+    $nmessage .= $content_pdf . "\r\n\r\n";
+
+    // Adjuntar el archivo XML
+    $nmessage .= "--" . $uid . "\r\n";
+    $nmessage .= "Content-Type: application/octet-stream; name=\"" . $file_name_xml . "\"\r\n";
+    $nmessage .= "Content-Transfer-Encoding: base64\r\n";
+    $nmessage .= "Content-Disposition: attachment; filename=\"" . $file_name_xml . "\"\r\n\r\n";
+    $nmessage .= $content_xml . "\r\n\r\n";
+
+    $nmessage .= "--" . $uid . "--";
+
+    if (mail($email, $subject, $nmessage, $header)) {
+        return true;
+    }
+    return false;
+}
+
 
 function getDataLogo()
 {
@@ -1808,7 +1916,7 @@ function generarFactura($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_co
     $arrayproductos = array();
     $i = 0;
     foreach ($dataCotizacion["productos"] as $producto) {
-        if ($i == count($dataCotizacion["productos"]) - 1 && $comentario && mb_strlen($comentario) > 0100){
+        if ($i == count($dataCotizacion["productos"]) - 1 && $comentario && mb_strlen($comentario) > 0100) {
             array_push($arrayproductos, array(
                 'NmbItem' => $producto["variedad"] . " (" . $producto["codigo"] . ") " . ($producto["especie"] && strlen($producto["especie"]) > 0 ? $producto["especie"] : ""),
                 'DscItem' => $comentario,
@@ -1817,8 +1925,7 @@ function generarFactura($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_co
                 'DescuentoPct' => $producto["descuento"] && $producto["descuento"]["tipo"] == "porcentual" ? (int) $producto["descuento"]["valor"] : false,
                 'DescuentoMonto' => $producto["descuento"] && $producto["descuento"]["tipo"] == "fijo" ? (int) $producto["descuento"]["valor"] : false,
             ));
-        }
-        else{
+        } else {
             array_push($arrayproductos, array(
                 'NmbItem' => $producto["variedad"] . " (" . $producto["codigo"] . ") " . ($producto["especie"] && strlen($producto["especie"]) > 0 ? $producto["especie"] : ""),
                 'QtyItem' => (int) $producto["cantidad"],
@@ -1827,13 +1934,13 @@ function generarFactura($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_co
                 'DescuentoMonto' => $producto["descuento"] && $producto["descuento"]["tipo"] == "fijo" ? (int) $producto["descuento"]["valor"] : false,
             ));
         }
-        
+
         $i++;
     }
 
     $condicion_pago = getCondicionPago($dataCotizacion["condicion_pago"]);
 
-    
+
 
     $set_pruebas = [
         [
@@ -1879,8 +1986,10 @@ function generarFactura($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_co
         $EnvioDTE->agregar($DTE);
     }
 
+    $caratula = $GLOBALS["caratula"];
+    $caratula["RutReceptor"] = $dataCotizacion["rut"];
     // enviar dtes y mostrar resultado del envío: track id o bien =false si hubo error
-    $EnvioDTE->setCaratula($GLOBALS["caratula"]);
+    $EnvioDTE->setCaratula($caratula);
     $EnvioDTE->setFirma($GLOBALS["Firma"]);
 
     $dataDTE = $EnvioDTE->generar();
@@ -1891,9 +2000,9 @@ function generarFactura($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_co
     $err = array();
     foreach (\sasco\LibreDTE\Log::readAll() as $error) {
         array_push($err, $error);
-        die(json_encode($error));
-    }
 
+    }
+    //die(json_encode($err));
     if (count($err) > 0) {
         return array(
             "errores" => $err,
@@ -1910,7 +2019,8 @@ function generarFactura($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_co
     }
 }
 
-function limpiarYRecortar($texto, $limite = 100) {
+function limpiarYRecortar($texto, $limite = 100)
+{
     // Eliminar espacios extra y normalizar a un solo espacio
     $textoLimpio = preg_replace('/\s+/', ' ', trim($texto));
 
@@ -1927,11 +2037,12 @@ function generarBoleta($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_cot
     } else {
         $dataCotizacion = $json;
     }
-    
+
     $arrayproductos = array();
     foreach ($dataCotizacion["productos"] as $producto) {
+        $prod = $producto["variedad"] . " (" . $producto["codigo"] . ") " . ($producto["especie"] && strlen($producto["especie"]) > 0 ? $producto["especie"] : "");
         array_push($arrayproductos, array(
-            'NmbItem' => $producto["variedad"] . " (" . $producto["codigo"] . ") " . ($producto["especie"] && strlen($producto["especie"]) > 0 ? $producto["especie"] : ""),
+            'NmbItem' => trim($prod),
             'QtyItem' => (int) $producto["cantidad"],
             'PrcItem' => (int) $producto["precio"],
             'DescuentoPct' => $producto["descuento"] && $producto["descuento"]["tipo"] == "porcentual" ? (int) $producto["descuento"]["valor"] : false,
@@ -1941,15 +2052,17 @@ function generarBoleta($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_cot
 
     $condicion_pago = getCondicionPago($dataCotizacion["condicion_pago"]);
     $comentario = $dataCotizacion["comentario"] ?? $dataCotizacion["observaciones"] ?? null;
+
+    $emisor = $GLOBALS["Emisor"];
+    $emisor['RznSoc'] = "PLANTINERA V.V. LIMITADA";
     $set_pruebas = [
         [
             'Encabezado' => [
                 'IdDoc' => [
                     'TipoDTE' => 39,
-                    'Folio' => $folio,
-                    'TermPagoGlosa' => $comentario
+                    'Folio' => $folio
                 ],
-                'Emisor' => $GLOBALS["Emisor"],
+                'Emisor' => $emisor,
                 'Receptor' => [
                     'RUTRecep' => $dataCotizacion["rut"],
                     'RznSocRecep' => $dataCotizacion["cliente"],
@@ -1986,7 +2099,10 @@ function generarBoleta($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_cot
     }
 
     // enviar dtes y mostrar resultado del envío: track id o bien =false si hubo error
-    $EnvioDTE->setCaratula($GLOBALS["caratula"]);
+    $caratula = $GLOBALS["caratula"];
+    $caratula["RutReceptor"] = $dataCotizacion["rut"];
+    // enviar dtes y mostrar resultado del envío: track id o bien =false si hubo error
+    $EnvioDTE->setCaratula($caratula);
     $EnvioDTE->setFirma($GLOBALS["Firma"]);
 
     $dataDTE = $EnvioDTE->generar();
@@ -1998,6 +2114,8 @@ function generarBoleta($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_cot
     foreach (\sasco\LibreDTE\Log::readAll() as $error) {
         array_push($err, $error);
     }
+
+    die(json_encode($err));
 
     if (count($err) > 0) {
         return array(
@@ -2163,7 +2281,7 @@ function generarNotaCredito($dataFolio, $folio, $folio_factura, $dataFactura, $e
                     'TpoDocRef' => $esBoleta ? 39 : 33,
                     'FolioRef' => $folio_factura,
                     'CodRef' => 1,
-                    'RazonRef' => "ANULA ".($esBoleta ? "BOLETA" : "FACTURA"),
+                    'RazonRef' => "ANULA " . ($esBoleta ? "BOLETA" : "FACTURA"),
                 ],
             ],
         ],
@@ -2188,7 +2306,10 @@ function generarNotaCredito($dataFolio, $folio, $folio_factura, $dataFactura, $e
     }
 
     // enviar dtes y mostrar resultado del envío: track id o bien =false si hubo error
-    $EnvioDTE->setCaratula($GLOBALS["caratula"]);
+    $caratula = $GLOBALS["caratula"];
+    $caratula["RutReceptor"] = $dataFactura["rut"];
+    // enviar dtes y mostrar resultado del envío: track id o bien =false si hubo error
+    $EnvioDTE->setCaratula($caratula);
     $EnvioDTE->setFirma($GLOBALS["Firma"]);
 
     $dataDTE = $EnvioDTE->generar();
@@ -2274,7 +2395,10 @@ function generarNotaDebito($dataFolio, $folio, $folio_nc, $dataFactura)
     }
 
     // enviar dtes y mostrar resultado del envío: track id o bien =false si hubo error
-    $EnvioDTE->setCaratula($GLOBALS["caratula"]);
+    $caratula = $GLOBALS["caratula"];
+    $caratula["RutReceptor"] = $dataFactura["rut"];
+    // enviar dtes y mostrar resultado del envío: track id o bien =false si hubo error
+    $EnvioDTE->setCaratula($caratula);
     $EnvioDTE->setFirma($GLOBALS["Firma"]);
 
     $dataDTE = $EnvioDTE->generar();
@@ -2374,7 +2498,10 @@ function generarGuiaDespacho($dataFolio, $folio, $json)
     }
 
     // enviar dtes y mostrar resultado del envío: track id o bien =false si hubo error
-    $EnvioDTE->setCaratula($GLOBALS["caratula"]);
+    $caratula = $GLOBALS["caratula"];
+    $caratula["RutReceptor"] = $json["rut"];
+    // enviar dtes y mostrar resultado del envío: track id o bien =false si hubo error
+    $EnvioDTE->setCaratula($caratula);
     $EnvioDTE->setFirma($GLOBALS["Firma"]);
 
     $dataDTE = $EnvioDTE->generar();

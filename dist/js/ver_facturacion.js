@@ -970,6 +970,14 @@ function reenviarFactura(rowid_factura, esBoleta) {
   });
 }
 
+function downloadXML(obj, rowid, folio) {
+  obj.disabled = true; // Deshabilitar el botón temporalmente
+
+  window.open('/downloadxml.php?rowid=' + rowid + '&folio='+folio, '_blank');
+  setTimeout(() => { obj.disabled = false; }, 2000); // Habilitar el botón después de 3s
+}
+
+
 function printDTE(obj, rowid, folio, tipoDTE) {
   //0 FACTURA - 1 NOTA DE CREDITO
   //10 - BOLETA
@@ -1142,13 +1150,14 @@ function reloadData() {
     loadHistorial();
   }
   else if (currentTab == "historialboletas") {
-    loadHistorial();
+    loadHistorialBoletas();
   }
   else if (currentTab == "notas") {
     loadNotas();
   } else if (currentTab == "notas-debito") {
     loadNotasDebito();
-  } else if (currentTab == "guias") {
+  } else if (currentTab == "guias")
+   {
     loadGuias();
   } else if (currentTab == "cotizaciones") {
     loadHistorialCotizaciones();

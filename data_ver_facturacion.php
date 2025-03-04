@@ -96,6 +96,8 @@ if ($consulta == "cargar_historial") { //FACTURAS
             $btn_cancelar_factura = ($ww["estado"] == "ACEPTADO" ? "<button onclick='modalAnularFactura($ww[rowid], $ww[folio], $esFactDirecta, $ww[id_cliente])' class='btn btn-danger fa fa-ban btn-sm mr-2'></button>" : "");
             $btn_print = ($ww["track_id"] ? "<button onclick='printDTE(this, $ww[rowid], $ww[folio], 0)' class='btn btn-primary fa fa-print btn-sm mr-2'></button>" : "");
 
+            $btn_descargar_xml = ($ww["track_id"] ? "<button onclick='downloadXML(this, $ww[rowid], $ww[folio])' class='btn btn-primary btn-sm mr-2' style='font-size:10px;'>XML</button>" : "");
+
 
             $montoint = (int)$ww["monto"];
             $btn_enviar = ($ww["track_id"] ? "<button onclick='sendMailFactura(this, $ww[rowid], $ww[folio], 0, $montoint, $email)' class='btn btn-info fa fa-envelope btn-sm'></button>" : "");
@@ -155,6 +157,7 @@ if ($consulta == "cargar_historial") { //FACTURAS
                 <td class='text-center'>
                         <div class='ml-1 d-flex flex-row justify-content-center align-items-center'>
                             $btn_print
+                            $btn_descargar_xml
                             $btn_add_pago
                         </div>
                         <div class='mt-2 d-flex flex-row justify-content-center align-items-center'>
