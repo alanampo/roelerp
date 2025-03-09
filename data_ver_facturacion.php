@@ -29,6 +29,8 @@ if ($consulta == "cargar_historial") { //FACTURAS
             cl.mail,
             cl.telefono,
             cl.domicilio,
+            cl.rut,
+            u.nombre_real,
             com.nombre as comuna,
             com.ciudad as ciudad,
             f.track_id,
@@ -60,6 +62,7 @@ if ($consulta == "cargar_historial") { //FACTURAS
             ON f.id_cotizacion_directa = cod.id
             INNER JOIN clientes cl ON cl.id_cliente = co.id_cliente OR cl.id_cliente = cod.id_cliente
             LEFT JOIN comunas com ON com.id = cl.comuna
+            LEFT JOIN usuarios u ON u.id = f.id_usuario
             ;
             ";
 
@@ -74,7 +77,7 @@ if ($consulta == "cargar_historial") { //FACTURAS
         echo "<table id='tabla-historial-facturas' class='table table-bordered table-responsive w-100 d-block d-md-table'>";
         echo "<thead>";
         echo "<tr>";
-        echo "<th>N°</th><th>Cliente</th><th>Fecha</th><th>Cot. N°</th><th>Track ID</th><th>Estado</th><th style='max-width:200px'>Comentario</th><th>Monto</th><th>Deuda</th><th></th>";
+        echo "<th>N°</th><th>Cliente</th><th>Fecha</th><th>Cot. N°</th><th>Track ID</th><th>Estado</th><th style='max-width:150px'>Comentario</th><th>Autor</th><th>Monto</th><th>Deuda</th><th></th>";
         echo "</tr>";
         echo "</thead>";
         echo "<tbody>";
@@ -96,7 +99,9 @@ if ($consulta == "cargar_historial") { //FACTURAS
             $btn_cancelar_factura = ($ww["estado"] == "ACEPTADO" ? "<button onclick='modalAnularFactura($ww[rowid], $ww[folio], $esFactDirecta, $ww[id_cliente])' class='btn btn-danger fa fa-ban btn-sm mr-2'></button>" : "");
             $btn_print = ($ww["track_id"] ? "<button onclick='printDTE(this, $ww[rowid], $ww[folio], 0)' class='btn btn-primary fa fa-print btn-sm mr-2'></button>" : "");
 
-            $btn_descargar_xml = ($ww["track_id"] ? "<button onclick='downloadXML(this, $ww[rowid], $ww[folio])' class='btn btn-primary btn-sm mr-2' style='font-size:10px;'>XML</button>" : "");
+            $btn_descargar_xml = ($ww["track_id"] ? "<button onclick='downloadXML(this, $ww[rowid], $ww[folio])' class='btn btn-primary btn-sm mr-2 px-1' style='font-size:10px;'>XML INT</button>" : "");
+
+            $btn_descargar_xml_cliente = ($ww["track_id"] ? "<button onclick='downloadXML(this, $ww[rowid], $ww[folio], $ww[id_cliente])' class='btn btn-primary btn-sm mr-2 px-1' style='font-size:10px;'>XML CLI</button>" : "");
 
 
             $montoint = (int)$ww["monto"];
@@ -151,13 +156,15 @@ if ($consulta == "cargar_historial") { //FACTURAS
                 <td>$docRef</td>
                 <td $onclick><small>$ww[track_id]</small></td>
                 <td $onclick>$estado</td>
-                <td>" . (($ww["comentario"] && strlen($ww["comentario"]) > 0 ? $ww["comentario"] : $ww["comentario2"] && strlen($ww["comentario2"]) > 0) ? $ww["comentario2"] : "") . "</td>
+                <td><small>" . (($ww["comentario"] && strlen($ww["comentario"]) > 0 ? $ww["comentario"] : $ww["comentario2"] && strlen($ww["comentario2"]) > 0) ? $ww["comentario2"] : "") . "</small></td>
+                <td>$ww[nombre_real]</td>
                 <td>$monto</td>
                 <td class='text-$classdeuda'>$deuda</td>
                 <td class='text-center'>
                         <div class='ml-1 d-flex flex-row justify-content-center align-items-center'>
                             $btn_print
                             $btn_descargar_xml
+                            $btn_descargar_xml_cliente
                             $btn_add_pago
                         </div>
                         <div class='mt-2 d-flex flex-row justify-content-center align-items-center'>
@@ -201,6 +208,7 @@ else if ($consulta == "cargar_historial_boletas") { //BOLETAS
             f.id_cotizacion,
             f.id_cotizacion_directa,
             f.estado,
+            u.nombre_real,
             (IFNULL(co.monto,0) + IFNULL(cod.monto,0)) as monto,
             (SELECT IFNULL(SUM(pag.monto),0) FROM boletas_pagos pag WHERE pag.rowid_boleta = f.rowid) as sumapagos,
             
@@ -222,6 +230,7 @@ else if ($consulta == "cargar_historial_boletas") { //BOLETAS
             ON f.id_cotizacion_directa = cod.id
             INNER JOIN clientes cl ON cl.id_cliente = co.id_cliente OR cl.id_cliente = cod.id_cliente
             LEFT JOIN comunas com ON com.id = cl.comuna
+            LEFT JOIN usuarios u ON u.id = f.id_usuario
             ;
             ";
 
@@ -236,7 +245,7 @@ else if ($consulta == "cargar_historial_boletas") { //BOLETAS
         echo "<table id='tabla-historial-boletas' class='table table-bordered table-responsive w-100 d-block d-md-table'>";
         echo "<thead>";
         echo "<tr>";
-        echo "<th>N°</th><th>Cliente</th><th>Fecha</th><th>Cot. N°</th><th>Track ID</th><th>Estado</th><th style='max-width:200px'>Comentario</th><th>Monto</th><th>Deuda</th><th></th>";
+        echo "<th>N°</th><th>Cliente</th><th>Fecha</th><th>Cot. N°</th><th>Track ID</th><th>Estado</th><th style='max-width:150px'>Comentario</th><th>Autor</th><th>Monto</th><th>Deuda</th><th></th>";
         echo "</tr>";
         echo "</thead>";
         echo "<tbody>";
@@ -310,7 +319,8 @@ else if ($consulta == "cargar_historial_boletas") { //BOLETAS
                 <td>$docRef</td>
                 <td $onclick><small>$ww[track_id]</small></td>
                 <td $onclick>$estado</td>
-                <td>" . (($ww["comentario"] && strlen($ww["comentario"]) > 0 ? $ww["comentario"] : $ww["comentario2"] && strlen($ww["comentario2"]) > 0) ? $ww["comentario2"] : "") . "</td>
+                <td><small>" . (($ww["comentario"] && strlen($ww["comentario"]) > 0 ? $ww["comentario"] : $ww["comentario2"] && strlen($ww["comentario2"]) > 0) ? $ww["comentario2"] : "") . "</small></td>
+                <td>$ww[nombre_real]</td>
                 <td>$monto</td>
                 <td class='text-$classdeuda'>$deuda</td>
                 <td class='text-center'>
@@ -453,11 +463,13 @@ else if ($consulta == "cargar_cotizacion") {
             co.observaciones as comentario,
             co.estado,
             f.id_cotizacion,
-            ROUND(co.monto) as monto
+            ROUND(co.monto) as monto,
+            u.nombre_real
             FROM cotizaciones co
             INNER JOIN clientes cl ON cl.id_cliente = co.id_cliente
             LEFT JOIN facturas f ON f.id_cotizacion = co.id
             LEFT JOIN boletas b ON b.id_cotizacion = co.id
+            LEFT JOIN usuarios u ON u.id = co.id_usuario
             WHERE f.id_cotizacion IS NULL
             AND b.id_cotizacion IS NULL
             AND co.estado >= 0 AND co.estado <= 1
@@ -476,7 +488,7 @@ else if ($consulta == "cargar_cotizacion") {
         echo "<table id='tabla_cotizaciones".($isBoleta ? "_boletas" : "")."' class='table table-bordered table-responsive w-100 d-block d-md-table'>";
         echo "<thead>";
         echo "<tr>";
-        echo "<th>N°</th><th>Cliente</th><th>Fecha</th><th style='max-width:200px'>Comentario</th><th>Monto</th><th>Estado</th><th></th>";
+        echo "<th>N°</th><th>Cliente</th><th>Fecha</th><th style='max-width:150px'>Comentario</th><th>Autor</th><th>Monto</th><th>Estado</th><th></th>";
         echo "</tr>";
         echo "</thead>";
         echo "<tbody>";
@@ -490,7 +502,8 @@ else if ($consulta == "cargar_cotizacion") {
                 <td>$ww[id]</td>
                 <td>$ww[cliente] ($ww[id_cliente])</td>
                 <td><span class='d-none'>$ww[fecha_raw]</span>$ww[fecha]</td>
-                <td>$ww[comentario]</td>
+                <td><small>$ww[comentario]</small></td>
+                <td>$ww[nombre_real]</td>
                 <td>$monto</td>
                 <td>$estado</td>
                 <td class='text-center'>
@@ -666,12 +679,14 @@ else if ($consulta == "cargar_cotizacion") {
     f.rowid as rowid_factura,
     ROUND(IFNULL(co.monto,0) + IFNULL(cod.monto,0)) as monto,
     co.monto as m1,
-    cod.monto as m2
+    cod.monto as m2,
+    u.nombre_real 
     FROM
     notas_credito nc
     INNER JOIN facturas f ON f.rowid = nc.id_factura
     LEFT JOIN cotizaciones co ON co.id = f.id_cotizacion
     LEFT JOIN cotizaciones_directas cod ON cod.id = f.id_cotizacion_directa
+    LEFT JOIN usuarios u ON u.id = nc.id_usuario
     INNER JOIN clientes cl ON cl.id_cliente = co.id_cliente OR cl.id_cliente = cod.id_cliente
 UNION
     SELECT
@@ -692,9 +707,11 @@ UNION
     NULL as rowid_factura,
     NULL as monto,
     NULL,
-    NULL
+    NULL,
+    u.nombre_real
     FROM notas_credito nc
     INNER JOIN clientes cl ON cl.id_cliente = nc.id_cliente
+    LEFT JOIN usuarios u ON u.id = nc.id_usuario
     WHERE nc.id_factura IS NULL
             ;
             ";
@@ -710,7 +727,7 @@ UNION
         echo "<table id='tabla-historial-notas' class='table table-bordered table-responsive w-100 d-block d-md-table'>";
         echo "<thead>";
         echo "<tr>";
-        echo "<th>N°</th><th>Cliente</th><th>Doc Referencia</th><th>Fecha</th><th>Track ID</th><th>Estado</th><th style='max-width:200px'>Comentario</th><th>Monto</th><th></th>";
+        echo "<th>N°</th><th>Cliente</th><th>Doc Referencia</th><th>Fecha</th><th>Track ID</th><th>Estado</th><th style='max-width:150px'>Comentario</th><th>Autor</th><th>Monto</th><th></th>";
         echo "</tr>";
         echo "</thead>";
         echo "<tbody>";
@@ -740,7 +757,8 @@ UNION
                 <td><span class='d-none'>$ww[fecha_raw]</span>$ww[fecha]</td>
                 <td $onclick><small>$ww[track_id]</small></td>
                 <td $onclick>$estado</td>
-                <td>$ww[comentario]</td>
+                <td><small>$ww[comentario]</small></td>
+                <td>$ww[nombre_real]</td>
                 <td>$monto</td>
                 <td class='text-center'>
                         <div class='d-flex flex-row justify-content-center align-items-center'>
@@ -776,13 +794,15 @@ UNION
             gd.estado,
             gd.id_factura,
             f.folio as folio_factura,
-            ROUND(cod.monto) as monto
+            ROUND(cod.monto) as monto,
+            u.nombre_real
             FROM
             guias_despacho gd
             INNER JOIN cotizaciones_directas cod ON cod.id = gd.id_cotizacion_directa
             INNER JOIN clientes cl ON cl.id_cliente = cod.id_cliente
             LEFT JOIN facturas f ON f.rowid = gd.id_factura
             LEFT JOIN comunas com ON com.id = cl.comuna
+            LEFT JOIN usuarios u ON u.id = gd.id_usuario
             ";
 
     $val = mysqli_query($con, $query);
@@ -796,7 +816,7 @@ UNION
         echo "<table id='tabla-historial-guias' class='table table-bordered table-responsive w-100 d-block d-md-table'>";
         echo "<thead>";
         echo "<tr>";
-        echo "<th>N°</th><th>Cliente</th><th>Fecha</th><th>Track ID</th><th>Estado</th><th style='max-width:200px'>Comentario</th><th>Monto</th><th>Facturada</th><th></th>";
+        echo "<th>N°</th><th>Cliente</th><th>Fecha</th><th>Track ID</th><th>Estado</th><th style='max-width:150px'>Comentario</th><th>Autor</th><th>Monto</th><th>Facturada</th><th></th>";
         echo "</tr>";
         echo "</thead>";
         echo "<tbody>";
@@ -825,7 +845,8 @@ UNION
                 <td><span class='d-none'>$ww[fecha_raw]</span>$ww[fecha]</td>
                 <td $onclick><small>$ww[track_id]</small></td>
                 <td $onclick>$estado</td>
-                <td>$ww[comentario]</td>
+                <td><small>$ww[comentario]</small></td>
+                <td>$ww[nombre_real]</td>
                 <td>$monto</td>
                 <td>" . ($ww["id_factura"] != null ? "<span class='text-danger'>FACT N° $ww[folio_factura]</span>" : "") . "</td>
                 <td class='text-center'>
@@ -1074,7 +1095,7 @@ UNION
         echo "<table id='tabla-historial-notas-debito' class='table table-bordered table-responsive w-100 d-block d-md-table'>";
         echo "<thead>";
         echo "<tr>";
-        echo "<th>N°</th><th>Cliente</th><th>Doc Referencia</th><th>Fecha</th><th>Track ID</th><th>Estado</th><th style='max-width:200px'>Comentario</th><th>Monto</th><th></th>";
+        echo "<th>N°</th><th>Cliente</th><th>Doc Referencia</th><th>Fecha</th><th>Track ID</th><th>Estado</th><th style='max-width:150px'>Comentario</th><th>Monto</th><th></th>";
         echo "</tr>";
         echo "</thead>";
         echo "<tbody>";

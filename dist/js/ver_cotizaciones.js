@@ -1442,7 +1442,7 @@ function sendMail(btn) {
         break;
 
       case "sinlink":
-        enviarMail(null);
+        enviar(null);
 
       default:
         break;

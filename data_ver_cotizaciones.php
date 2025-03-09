@@ -1,7 +1,10 @@
 <?php
 
 include "./class_lib/sesionSecurity.php";
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
 
+require_once $_SERVER['DOCUMENT_ROOT'] . '/vendor/autoload.php'; // Ajusta la ruta si es necesario
 require 'class_lib/class_conecta_mysql.php';
 require 'class_lib/funciones.php';
 header('Content-type: text/html; charset=utf-8');
@@ -248,9 +251,11 @@ if ($consulta == "cargar_datos_cliente") {
             DATE_FORMAT(co.fecha, '%Y%m%d%H%i') as fecha_raw,
             co.observaciones as comentario,
             co.estado,
-            ROUND(co.monto) as monto
+            ROUND(co.monto) as monto,
+            u.nombre_real
             FROM cotizaciones co
-            INNER JOIN clientes cl ON cl.id_cliente = co.id_cliente;
+            INNER JOIN clientes cl ON cl.id_cliente = co.id_cliente
+            LEFT JOIN usuarios u ON u.id = co.id_usuario;
             ";
 
     $val = mysqli_query($con, $query);
@@ -265,7 +270,7 @@ if ($consulta == "cargar_datos_cliente") {
         echo "<table id='tabla' class='table table-bordered table-responsive w-100 d-block d-md-table'>";
         echo "<thead>";
         echo "<tr>";
-        echo "<th>N°</th><th>Cliente</th><th>Fecha</th><th style='max-width:200px'>Comentario</th><th>Monto</th><th>Estado</th><th></th>";
+        echo "<th>N°</th><th>Cliente</th><th>Fecha</th><th style='max-width:160px'>Comentario</th><th>Autor</th><th>Monto</th><th>Estado</th><th></th>";
         echo "</tr>";
         echo "</thead>";
         echo "<tbody>";
@@ -279,7 +284,8 @@ if ($consulta == "cargar_datos_cliente") {
       <td>$ww[id]</td>
       <td>$ww[cliente] ($ww[id_cliente])</td>
       <td><span class='d-none'>$ww[fecha_raw]</span>$ww[fecha]</td>
-      <td>$ww[comentario]</td>
+      <td><small>$ww[comentario]</small></td>
+      <td>$ww[nombre_real]</td>
       <td>$monto</td>
       <td onclick='modalCambiarEstado($ww[id])'>$estado</td>
       <td class='text-center'>
@@ -405,10 +411,10 @@ if ($consulta == "cargar_datos_cliente") {
                     "total" => $total,
                     "subtotal" => $subtotal,
                     "descuento" => $ww2["tipo_descuento"] != null && $ww2["tipo_descuento"] > 0 ?
-                    array(
-                        "tipo" => $ww2["tipo_descuento"] == 1 ? "porcentual" : "fijo",
-                        "valor" => $ww2["valor_descuento"],
-                    ) : null,
+                        array(
+                            "tipo" => $ww2["tipo_descuento"] == 1 ? "porcentual" : "fijo",
+                            "valor" => $ww2["valor_descuento"],
+                        ) : null,
                 ));
             }
             $array = array(
@@ -540,7 +546,7 @@ if ($consulta == "cargar_datos_cliente") {
                 $direccion = $sucursal->address;
                 $id = $sucursal->id;
                 $nombre = $sucursal->name;
-                                
+
                 if (strlen($direccion) > 40) {
                     $direccion = substr($direccion, 0, 40) . "...";
                 }
@@ -583,40 +589,44 @@ if ($consulta == "cargar_datos_cliente") {
     $file = $_POST["file"];
     $id = $_POST["id"];
     $to = $_POST["email"];
-
     $link = $_POST["link"];
-
+    $GLOBALS['emailUserName'] = 'ventas@roelplant.cl';
+    $GLOBALS['emailPassword'] = 'iyyn zilm xybf mbgc';
     $content = chunk_split($file);
-    $uid = md5(uniqid(time()));
     $file_name = "cotizacion_$id.pdf";
 
-    $subject = "Cotización";
-    $message = "Te enviamos una copia de la cotización que realizaste. Puedes realizar el pago ingresando al siguiente link: $link";
+    $subject = "Cotizaciones";
+    $message = "Te enviamos una copia de la cotización que realizaste.". (isset($link) && !empty($link) ? " Puedes realizar el pago ingresando al siguiente link: $link" : "");
 
-    $from_name = "Roelplant";
-    $from_mail = "ventas@roelplant.cl";
-    $replyto = "ventas@roelplant.cl";
+    // Crear una nueva instancia de PHPMailer
+    $mail = new PHPMailer(true);
+    try {
+        // Configuración del servidor de correo
+        $mail->isSMTP();
+        $mail->Host = 'smtp.gmail.com';  // Dirección del servidor SMTP de Gmail
+        $mail->Port = 587;  // Puerto para STARTTLS
+        $mail->SMTPAuth = true;  // Habilitar autenticación SMTP
+        $mail->Username = $GLOBALS["emailUserName"];  // Usuario SMTP (tu cuenta de Gmail)
+        $mail->Password = $GLOBALS["emailPassword"];  // Contraseña SMTP de la cuenta de Gmail
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;  // Uso de STARTTLS
 
-    $header = "From: " . $from_name . " <" . $from_mail . ">\r\n";
-    $header .= "Reply-To: " . $replyto . "\r\n";
-    $header .= "MIME-Version: 1.0\r\n";
-    $header .= "Content-Type: multipart/mixed; boundary=\"" . $uid . "\"\r\n\r\n";
+        // Remitente y destinatario
+        $mail->setFrom('ventas@roelplant.cl', 'Roelplant');
+        $mail->addAddress($to); // Dirección del destinatario
+        $mail->addReplyTo('ventas@roelplant.cl', 'Roelplant');
 
-    $nmessage = "--" . $uid . "\r\n";
-    $nmessage .= "Content-type:text/plain; charset=iso-8859-1\r\n";
-    $nmessage .= "Content-Transfer-Encoding: 7bit\r\n\r\n";
-    $nmessage .= $message . "\r\n\r\n";
-    $nmessage .= "--" . $uid . "\r\n";
-    $nmessage .= "Content-Type: application/octet-stream; name=\"" . $filename . "\"\r\n";
-    $nmessage .= "Content-Transfer-Encoding: base64\r\n";
-    $nmessage .= "Content-Disposition: attachment; filename=\"" . $file_name . "\"\r\n\r\n";
-    $nmessage .= $content . "\r\n\r\n";
-    $nmessage .= "--" . $uid . "--";
+        // Asunto y cuerpo del mensaje
+        $mail->Subject = $subject;
+        $mail->Body = $message;
 
-    if (mail($to, $subject, $nmessage, $header)) {
+        // Adjuntar el archivo
+        $mail->addStringAttachment(base64_decode($content), $file_name, 'base64', 'application/pdf');
+
+        // Enviar el correo
+        $mail->send();
         echo "success";
-    } else {
-        echo "Hubo un error al enviar el correo.";
+    } catch (Exception $e) {
+        echo "Hubo un error al enviar el correo: {$mail->ErrorInfo}";
     }
 }
 // else if ($consulta == "genera_uniqid"){

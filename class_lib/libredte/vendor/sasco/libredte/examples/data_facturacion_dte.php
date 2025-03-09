@@ -1,5 +1,13 @@
 <?php
 
+require_once $_SERVER['DOCUMENT_ROOT'] . '/vendor/autoload.php';
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
+$GLOBALS['emailUserName'] =  'ventas@roelplant.cl';
+$GLOBALS['emailPassword'] = 'iyyn zilm xybf mbgc';
+
 if (strpos($_SERVER['HTTP_HOST'], 'roelplant') !== false) {
     include $_SERVER['DOCUMENT_ROOT'] . "/class_lib/sesionSecurity.php";
     require $_SERVER['DOCUMENT_ROOT'] . '/class_lib/class_conecta_mysql.php';
@@ -298,7 +306,7 @@ if ($consulta == "generar_factura") {
     $id_fac = $_POST["rowid_factura"];
     $id_guia = $_POST["id_guia"];
     $dataFolio = getDataFolios($con, $_POST["caf"], $id_guia);
-    $esBoleta = $_POST["esBoleta"] == 1 ? TRUE : FALSE;
+    $esBoleta = isset($_POST["esBoleta"]) && $_POST["esBoleta"] == 1 ? TRUE : FALSE;
     if (isset($dataFolio["data"])) {
         if (!$esBoleta !== TRUE) {
             $DTEGenerado = generarFactura($json, $dataFolio["data"], $_POST["folio"], $id_guia, $dataFolio["folio_guia"]);
@@ -432,7 +440,7 @@ if ($consulta == "generar_factura") {
     $folio = (int) $_POST["folio"];
     $email = $_POST["email"];
 
-    $esBoleta = $_POST["esBoleta"] == 1 ? TRUE : FALSE;
+    $esBoleta = isset($_POST["esBoleta"]) && $_POST["esBoleta"] == 1 ? TRUE : FALSE;
     $dir_logo = getDataLogo();
     $tablas = ["facturas", "notas_credito", "guias_despacho", "notas_debito"];
     $tablas[10] = "boletas";
@@ -457,7 +465,7 @@ if ($consulta == "generar_factura") {
     $folio_factura = $_POST["folioRef"];
     $caf = $_POST["caf"];
     $id_cliente = $_POST["id_cliente"];
-    $esBoleta = $_POST["esBoleta"] == 1 ? TRUE : FALSE;
+    $esBoleta = isset($_POST["esBoleta"]) && $_POST["esBoleta"] == 1 ? TRUE : FALSE;
     $esFactDirecta = (boolean) json_decode(strtolower($_POST["esFactDirecta"]));
     $comentario = mysqli_real_escape_string($con, $_POST["comentario"]);
     $arrErrores = array();
@@ -1641,6 +1649,7 @@ function generarPDF($data, $dir_logo, $track_id, $email, $esBoleta = false)
     $EnvioDte = new \sasco\LibreDTE\Sii\EnvioDte();
     $EnvioDte->loadXML($data);
     $Caratula = $EnvioDte->getCaratula();
+
     $Documentos = $EnvioDte->getDocumentos();
 
     // directorio temporal para guardar los PDF
@@ -1653,7 +1662,7 @@ function generarPDF($data, $dir_logo, $track_id, $email, $esBoleta = false)
         die('No fue posible crear directorio temporal para DTEs');
     }
 
-    // procesar cada DTEs e ir agregándolo al PDF
+    // procesar cada DTE e ir agregándolo al PDF
     foreach ($Documentos as $DTE) {
         if (!$DTE->getDatos()) {
             die('No se pudieron obtener los datos del DTE');
@@ -1674,52 +1683,87 @@ function generarPDF($data, $dir_logo, $track_id, $email, $esBoleta = false)
         ));
 
         if (isset($email) && filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            // Convertir el archivo XML a base64
+            $content_xml = chunk_split(base64_encode($data));
             $id = $DTE->getID();
 
             $content = file_get_contents($path);
             $content = chunk_split(base64_encode($content));
             $uid = md5(uniqid(time()));
             $file_name = (!$esBoleta ? "factura" : "boleta") . "_$id.pdf";
-
+            $file_name_xml = ($esBoleta ? "boleta" : "factura") . "_$id.xml";
             $subject = (!$esBoleta ? "Factura" : "Boleta") . " $id";
+            if (preg_match('/<RUTRecep>([^<]+)<\/RUTRecep>/', $data, $matches)) {
+                $rutReceptor = $matches[1]; // El valor dentro de <RutReceptor>
+            }
 
+            $rutReceptor = $rutReceptor ?? $Caratula['RutReceptor'];
+            $data = preg_replace('/(<RutReceptor>)([^<]*)(<\/RutReceptor>)/', '<RutReceptor>' . strtoupper($rutReceptor) . '</RutReceptor>', $data);
             $message = "Te enviamos una copia de la " . (!$esBoleta ? "Factura" : "Boleta") . " N° $id correspondiente a tu compra.";
 
-            $from_name = "Roelplant";
-            $from_mail = "ventas@roelplant.cl";
-            $replyto = "ventas@roelplant.cl";
+            // Usando PHPMailer para enviar el correo
+            $mail = new PHPMailer(true);
+            try {
+                // Configuración del servidor SMTP para Gmail
+                $mail->isSMTP();
+                $mail->Host = 'smtp.gmail.com';  // Dirección del servidor SMTP de Gmail
+                $mail->Port = 587;  // Puerto para STARTTLS
+                $mail->SMTPAuth = true;  // Habilitar autenticación SMTP
+                $mail->Username = $GLOBALS["emailUserName"];  // Usuario SMTP (tu cuenta de Gmail)
+                $mail->Password = $GLOBALS["emailPassword"];  // Contraseña SMTP de la cuenta de Gmail
+                $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;  // Uso de STARTTLS
 
-            $header = "From: " . $from_name . " <" . $from_mail . ">\r\n";
-            $header .= "Reply-To: " . $replyto . "\r\n";
-            $header .= "MIME-Version: 1.0\r\n";
-            $header .= "Content-Type: multipart/mixed; boundary=\"" . $uid . "\"\r\n\r\n";
+                // Deshabilitar la verificación del certificado SSL (si es necesario)
+                $mail->SMTPOptions = array(
+                    'ssl' => array(
+                        'verify_peer' => false,
+                        'verify_peer_name' => false,
+                        'allow_self_signed' => true
+                    )
+                );
 
-            $nmessage = "--" . $uid . "\r\n";
-            $nmessage .= "Content-type:text/plain; charset=iso-8859-1\r\n";
-            $nmessage .= "Content-Transfer-Encoding: 7bit\r\n\r\n";
-            $nmessage .= $message . "\r\n\r\n";
-            $nmessage .= "--" . $uid . "\r\n";
-            $nmessage .= "Content-Type: application/octet-stream; name=\"" . $file_name . "\"\r\n";
-            $nmessage .= "Content-Transfer-Encoding: base64\r\n";
-            $nmessage .= "Content-Disposition: attachment; filename=\"" . $file_name . "\"\r\n\r\n";
-            $nmessage .= $content . "\r\n\r\n";
-            $nmessage .= "--" . $uid . "--";
+                // Configuración del remitente
+                $mail->setFrom('ventas@roelplant.cl', 'Roelplant');
 
-            mail($email, $subject, $nmessage, $header);
+                // Destinatario del correo
+                $mail->addAddress($email); // Dirección del receptor
+                $mail->addReplyTo('ventas@roelplant.cl', 'Roelplant');
+
+                // Asunto y mensaje
+                $mail->Subject = $subject;
+                $mail->Body = $message;
+
+                // Archivos adjuntos
+                $mail->addStringAttachment(base64_decode($content), $file_name, 'base64', 'application/octet-stream');
+                $mail->addStringAttachment(base64_decode($content_xml), $file_name_xml, 'base64', 'application/octet-stream');
+
+                // Enviar el correo
+                $mail->send();
+            } catch (Exception $e) {
+                echo "El correo no pudo ser enviado. Error: {$mail->ErrorInfo}";
+            }
         }
     }
 }
 
 function generarPDFMail($data, $dir_logo, $id, $email, $link, $esBoleta = false)
 {
+    //ENVIAR AL CLIENTE
     // Cargar EnvioDTE y extraer arreglo con datos de carátula y DTEs
     $EnvioDte = new \sasco\LibreDTE\Sii\EnvioDte();
     $EnvioDte->loadXML($data);
     $Caratula = $EnvioDte->getCaratula();
+
     $Documentos = $EnvioDte->getDocumentos();
 
+    if (preg_match('/<RUTRecep>([^<]+)<\/RUTRecep>/', $data, $matches)) {
+        $rutReceptor = $matches[1]; // El valor dentro de <RutReceptor>
+    }
+
+    $rutReceptor = $rutReceptor ?? $Caratula['RutReceptor'];
+    $data = preg_replace('/(<RutReceptor>)([^<]*)(<\/RutReceptor>)/', '<RutReceptor>' . strtoupper($rutReceptor) . '</RutReceptor>', $data);
     // directorio temporal para guardar los PDF
-    $dir = sys_get_temp_dir() . '/dte_' . $Caratula['RutEmisor'] . '_' . $Caratula['RutReceptor'] . '_' . str_replace(['-', ':', 'T'], '', $Caratula['TmstFirmaEnv']);
+    $dir = sys_get_temp_dir() . '/dte_' . $Caratula['RutEmisor'] . '_' . $rutReceptor . '_' . str_replace(['-', ':', 'T'], '', $Caratula['TmstFirmaEnv']);
     if (is_dir($dir)) {
         \sasco\LibreDTE\File::rmdir($dir);
     }
@@ -1742,12 +1786,12 @@ function generarPDFMail($data, $dir_logo, $id, $email, $link, $esBoleta = false)
 
     $path = $dir . 'dte_' . $Caratula['RutEmisor'] . '_' . $DTE->getID() . '.pdf';
     $pdf->Output($path, 'F');
-
+    $content_xml = chunk_split(base64_encode($data));
     $content = file_get_contents($path);
     $content = chunk_split(base64_encode($content));
     $uid = md5(uniqid(time()));
     $file_name = ($esBoleta ? "boleta" : "factura") . "_$id.pdf";
-
+    $file_name_xml = ($esBoleta ? "boleta" : "factura") . "_$id.xml";
     $subject = ($esBoleta ? "Boleta" : "Factura") . " $id";
 
     $message = "Te enviamos una copia de la " . ($esBoleta ? "Boleta" : "Factura") . " N° $id correspondiente a tu compra.";
@@ -1759,26 +1803,53 @@ function generarPDFMail($data, $dir_logo, $id, $email, $link, $esBoleta = false)
     $from_mail = "ventas@roelplant.cl";
     $replyto = "ventas@roelplant.cl";
 
-    $header = "From: " . $from_name . " <" . $from_mail . ">\r\n";
-    $header .= "Reply-To: " . $replyto . "\r\n";
-    $header .= "MIME-Version: 1.0\r\n";
-    $header .= "Content-Type: multipart/mixed; boundary=\"" . $uid . "\"\r\n\r\n";
+    // Crear una nueva instancia de PHPMailer
+    $mail = new PHPMailer(true);
 
-    $nmessage = "--" . $uid . "\r\n";
-    $nmessage .= "Content-type:text/plain; charset=iso-8859-1\r\n";
-    $nmessage .= "Content-Transfer-Encoding: 7bit\r\n\r\n";
-    $nmessage .= $message . "\r\n\r\n";
-    $nmessage .= "--" . $uid . "\r\n";
-    $nmessage .= "Content-Type: application/octet-stream; name=\"" . $file_name . "\"\r\n";
-    $nmessage .= "Content-Transfer-Encoding: base64\r\n";
-    $nmessage .= "Content-Disposition: attachment; filename=\"" . $file_name . "\"\r\n\r\n";
-    $nmessage .= $content . "\r\n\r\n";
-    $nmessage .= "--" . $uid . "--";
+    try {
+        // Configuración del servidor SMTP para Gmail
+        $mail->isSMTP();
+        $mail->Host = 'smtp.gmail.com';  // Dirección del servidor SMTP de Gmail
+        $mail->Port = 587;  // Puerto para STARTTLS
+        $mail->SMTPAuth = true;  // Habilitar autenticación SMTP
+        $mail->Username = $GLOBALS["emailUserName"];  // Usuario SMTP (tu cuenta de Gmail)
+        $mail->Password = $GLOBALS["emailPassword"];  // Contraseña SMTP de la cuenta de Gmail
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;  // Uso de STARTTLS
+       
+        // Deshabilitar la verificación del certificado SSL (si es necesario)
+        $mail->SMTPOptions = array(
+            'ssl' => array(
+                'verify_peer' => false,
+                'verify_peer_name' => false,
+                'allow_self_signed' => true
+            )
+        );
 
-    if (mail($email, $subject, $nmessage, $header)) {
+        // Configuración del remitente
+        $mail->setFrom($from_mail, $from_name);
+
+        // Destinatario del correo
+        $mail->addAddress($email);  // Dirección de correo del destinatario
+
+        // Configuración del asunto y cuerpo del correo
+        $mail->Subject = $subject;
+        $mail->Body = $message;
+        $mail->AltBody = 'Este es el cuerpo del mensaje en texto plano para clientes de correo no HTML.';
+
+        // Adjuntar el archivo PDF
+        $mail->addStringAttachment(base64_decode($content), $file_name, 'base64', 'application/pdf');
+
+        // Adjuntar el archivo XML
+        $mail->addStringAttachment(base64_decode($content_xml), $file_name_xml, 'base64', 'application/xml');
+
+        // Enviar el correo
+        $mail->send();
         return true;
+
+    } catch (Exception $e) {
+        echo 'Error al enviar el correo. Detalles: ' . $mail->ErrorInfo;
+        return false;
     }
-    return false;
 }
 
 
@@ -1835,36 +1906,47 @@ function generarPDFMailInterno($data, $dir_logo, $id, $esBoleta = false)
     $from_mail = "ventas@roelplant.cl";
     $replyto = "ventas@roelplant.cl";
 
-    $header = "From: " . $from_name . " <" . $from_mail . ">\r\n";
-    $header .= "Reply-To: " . $replyto . "\r\n";
-    $header .= "MIME-Version: 1.0\r\n";
-    $header .= "Content-Type: multipart/mixed; boundary=\"" . $uid . "\"\r\n\r\n";
+    try {
+        // Crear una nueva instancia de PHPMailer
+        $mail = new PHPMailer(true);
 
-    $nmessage = "--" . $uid . "\r\n";
-    $nmessage .= "Content-type:text/plain; charset=iso-8859-1\r\n";
-    $nmessage .= "Content-Transfer-Encoding: 7bit\r\n\r\n";
-    $nmessage .= $message . "\r\n\r\n";
+        // Configuración del servidor SMTP para Gmail
+        $mail->isSMTP();
+        $mail->Host = 'smtp.gmail.com';  // Dirección del servidor SMTP de Gmail
+        $mail->Port = 587;  // Puerto para STARTTLS
+        $mail->SMTPAuth = true;  // Habilitar autenticación SMTP
+        $mail->Username = 'ventas@roelplant.cl';  // Usuario SMTP (tu cuenta de Gmail)
+        $mail->Password = 'iyyn zilm xybf mbgc';  // Contraseña SMTP de la cuenta de Gmail
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;  // Uso de STARTTLS
 
-    // Adjuntar el archivo PDF
-    $nmessage .= "--" . $uid . "\r\n";
-    $nmessage .= "Content-Type: application/octet-stream; name=\"" . $file_name_pdf . "\"\r\n";
-    $nmessage .= "Content-Transfer-Encoding: base64\r\n";
-    $nmessage .= "Content-Disposition: attachment; filename=\"" . $file_name_pdf . "\"\r\n\r\n";
-    $nmessage .= $content_pdf . "\r\n\r\n";
+        // Configuración del remitente
+        $mail->setFrom($from_mail, $from_name);
 
-    // Adjuntar el archivo XML
-    $nmessage .= "--" . $uid . "\r\n";
-    $nmessage .= "Content-Type: application/octet-stream; name=\"" . $file_name_xml . "\"\r\n";
-    $nmessage .= "Content-Transfer-Encoding: base64\r\n";
-    $nmessage .= "Content-Disposition: attachment; filename=\"" . $file_name_xml . "\"\r\n\r\n";
-    $nmessage .= $content_xml . "\r\n\r\n";
+        // Destinatario del correo
+        $mail->addAddress($email);
 
-    $nmessage .= "--" . $uid . "--";
+        // Asunto
+        $mail->Subject = $subject;
 
-    if (mail($email, $subject, $nmessage, $header)) {
-        return true;
+        // Cuerpo del correo
+        $mail->Body = $message;
+
+        // Adjuntar el archivo PDF
+        $mail->addStringAttachment(base64_decode($content_pdf), $file_name_pdf, 'base64', 'application/octet-stream');
+
+        // Adjuntar el archivo XML
+        $mail->addStringAttachment(base64_decode($content_xml), $file_name_xml, 'base64', 'application/octet-stream');
+
+        // Enviar el correo
+        if ($mail->send()) {
+            return true;
+        }
+        return false;
+
+    } catch (Exception $e) {
+        echo 'Error al enviar el correo: ' . $e->getMessage();
+        return false;
     }
-    return false;
 }
 
 
@@ -1987,7 +2069,7 @@ function generarFactura($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_co
     }
 
     $caratula = $GLOBALS["caratula"];
-    $caratula["RutReceptor"] = $dataCotizacion["rut"];
+    //$caratula["RutReceptor"] = $dataCotizacion["rut"];
     // enviar dtes y mostrar resultado del envío: track id o bien =false si hubo error
     $EnvioDTE->setCaratula($caratula);
     $EnvioDTE->setFirma($GLOBALS["Firma"]);
@@ -2100,12 +2182,83 @@ function generarBoleta($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_cot
 
     // enviar dtes y mostrar resultado del envío: track id o bien =false si hubo error
     $caratula = $GLOBALS["caratula"];
-    $caratula["RutReceptor"] = $dataCotizacion["rut"];
+    //$caratula["RutReceptor"] = $dataCotizacion["rut"];
     // enviar dtes y mostrar resultado del envío: track id o bien =false si hubo error
     $EnvioDTE->setCaratula($caratula);
     $EnvioDTE->setFirma($GLOBALS["Firma"]);
 
     $dataDTE = $EnvioDTE->generar();
+
+    $token = \sasco\LibreDTE\Sii\Autenticacion::getToken($GLOBALS['Firma']);
+    if (!$token) {
+        return null;
+    }
+
+    // Definir la URL del endpoint del SII
+    $url = "https://pangal.sii.cl/recursos/v1/boleta.electronica.envio"; // Ajusta la URL según sea producción o pruebas
+
+    // Token de autorización
+    $rutsplit = explode("-", $GLOBALS["empresa"]["rut"]);
+    $rutReceptorSplit = explode("-", $dataCotizacion["rut"]);
+
+    // Datos requeridos por la API
+    $rutSender = $rutsplit[0];// RUT del emisor sin puntos ni guion
+    $dvSender = $rutsplit[1];         // Dígito verificador del emisor
+    $rutCompany = $rutReceptorSplit[0]; // RUT de la empresa sin puntos ni guion
+    $dvCompany = $rutReceptorSplit[1];         // Dígito verificador de la empresa
+
+    // Crear un archivo temporal en memoria con el XML
+    $temp = tmpfile();
+    fwrite($temp, (string) $dataDTE);
+    fseek($temp, 0);
+
+    // Obtener la ruta del archivo temporal
+    $meta_data = stream_get_meta_data($temp);
+    $temp_path = $meta_data['uri'];
+
+    // Construir la solicitud con cURL
+    $ch = curl_init();
+
+    $post_fields = [
+        "rutSender" => $rutSender,
+        "dvSender" => $dvSender,
+        "rutCompany" => $rutCompany,
+        "dvCompany" => $dvCompany,
+        "archivo" => new CURLFile($temp_path, "text/xml", "factura.xml")
+    ];
+
+    $headers = [
+        "accept: application/json",
+        "User-Agent: Mozilla/4.0 ( compatible; PROG 1.0; Windows NT)",
+        "Content-Type: multipart/form-data",
+        "Cookie: TOKEN=" . $token
+    ];
+
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $post_fields);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+
+    // Ejecutar la petición y obtener la respuesta
+    $response = curl_exec($ch);
+    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $error = curl_error($ch);
+
+    // Cerrar cURL
+    curl_close($ch);
+
+    // Cerrar el archivo temporal
+    fclose($temp);
+
+    // Manejo de la respuesta
+    if ($error) {
+        echo "Error en la solicitud: " . $error;
+    } else {
+        echo "Código HTTP: " . $http_code . "\n";
+        echo "Respuesta: " . $response;
+    }
+    die;
     $datita = base64_encode($dataDTE);
 
     $track_id = $EnvioDTE->enviar();
@@ -2114,8 +2267,6 @@ function generarBoleta($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_cot
     foreach (\sasco\LibreDTE\Log::readAll() as $error) {
         array_push($err, $error);
     }
-
-    die(json_encode($err));
 
     if (count($err) > 0) {
         return array(
@@ -2307,7 +2458,7 @@ function generarNotaCredito($dataFolio, $folio, $folio_factura, $dataFactura, $e
 
     // enviar dtes y mostrar resultado del envío: track id o bien =false si hubo error
     $caratula = $GLOBALS["caratula"];
-    $caratula["RutReceptor"] = $dataFactura["rut"];
+    //$caratula["RutReceptor"] = $dataFactura["rut"];
     // enviar dtes y mostrar resultado del envío: track id o bien =false si hubo error
     $EnvioDTE->setCaratula($caratula);
     $EnvioDTE->setFirma($GLOBALS["Firma"]);
@@ -2396,7 +2547,7 @@ function generarNotaDebito($dataFolio, $folio, $folio_nc, $dataFactura)
 
     // enviar dtes y mostrar resultado del envío: track id o bien =false si hubo error
     $caratula = $GLOBALS["caratula"];
-    $caratula["RutReceptor"] = $dataFactura["rut"];
+    //$caratula["RutReceptor"] = $dataFactura["rut"];
     // enviar dtes y mostrar resultado del envío: track id o bien =false si hubo error
     $EnvioDTE->setCaratula($caratula);
     $EnvioDTE->setFirma($GLOBALS["Firma"]);
@@ -2499,7 +2650,7 @@ function generarGuiaDespacho($dataFolio, $folio, $json)
 
     // enviar dtes y mostrar resultado del envío: track id o bien =false si hubo error
     $caratula = $GLOBALS["caratula"];
-    $caratula["RutReceptor"] = $json["rut"];
+    //$caratula["RutReceptor"] = $json["rut"];
     // enviar dtes y mostrar resultado del envío: track id o bien =false si hubo error
     $EnvioDTE->setCaratula($caratula);
     $EnvioDTE->setFirma($GLOBALS["Firma"]);

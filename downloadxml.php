@@ -30,7 +30,7 @@ if ($rowid > 0) {
     $stmt->bind_result($data);
     $stmt->fetch();
     $stmt->close();
-    $mysqli->close();
+    
 
     if ($data) {
         // Decodificar el XML en base64
@@ -41,6 +41,24 @@ if ($rowid > 0) {
             header('Content-Type: application/xml');
             header('Content-Disposition: attachment; filename="factura_' . $folio . '.xml"');
             header('Content-Length: ' . strlen($xmlContent));
+            if (isset($_GET["id_cliente"])) {
+                $id_cliente = intval($_GET["id_cliente"]);
+
+                $stmt = $mysqli->prepare("SELECT rut FROM clientes WHERE id_cliente = ?");
+                $stmt->bind_param("i", $id_cliente);
+                $stmt->execute();
+                $stmt->bind_result($nuevoRut);
+                $stmt->fetch();
+                $stmt->close();
+            }
+
+            // Cerrar la conexión a la base de datos
+            $mysqli->close();
+            
+            // Si se encontró un RUT válido, reemplazar en el XML
+            if (!empty($nuevoRut)) {
+                $xmlContent = preg_replace('/(<RutReceptor>)([^<]*)(<\/RutReceptor>)/', '<RutReceptor>' . strtoupper($nuevoRut) . '</RutReceptor>', $xmlContent);
+            }
 
             // Enviar el contenido del archivo al navegador
             echo $xmlContent;

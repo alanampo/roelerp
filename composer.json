@@ -1,5 +1,6 @@
 {
     "require": {
-        "robrichards/xmlseclibs": "^3.1"
+        "robrichards/xmlseclibs": "^3.1",
+        "phpmailer/phpmailer": "^6.9"
     }
 }

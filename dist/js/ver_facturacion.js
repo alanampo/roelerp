@@ -970,10 +970,10 @@ function reenviarFactura(rowid_factura, esBoleta) {
   });
 }
 
-function downloadXML(obj, rowid, folio) {
+function downloadXML(obj, rowid, folio, id_cliente) {
   obj.disabled = true; // Deshabilitar el botón temporalmente
 
-  window.open('/downloadxml.php?rowid=' + rowid + '&folio='+folio, '_blank');
+  window.open('/downloadxml.php?rowid=' + rowid + '&folio='+folio+ (id_cliente ? '&id_cliente='+id_cliente : '') , '_blank');
   setTimeout(() => { obj.disabled = false; }, 2000); // Habilitar el botón después de 3s
 }
 
