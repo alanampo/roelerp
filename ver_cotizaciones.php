@@ -235,8 +235,10 @@
                 <div class="row mt-3">
                     <div class="col text-center">
                         <div class="py-2 mt-3">
-                            <button type="button" class="btn btn-primary" onClick="guardarEstado(2)"><i
+                            <button type="button" class="btn btn-primary mr-2" onClick="guardarEstado(2)"><i
                                     class="fa fa-users"></i> ESPECIAL</button>
+                            <button type="button" class="btn btn-info" onClick="crearPedido(event, this)"><i
+                                    class="fa fa-plus-square"></i> CREAR PEDIDO</button>
                         </div>
                     </div>
                 </div>

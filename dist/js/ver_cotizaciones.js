@@ -1100,6 +1100,13 @@ function modalCambiarEstado(id) {
   $("#modal-estado").modal("show");
 }
 
+function crearPedido(event, btn){
+  event.preventDefault();
+  event.stopPropagation();
+  const id = $("#modal-estado").attr("x-id");
+  location.href = `/cargar_pedido.php?id=${id}`
+}
+
 function guardarEstado(estado) {
   $("#modal-estado").modal("hide");
   const id = $("#modal-estado").attr("x-id");

@@ -4,8 +4,10 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/vendor/autoload.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
+use RobRichards\XMLSecLibs\XMLSecurityDSig;
+use RobRichards\XMLSecLibs\XMLSecurityKey;
 
-$GLOBALS['emailUserName'] =  'ventas@roelplant.cl';
+$GLOBALS['emailUserName'] = 'ventas@roelplant.cl';
 $GLOBALS['emailPassword'] = 'iyyn zilm xybf mbgc';
 
 if (strpos($_SERVER['HTTP_HOST'], 'roelplant') !== false) {
@@ -338,7 +340,7 @@ if ($consulta == "generar_factura") {
                 checkEstadoAndUpdate($id_fac, 4, $con, $track_id);
                 $dir_logo = getDataLogo();
                 try {
-                    generarPDF(base64_decode($datita), $dir_logo, $track_id, null, $esBoleta);
+                    generarPDF(base64_decode($datita), $dir_logo, $track_id, $json["email"], $esBoleta);
                     generarPDFMailInterno(base64_decode($datita), $dir_logo, $_POST["folio"], $esBoleta = false);
                     //MODIFICAR ACA
                 } catch (\Throwable $th) {
@@ -459,6 +461,22 @@ if ($consulta == "generar_factura") {
 } else if ($consulta == "get_estado_dte") {
     $trackID = $_POST["track_id"];
     echo getEstadoDte($trackID);
+    exit;
+    $certPath = base64_decode(str_replace("data:application/x-pkcs12;base64,", "", $GLOBALS["empresa"]["certificado"])); // contenido del archivo certificado.p12
+    $certPass = $GLOBALS["empresa"]["pass"];
+    // Paso 1: Obtener semilla
+    $semilla = obtenerSemilla();
+    // echo "Semilla obtenida: $semilla\n";
+    $xmlFirmado = firmarSemilla($semilla, $certPath, $certPass);
+
+
+    //echo "XML firmado correctamente.\n";
+    //$xmlFirmado = file_get_contents("firmado.xml");
+    // Paso 3: Obtener token
+    $token = obtenerToken($xmlFirmado);
+
+    getEstadoBoleta($token);
+    die;
 } else if ($consulta == "anular_factura") { //GENERAR NOTA DE CREDITO
     $rowid_factura = $_POST["rowid"];
     $folio = $_POST["folio"];
@@ -1684,6 +1702,12 @@ function generarPDF($data, $dir_logo, $track_id, $email, $esBoleta = false)
 
         if (isset($email) && filter_var($email, FILTER_VALIDATE_EMAIL)) {
             // Convertir el archivo XML a base64
+            if (preg_match('/<RUTRecep>([^<]+)<\/RUTRecep>/', $data, $matches)) {
+                $rutReceptor = $matches[1]; // El valor dentro de <RutReceptor>
+            }
+
+            $rutReceptor = $rutReceptor ?? $Caratula['RutReceptor'];
+            $data = preg_replace('/(<RutReceptor>)([^<]*)(<\/RutReceptor>)/', '<RutReceptor>' . strtoupper($rutReceptor) . '</RutReceptor>', $data);
             $content_xml = chunk_split(base64_encode($data));
             $id = $DTE->getID();
 
@@ -1693,12 +1717,7 @@ function generarPDF($data, $dir_logo, $track_id, $email, $esBoleta = false)
             $file_name = (!$esBoleta ? "factura" : "boleta") . "_$id.pdf";
             $file_name_xml = ($esBoleta ? "boleta" : "factura") . "_$id.xml";
             $subject = (!$esBoleta ? "Factura" : "Boleta") . " $id";
-            if (preg_match('/<RUTRecep>([^<]+)<\/RUTRecep>/', $data, $matches)) {
-                $rutReceptor = $matches[1]; // El valor dentro de <RutReceptor>
-            }
 
-            $rutReceptor = $rutReceptor ?? $Caratula['RutReceptor'];
-            $data = preg_replace('/(<RutReceptor>)([^<]*)(<\/RutReceptor>)/', '<RutReceptor>' . strtoupper($rutReceptor) . '</RutReceptor>', $data);
             $message = "Te enviamos una copia de la " . (!$esBoleta ? "Factura" : "Boleta") . " N° $id correspondiente a tu compra.";
 
             // Usando PHPMailer para enviar el correo
@@ -1815,7 +1834,7 @@ function generarPDFMail($data, $dir_logo, $id, $email, $link, $esBoleta = false)
         $mail->Username = $GLOBALS["emailUserName"];  // Usuario SMTP (tu cuenta de Gmail)
         $mail->Password = $GLOBALS["emailPassword"];  // Contraseña SMTP de la cuenta de Gmail
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;  // Uso de STARTTLS
-       
+
         // Deshabilitar la verificación del certificado SSL (si es necesario)
         $mail->SMTPOptions = array(
             'ssl' => array(
@@ -1892,6 +1911,12 @@ function generarPDFMailInterno($data, $dir_logo, $id, $esBoleta = false)
     $content_pdf = chunk_split(base64_encode($content_pdf));
 
     // Convertir el archivo XML a base64
+    if (preg_match('/<RUTRecep>([^<]+)<\/RUTRecep>/', $data, $matches)) {
+        $rutReceptor = $matches[1]; // El valor dentro de <RutReceptor>
+    }
+
+    $rutReceptor = $rutReceptor ?? $Caratula['RutReceptor'];
+    $data = preg_replace('/(<RutReceptor>)([^<]*)(<\/RutReceptor>)/', '<RutReceptor>' . strtoupper($rutReceptor) . '</RutReceptor>', $data);
     $content_xml = chunk_split(base64_encode($data));
 
     $uid = md5(uniqid(time()));
@@ -1899,7 +1924,7 @@ function generarPDFMailInterno($data, $dir_logo, $id, $esBoleta = false)
     $file_name_xml = ($esBoleta ? "boleta" : "factura") . "_$id.xml";
 
     $subject = ($esBoleta ? "Boleta" : "Factura") . " $id";
-
+    
     $message = "Te enviamos una copia de la " . ($esBoleta ? "Boleta" : "Factura") . " N° $id";
 
     $from_name = "Roelplant";
@@ -2188,14 +2213,29 @@ function generarBoleta($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_cot
     $EnvioDTE->setFirma($GLOBALS["Firma"]);
 
     $dataDTE = $EnvioDTE->generar();
+    $token = NULL;
+    try {
+        $certPath = base64_decode(str_replace("data:application/x-pkcs12;base64,", "", $GLOBALS["empresa"]["certificado"])); // contenido del archivo certificado.p12
+        $certPass = $GLOBALS["empresa"]["pass"];
+        // Paso 1: Obtener semilla
+        $semilla = obtenerSemilla();
+        // echo "Semilla obtenida: $semilla\n";
 
-    $token = \sasco\LibreDTE\Sii\Autenticacion::getToken($GLOBALS['Firma']);
-    if (!$token) {
-        return null;
+        $xmlFirmado = firmarSemilla($semilla, $certPath, $certPass);
+
+
+        //echo "XML firmado correctamente.\n";
+        //$xmlFirmado = file_get_contents("firmado.xml");
+        // Paso 3: Obtener token
+        $token = obtenerToken($xmlFirmado);
+    } catch (Exception $e) {
+        echo "Error: " . $e->getMessage();
+        die;
     }
 
     // Definir la URL del endpoint del SII
-    $url = "https://pangal.sii.cl/recursos/v1/boleta.electronica.envio"; // Ajusta la URL según sea producción o pruebas
+    $entorno = $GLOBALS["empresa"]["modo"] == "PROD" ? "rahue" : "pangal";
+    $url = "https://{$entorno}.sii.cl/recursos/v1/boleta.electronica.envio"; // Ajusta la URL según sea producción o pruebas
 
     // Token de autorización
     $rutsplit = explode("-", $GLOBALS["empresa"]["rut"]);
@@ -2250,38 +2290,60 @@ function generarBoleta($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_cot
 
     // Cerrar el archivo temporal
     fclose($temp);
-
     // Manejo de la respuesta
     if ($error) {
-        echo "Error en la solicitud: " . $error;
-    } else {
-        echo "Código HTTP: " . $http_code . "\n";
-        echo "Respuesta: " . $response;
-    }
-    die;
-    $datita = base64_encode($dataDTE);
-
-    $track_id = $EnvioDTE->enviar();
-
-    $err = array();
-    foreach (\sasco\LibreDTE\Log::readAll() as $error) {
-        array_push($err, $error);
-    }
-
-    if (count($err) > 0) {
         return array(
-            "errores" => $err,
-        );
-    } else if (!$track_id) {
-        return array(
-            "errores" => "Error al enviar al SII",
+            "errores" => $error,
         );
     } else {
-        return array(
-            "trackID" => $track_id,
-            "data" => $datita,
-        );
+        try {
+            $datita = base64_encode((string) $dataDTE);
+            $rta = json_decode($response);
+
+            if (isset($rta)) {
+                if (!isset($rta->trackid) || (!isset($rta->estado) || $rta->estado != "REC")) {
+                    return array(
+                        "errores" => "Error al enviar al SII " . json_encode($rta),
+                    );
+                }
+                return array(
+                    "trackID" => $rta->trackid,
+                    "data" => $datita,
+                );
+            }
+        } catch (Throwable $th) {
+            return array(
+                "errores" => "Error al enviar al SII {$th->getMessage()}",
+            );
+        }
     }
+}
+
+function getEstadoBoleta($token)
+{
+    $host_servidor = "https://api.sii.cl/recursos/v1/boleta.electronica.envio/77436423-4-16504396257";
+
+    // $host_servidor = "https://apicert.sii.cl/recursos/v1/boleta.electronica.envio/76958430-7-"; // CERTIFICACION
+
+    $client = curl_init($host_servidor );
+    curl_setopt($client, CURLOPT_TIMEOUT, -1);
+    curl_setopt($client, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($client, CURLOPT_HTTPHEADER, array(
+        "Cookie: TOKEN=" . $token,
+        "Accept: application/json"
+    ));
+    curl_setopt($client, CURLOPT_POST, true);
+
+    $response = curl_exec($client);
+
+    if (curl_errno($client)) {
+        echo 'Error:' . curl_error($client);
+    }
+
+    curl_close($client);
+    echo $response;
+
+
 }
 function getDataFolios($con, $caf, $id_guia = null)
 {
@@ -2803,145 +2865,102 @@ function getEstadoDte($track_id)
     }
     return null;
 }
-function obtenerToken($xml_firmado)
-{
-    $url = 'https://apicert.sii.cl/recursos/v1/boleta.electronica.token';
 
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $url);
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $xml_firmado);
+function obtenerSemilla()
+{
+    $entorno = $GLOBALS["empresa"]["modo"] != "PROD" ? "" : "cert";
+    $url = "https://api{$entorno}.sii.cl/recursos/v1/boleta.electronica.semilla";
+    $ch = curl_init($url);
+    
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        'Content-Type: application/xml',
-        'Accept: application/xml'
+        "Accept: application/xml"
     ]);
 
     $response = curl_exec($ch);
     curl_close($ch);
 
     if (!$response) {
-        die("Error obteniendo el token.");
+        throw new Exception("Error obteniendo la semilla.");
     }
-    var_dump($response);
-    die;
-    $xml = simplexml_load_string($response);
-    return (string) $xml->SII_RESP_BODY->TOKEN;
-}
-function obtenerSemilla()
-{
-    $url = 'https://apicert.sii.cl/recursos/v1/boleta.electronica.semilla';
+    preg_match('/<SEMILLA>(.*?)<\/SEMILLA>/', $response, $matches);
+    if (isset($matches[1])) {
+        return (string) $matches[1];
+    }
 
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $url);
+    return NULL;
+}
+
+function firmarSemilla($semilla, $certPath, $certPass)
+{
+    // Crear el XML de base
+    $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+    $xml .= '<getToken><item><Semilla>' . $semilla . '</Semilla></item></getToken>';
+
+    // Cargar el certificado desde el archivo .p12
+    $pkcs12 = $certPath;
+    if (!openssl_pkcs12_read($pkcs12, $certs, $certPass)) {
+        throw new Exception("Error leyendo el certificado.");
+    }
+
+    $privateKey = $certs['pkey'];
+    $publicCert = $certs['cert'];
+
+    // Cargar el XML en un DOMDocument
+    $doc = new DOMDocument();
+    $doc->loadXML($xml);
+
+    // Crear la firma usando xmlseclibs
+    $objDSig = new XMLSecurityDSig();
+    $objDSig->setCanonicalMethod(XMLSecurityDSig::C14N); // Método de canonicalización
+    $objDSig->addReference(
+        $doc, // Se firma todo el XML
+        XMLSecurityDSig::SHA1, // Algoritmo de hash
+        ['http://www.w3.org/2000/09/xmldsig#enveloped-signature'] // Tipo de transformación
+    );
+
+    // Crear la clave de seguridad con la clave privada
+    $objKey = new XMLSecurityKey(XMLSecurityKey::RSA_SHA1, ['type' => 'private']);
+    $objKey->loadKey($privateKey);
+
+    // Firmar el documento
+    $objDSig->sign($objKey);
+
+    // Agregar el certificado público
+    $objDSig->add509Cert($publicCert);
+
+    // Insertar la firma en el XML
+    $objDSig->appendSignature($doc->documentElement);
+
+    // Retornar el XML firmado como string
+    $pulito = str_replace("ds:", "", $doc->saveXML());
+    $xmlString = preg_replace('/<\/Signature><\/getToken>/', PHP_EOL . '</Signature></getToken>', $pulito);
+    return $xmlString;
+}
+function obtenerToken($xmlFirmado)
+{
+    $url = "https://api.sii.cl/recursos/v1/boleta.electronica.token";
+
+    $ch = curl_init($url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, ['Accept: application/xml']);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $xmlFirmado);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        "Content-Type: application/xml",
+        "Accept: application/xml"
+    ]);
 
     $response = curl_exec($ch);
     curl_close($ch);
 
     if (!$response) {
-        die("Error obteniendo la semilla.");
+        throw new Exception("Error obteniendo el token.");
+    }
+    preg_match('/<TOKEN>(.*?)<\/TOKEN>/', $response, $matches);
+    if (isset($matches[1])) {
+        return (string) $matches[1];
     }
 
-    $doc = new DOMDocument();
-    $doc->loadXML($response);
-
-    $semilla = $doc->getElementsByTagName("SEMILLA")->item(0)->nodeValue;
-    return (string) $semilla;
+    return NULL;
 }
 
-function generarXML($semilla)
-{
-    return '<?xml version="1.0" encoding="UTF-8"?><getToken><item><Semilla>' . $semilla . '</Semilla></item></getToken>';
-}
-function firmarXML($xml, $certFile)
-{
-    // Cargar el certificado y la clave privada
-    $certificate = file_get_contents($certFile);
-    $privateKey = openssl_pkey_get_private($certificate);
-
-    if (!$privateKey) {
-        throw new Exception("No se pudo cargar la clave privada.");
-    }
-
-    // Canonicalizar el XML (C14N)
-    $canonicalXml = canonicalizeXML($xml);
-
-    // Calcular el hash SHA-1 del XML canónico
-    $hash = sha1($canonicalXml, true);
-
-    // Firmar el hash con la clave privada
-    openssl_sign($hash, $signature, $privateKey, OPENSSL_ALGO_SHA1);
-
-    // Codificar la firma en Base64
-    $signatureBase64 = base64_encode($signature);
-
-    // Extraer el certificado en formato Base64 (sin saltos de línea)
-    $certificateBase64 = base64_encode($certificate);
-    $certificateBase64 = str_replace(["\r", "\n"], '', $certificateBase64); // Eliminar saltos de línea
-
-    // Crear el elemento Signature
-    $signatureXml = '<Signature xmlns="http://www.w3.org/2000/09/xmldsig#"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"/><Reference URI=""><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/></Transforms><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/><DigestValue>' . base64_encode($hash) . '</DigestValue></Reference></SignedInfo><SignatureValue>' . $signatureBase64 . '</SignatureValue><KeyInfo><X509Data><X509Certificate>' . $certificateBase64 . '</X509Certificate></X509Data></KeyInfo></Signature>';
-
-    // Insertar la firma en el XML original
-    $xmlFirmado = str_replace('</getToken>', $signatureXml . '</getToken>', $xml);
-
-    return $xmlFirmado;
-}
-
-function canonicalizeXML($xml)
-{
-    $dom = new DOMDocument();
-    $dom->loadXML($xml);
-    return $dom->C14N();
-}
-
-
-function verificarFirma($xmlFirmado)
-{
-    $dom = new DOMDocument();
-    $dom->loadXML($xmlFirmado);
-
-    // Obtener el DigestValue del XML firmado
-    $digestValue = $dom->getElementsByTagName('DigestValue')->item(0)->nodeValue;
-
-    // Eliminar el elemento Signature para obtener el XML original
-    $signatureNode = $dom->getElementsByTagName('Signature')->item(0);
-    $signatureNode->parentNode->removeChild($signatureNode);
-
-    // Canonicalizar el XML original
-    $xmlOriginal = $dom->C14N();
-
-    // Calcular el hash SHA-1 del XML original
-    $hashCalculado = sha1($xmlOriginal, true);
-    $digestCalculado = base64_encode($hashCalculado);
-
-    // Comparar los valores
-    if ($digestValue === $digestCalculado) {
-        echo "La firma es válida.";
-    } else {
-        echo "La firma es inválida.";
-    }
-}
-
-function enviarXMLAlSII($xmlFirmado)
-{
-    $url = "https://apicert.sii.cl/recursos/v1/boleta.electronica.token";
-    $headers = [
-        'Content-Type: application/xml',
-        'Accept: application/xml'
-    ];
-
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $url);
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $xmlFirmado);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-    $response = curl_exec($ch);
-    curl_close($ch);
-
-    return $response;
-}
