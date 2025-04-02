@@ -38,6 +38,7 @@ class ComposerStaticInit0df8605cfaf85e0cdab870b141f8d2b1
         's' => 
         array (
             'setasign\\Fpdi\\' => 14,
+            'sasco\\LibreDTE\\' => 15,
         ),
         'p' => 
         array (
@@ -141,6 +142,10 @@ class ComposerStaticInit0df8605cfaf85e0cdab870b141f8d2b1
         'setasign\\Fpdi\\' => 
         array (
             0 => __DIR__ . '/..' . '/setasign/fpdi/src',
+        ),
+        'sasco\\LibreDTE\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/sasco/libredte/lib',
         ),
         'phpseclib3\\' => 
         array (

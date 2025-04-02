@@ -22,7 +22,8 @@
     ],
     "autoload": {
         "psr-4": {
-            "libredte\\lib\\Core\\": "lib/libredte-lib-core/src/"
+            "libredte\\lib\\Core\\": "lib/libredte-lib-core/src/",
+            "sasco\\LibreDTE\\": "vendor/sasco/libredte/lib/"
         }
     }
 }
