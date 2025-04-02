@@ -40,7 +40,7 @@ date_default_timezone_set('America/Santiago');
 
 // todos los ejemplos se ejecutan con backtrace activado, esto para ayudar al
 // debug de los mismos
-\sasco\LibreDTE\Log::setBacktrace(true);
+//\sasco\LibreDTE\Log::setBacktrace(true);
 
 // incluir configuración específica de los ejemplos
 if (is_readable(dirname(__FILE__).'/config.php')) {
