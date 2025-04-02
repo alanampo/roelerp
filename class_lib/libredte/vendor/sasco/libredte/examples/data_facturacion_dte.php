@@ -22,11 +22,8 @@ if (strpos($_SERVER['HTTP_HOST'], 'roelplant') !== false) {
     include $_SERVER['DOCUMENT_ROOT'] . "/class_lib/sesionSecurity.php";
     require $_SERVER['DOCUMENT_ROOT'] . '/class_lib/class_conecta_mysql.php';
     require $_SERVER['DOCUMENT_ROOT'] . '/class_lib/funciones.php';
-}
-$GLOBALS['emailUserName'] = getenv('EMAIL_USERNAME');
-$GLOBALS['emailPassword'] = getenv('EMAIL_PASSWORD');
 
-die(var_dump(getenv("EMAIL_PASSWORD")));
+}
 set_time_limit(0);
 
 header('Content-type: text/plain; charset=ISO-8859-1');
@@ -1748,8 +1745,9 @@ function generarPDF($data, $dir_logo, $track_id, $email, $esBoleta = false)
                 $mail->Host = 'smtp.gmail.com';  // Dirección del servidor SMTP de Gmail
                 $mail->Port = 587;  // Puerto para STARTTLS
                 $mail->SMTPAuth = true;  // Habilitar autenticación SMTP
-                $mail->Username = $GLOBALS["emailUserName"];  // Usuario SMTP (tu cuenta de Gmail)
-                $mail->Password = $GLOBALS["emailPassword"];  // Contraseña SMTP de la cuenta de Gmail
+
+                $mail->Username = getenv('EMAIL_USERNAME');  // Usuario SMTP (tu cuenta de Gmail)
+                $mail->Password = getenv('EMAIL_PASSWORD');  // Contraseña SMTP de la cuenta de Gmail
                 $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;  // Uso de STARTTLS
 
                 // Deshabilitar la verificación del certificado SSL (si es necesario)
@@ -1851,8 +1849,8 @@ function generarPDFMail($data, $dir_logo, $id, $email, $link, $esBoleta = false)
         $mail->Host = 'smtp.gmail.com';  // Dirección del servidor SMTP de Gmail
         $mail->Port = 587;  // Puerto para STARTTLS
         $mail->SMTPAuth = true;  // Habilitar autenticación SMTP
-        $mail->Username = $GLOBALS["emailUserName"];  // Usuario SMTP (tu cuenta de Gmail)
-        $mail->Password = $GLOBALS["emailPassword"];  // Contraseña SMTP de la cuenta de Gmail
+        $mail->Username = getenv('EMAIL_USERNAME');  // Usuario SMTP (tu cuenta de Gmail)
+        $mail->Password = getenv('EMAIL_PASSWORD');  // Contraseña SMTP de la cuenta de Gmail
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;  // Uso de STARTTLS
 
         // Deshabilitar la verificación del certificado SSL (si es necesario)
@@ -1960,8 +1958,8 @@ function generarPDFMailInterno($data, $dir_logo, $id, $esBoleta = false)
         $mail->Host = 'smtp.gmail.com';  // Dirección del servidor SMTP de Gmail
         $mail->Port = 587;  // Puerto para STARTTLS
         $mail->SMTPAuth = true;  // Habilitar autenticación SMTP
-        $mail->Username = 'ventas@roelplant.cl';  // Usuario SMTP (tu cuenta de Gmail)
-        $mail->Password = 'iyyn zilm xybf mbgc';  // Contraseña SMTP de la cuenta de Gmail
+        $mail->Username = getenv('EMAIL_USERNAME');  // Usuario SMTP (tu cuenta de Gmail)
+        $mail->Password = getenv('EMAIL_PASSWORD');  // Contraseña SMTP de la cuenta de Gmail
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;  // Uso de STARTTLS
 
         // Configuración del remitente
