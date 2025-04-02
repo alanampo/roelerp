@@ -150,6 +150,7 @@ class ComposerStaticInit0df8605cfaf85e0cdab870b141f8d2b1
         array (
             0 => __DIR__ . '/../..' . '/lib/libredte-lib-core/src',
             1 => __DIR__ . '/..' . '/libredte/libredte-lib-core/src',
+            2 => __DIR__ . '/..' . '/sasco/libredte/src',
         ),
         'ZipStream\\' => 
         array (

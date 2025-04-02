@@ -40,8 +40,8 @@ if (!$con) {
 }
 mysqli_query($con, "SET NAMES 'utf8mb4'");
 
-sasco\LibreDTE\Sii::setAmbiente(sasco\LibreDTE\Sii::CERTIFICACION);
-sasco\LibreDTE\Sii::setServidor('maullin');
+\sasco\LibreDTE\Sii::setAmbiente(\sasco\LibreDTE\Sii::CERTIFICACION);
+\sasco\LibreDTE\Sii::setServidor('maullin');
 
 $consulta = $_POST["consulta"];
 $GLOBALS['empresa'] = null;

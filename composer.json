@@ -4,7 +4,8 @@
     "require": {
         "robrichards/xmlseclibs": "^3.1",
         "phpmailer/phpmailer": "^6.9",
-        "libredte/libredte-lib-core": "dev-master"
+        "libredte/libredte-lib-core": "dev-master",
+        "sasco/libredte": "dev-master"
     },
     "repositories": [
         {

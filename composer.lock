@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "15579c6b2e95b2694f13fd0858753886",
+    "content-hash": "62049626ac00e3d7ebbdbcbe0291bd59",
     "packages": [
         {
             "name": "carbonphp/carbon-doctrine-types",
@@ -2288,6 +2288,71 @@
             "time": "2024-11-20T21:13:56+00:00"
         },
         {
+            "name": "sasco/libredte",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/LibreDTE/libredte-lib-core.git",
+                "reference": "f00212475e831a6ce1b3cca6ca0eeeb1e31778d6"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/LibreDTE/libredte-lib-core/zipball/f00212475e831a6ce1b3cca6ca0eeeb1e31778d6",
+                "reference": "f00212475e831a6ce1b3cca6ca0eeeb1e31778d6",
+                "shasum": ""
+            },
+            "require": {
+                "derafu/derafu-lib-core": "dev-master || dev-main",
+                "ext-curl": "*",
+                "ext-json": "*",
+                "ext-mbstring": "*",
+                "ext-openssl": "*",
+                "ext-soap": "*",
+                "php": "^8.3",
+                "psr/simple-cache": "^3.0",
+                "symfony/cache": "^7.1",
+                "symfony/filesystem": "^7.1",
+                "tecnickcom/tcpdf": "^6.8"
+            },
+            "require-dev": {
+                "ext-xdebug": "*",
+                "friendsofphp/php-cs-fixer": "^3.63",
+                "phpstan/phpstan": "^1.12",
+                "phpunit/phpunit": "^11.4"
+            },
+            "default-branch": true,
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "libredte\\lib\\Core\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "AGPL-3.0+"
+            ],
+            "authors": [
+                {
+                    "name": "LibreDTE",
+                    "homepage": "https://www.libredte.cl"
+                }
+            ],
+            "description": "LibreDTE: Biblioteca PHP (Núcleo)",
+            "homepage": "https://lib-core.docs.libredte.cl",
+            "keywords": [
+                "chile",
+                "dte",
+                "facturación electrónica",
+                "sii"
+            ],
+            "support": {
+                "issues": "https://github.com/libredte/libredte-lib-core/issues",
+                "source": "https://github.com/libredte/libredte-lib-core"
+            },
+            "abandoned": "libredte/libredte-lib-core",
+            "time": "2025-02-11T19:06:21+00:00"
+        },
+        {
             "name": "setasign/fpdi",
             "version": "v2.6.3",
             "source": {
@@ -4389,7 +4454,9 @@
     "packages-dev": [],
     "aliases": [],
     "minimum-stability": "dev",
-    "stability-flags": [],
+    "stability-flags": {
+        "libredte/libredte-lib-core": 20
+    },
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": [],

@@ -3,7 +3,7 @@
         'name' => '__root__',
         'pretty_version' => 'dev-master',
         'version' => 'dev-master',
-        'reference' => '1fc0cfde4a765798956405dcdb8465fd1d8aac7a',
+        'reference' => 'dc4987040e2787c43c729d724b07e3e5cec9c9da',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -13,7 +13,7 @@
         '__root__' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => '1fc0cfde4a765798956405dcdb8465fd1d8aac7a',
+            'reference' => 'dc4987040e2787c43c729d724b07e3e5cec9c9da',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -361,6 +361,17 @@
             'type' => 'library',
             'install_path' => __DIR__ . '/../robrichards/xmlseclibs',
             'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'sasco/libredte' => array(
+            'pretty_version' => 'dev-master',
+            'version' => 'dev-master',
+            'reference' => 'f00212475e831a6ce1b3cca6ca0eeeb1e31778d6',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../sasco/libredte',
+            'aliases' => array(
+                0 => '9999999-dev',
+            ),
             'dev_requirement' => false,
         ),
         'setasign/fpdi' => array(

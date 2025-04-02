@@ -9,7 +9,7 @@ return array(
     'voku\\' => array($vendorDir . '/voku/portable-ascii/src/voku'),
     'setasign\\Fpdi\\' => array($vendorDir . '/setasign/fpdi/src'),
     'phpseclib3\\' => array($vendorDir . '/phpseclib/phpseclib/phpseclib'),
-    'libredte\\lib\\Core\\' => array($baseDir . '/lib/libredte-lib-core/src', $vendorDir . '/libredte/libredte-lib-core/src'),
+    'libredte\\lib\\Core\\' => array($baseDir . '/lib/libredte-lib-core/src', $vendorDir . '/libredte/libredte-lib-core/src', $vendorDir . '/sasco/libredte/src'),
     'ZipStream\\' => array($vendorDir . '/maennchen/zipstream-php/src'),
     'Twig\\' => array($vendorDir . '/twig/twig/src'),
     'Symfony\\Polyfill\\Php84\\' => array($vendorDir . '/symfony/polyfill-php84'),
