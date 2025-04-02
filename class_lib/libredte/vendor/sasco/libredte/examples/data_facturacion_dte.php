@@ -1777,7 +1777,7 @@ function generarPDF($data, $dir_logo, $track_id, $email, $esBoleta = false)
                 // Enviar el correo
                 $mail->send();
             } catch (Exception $e) {
-                echo "El correo no pudo ser enviado. Error: {$mail->ErrorInfo}";
+                //echo "El correo no pudo ser enviado. Error: {$mail->ErrorInfo}";
             }
         }
     }
