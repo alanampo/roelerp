@@ -2149,9 +2149,9 @@ function generarFactura($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_co
         $trackId = $siiLazyWorker->sendXmlDocument(
             $request,
             $xmlDocument,
-            '76192083-9'
+            $GLOBALS["empresa"]["rut"]
         );
-        //var_dump($token);
+        var_dump($track_id);
 
         die("KAKOTA");
 
