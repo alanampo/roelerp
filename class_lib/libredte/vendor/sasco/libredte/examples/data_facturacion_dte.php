@@ -9,10 +9,11 @@ use PHPMailer\PHPMailer\Exception;
 use RobRichards\XMLSecLibs\XMLSecurityDSig;
 use RobRichards\XMLSecLibs\XMLSecurityKey;
 use libredte\lib\Core\Application;
+use Derafu\Lib\Core\Support\Store\DataContainer;
 use libredte\lib\Core\Package\Billing\Component\Integration\Support\SiiRequest;
 use libredte\lib\Core\Package\Billing\Component\Integration\Enum\SiiAmbiente;
 use Derafu\Lib\Core\Package\Prime\Component\Xml\Entity\Xml as XmlDocument;
-
+use libredte\lib\Core\Package\Billing\Component\Document\Support\DocumentBag;
 
 if (strpos($_SERVER['HTTP_HOST'], 'roelplant') !== false) {
     include $_SERVER['DOCUMENT_ROOT'] . "/class_lib/sesionSecurity.php";
@@ -2231,7 +2232,7 @@ function generarBoleta($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_cot
                     ],
                 ],
                 'Detalle' => $arrayproductos,
-            ],
+            ]
         ];
 
         $Folios = [];
@@ -2272,7 +2273,7 @@ function generarBoleta($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_cot
             ->load($dataFolio)
             ->getCaf()
         ;
-        
+
         $siiLazyWorker = $app
             ->getBillingPackage()
             ->getIntegrationComponent()
@@ -2288,16 +2289,73 @@ function generarBoleta($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_cot
             $GLOBALS["FirmaRaw"]["data"],
             $GLOBALS["FirmaRaw"]["pass"],
         );
-        $document = $app
+
+        $set_pruebas = [
+
+            'Encabezado' => [
+                'IdDoc' => [
+                    'TipoDTE' => 39,
+                    'Folio' => $folio
+                ],
+                'Emisor' => $emisor,
+                'Receptor' => [
+                    'RUTRecep' => $dataCotizacion["rut"],
+                    'RznSocRecep' => $dataCotizacion["cliente"],
+                    'GiroRecep' => $dataCotizacion["giro"] ? strtoupper($dataCotizacion["giro"]) : "-",
+                    'DirRecep' => $dataCotizacion["domicilio"],
+                    'CmnaRecep' => $dataCotizacion["comuna"] ? strtoupper($dataCotizacion["comuna"]) : "-",
+                ],
+            ],
+            'Detalle' => $arrayproductos,
+
+        ];
+
+        $builder = $app
             ->getBillingPackage()
             ->getDocumentComponent()
-            ->bill($set_pruebas, $caf, $certificate)
-            ->getDocument()
+            ->getBuilderWorker()
         ;
+
+        $data = <<<YAML
+        Encabezado:
+            IdDoc:
+                TipoDTE: 39
+                Folio: 5027
+            Emisor:
+                RUTEmisor: '76192083-9'
+                RznSoc: 'SASCO SpA'
+                GiroEmis: 'Tecnología, Informática y Telecomunicaciones'
+                DirOrigen: 'Santiago'
+                CmnaOrigen: 'Santiago'
+            Receptor:
+                RUTRecep: '60803000-K'
+                RznSocRecep: 'Servicio de Impuestos Internos'
+                GiroRecep: 'Gobierno'
+                DirRecep: 'Santiago'
+                CmnaRecep: 'Santiago'
+        Detalle:
+            NmbItem: 'Servicio Plus de LibreDTE'
+            QtyItem: 12
+            PrcItem: 40000
+        YAML;
+
+        $bag = new DocumentBag(
+            inputData: $data,
+            options: new DataContainer(['parser' => ['strategy' => 'default.yaml']])
+        );
+
+        $document = $builder->build($bag);
+        // $document = $app
+        //     ->getBillingPackage()
+        //     ->getDocumentComponent()
+        //     ->bill($set_pruebas, $caf, $certificate)
+        //     ->getDocument()
+        // ;
+
         $xmlDocument = new XmlDocument();
-        $xmlDocument->loadXml($document);
-
-
+        $xmlDocument->loadXml($document->saveXml());
+        echo $document->saveXml();
+        die;
         $request = new SiiRequest(
             certificate: $certificate,
             options: [
@@ -2321,6 +2379,7 @@ function generarBoleta($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_cot
         );
 
     } catch (Throwable $th) {
+        echo $th->getTraceAsString();
         return array(
             "errores" => "Error al enviar al SII {$th->getMessage()}",
         );
@@ -2973,6 +3032,7 @@ function getDataCotizacion($con, $id_cotizacion, $directa)
 
 function getEstadoDte($track_id)
 {
+
     $token = \sasco\LibreDTE\Sii\Autenticacion::getToken($GLOBALS['Firma']);
     if (!$token) {
         return null;
@@ -2981,6 +3041,37 @@ function getEstadoDte($track_id)
 
     $rut = $rutsplit[0];
     $dv = $rutsplit[1];
+
+
+    $rutConsultanteSplit = explode("-", (string)$GLOBALS["Firma"]->getID());
+    $rutConsultante = $rutConsultanteSplit[0];
+    $dvConsultante = $rutConsultanteSplit[1];
+    // consultar estado dte
+    $xml = \sasco\LibreDTE\Sii::request('QueryEstDte', 'getEstDte', [
+        'RutConsultante' => $rutConsultante,
+        'DvConsultante' => $dvConsultante,
+        'RutCompania' => $rut,
+        'DvCompania' => $dv,
+        'RutReceptor' => '77634816',
+        'DvReceptor' => '3',
+        'TipoDte' => '33',
+        'FolioDte' => '1727',
+        'FechaEmisionDte' => '2025-04-01',
+        'MontoDte' => 997700,
+        'token' => $token,
+    ]);
+
+    // si el estado se pudo recuperar se muestra
+    if ($xml !== false) {
+        print_r((array) $xml->xpath('/SII:RESPUESTA/SII:RESP_HDR')[0]);
+    }
+
+    // si hubo errores se muestran
+    foreach (\sasco\LibreDTE\Log::readAll() as $error)
+        echo $error, "\n";
+
+
+    die;
     $estado = \sasco\LibreDTE\Sii::request('QueryEstUp', 'getEstUp', [$rut, $dv, $track_id, $token]);
 
     if ($estado !== false) {
