@@ -2,3 +2,4 @@
 *.pem
 *.pfx
 class_lib/libredte/vendor/sasco/libredte/examples/new.p12
+.env

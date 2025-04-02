@@ -12,8 +12,8 @@ use libredte\lib\Core\Application;
 use libredte\lib\Core\Package\Billing\Component\Integration\Support\SiiRequest;
 use libredte\lib\Core\Package\Billing\Component\Integration\Enum\SiiAmbiente;
 use Derafu\Lib\Core\Package\Prime\Component\Xml\Entity\Xml as XmlDocument;
-$GLOBALS['emailUserName'] = 'ventas@roelplant.cl';
-$GLOBALS['emailPassword'] = 'iyyn zilm xybf mbgc';
+$GLOBALS['emailUserName'] = getenv('EMAIL_USERNAME');
+$GLOBALS['emailPassword'] = getenv('EMAIL_PASSWORD');
 
 if (strpos($_SERVER['HTTP_HOST'], 'roelplant') !== false) {
     include $_SERVER['DOCUMENT_ROOT'] . "/class_lib/sesionSecurity.php";

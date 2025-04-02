@@ -1,5 +1,5 @@
 <?php
-///****ARCHIVO DE FUNCIONES*****///
+
 
 function generarBoxEstado($estado, $codigo, $fullWidth)
 {

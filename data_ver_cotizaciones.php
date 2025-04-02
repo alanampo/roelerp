@@ -613,8 +613,8 @@ if ($consulta == "cargar_datos_cliente") {
     $id = $_POST["id"];
     $to = $_POST["email"];
     $link = $_POST["link"];
-    $GLOBALS['emailUserName'] = 'ventas@roelplant.cl';
-    $GLOBALS['emailPassword'] = 'iyyn zilm xybf mbgc';
+    $GLOBALS['emailUserName'] = getenv('EMAIL_USERNAME');
+    $GLOBALS['emailPassword'] = getenv('EMAIL_PASSWORD');
     $content = chunk_split($file);
     $file_name = "cotizacion_$id.pdf";
 
