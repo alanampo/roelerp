@@ -3047,7 +3047,7 @@ function getEstadoDte($track_id)
     $rutConsultante = $rutConsultanteSplit[0];
     $dvConsultante = $rutConsultanteSplit[1];
     // consultar estado dte
-    $xml = \sasco\LibreDTE\Sii::request('QueryEstDte', 'getEstDte', [
+    $data = [
         'RutConsultante' => $rutConsultante,
         'DvConsultante' => $dvConsultante,
         'RutCompania' => $rut,
@@ -3059,7 +3059,10 @@ function getEstadoDte($track_id)
         'FechaEmisionDte' => '2025-04-01',
         'MontoDte' => 997700,
         'token' => $token,
-    ]);
+    ];
+
+    echo json_encode($data);
+    $xml = \sasco\LibreDTE\Sii::request('QueryEstDte', 'getEstDte', $data);
 
     // si el estado se pudo recuperar se muestra
     if ($xml !== false) {
