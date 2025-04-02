@@ -3097,8 +3097,8 @@ function getEstadoDte($track_id)
         1187263,
         '77634816-3'
     );
-
-    echo $documentStatus->getStatus();die;
+    
+    echo $documentStatus->getBody();die;
 
     echo json_encode($data);
     $xml = \sasco\LibreDTE\Sii::request('QueryEstDte', 'getEstDte', $data);
