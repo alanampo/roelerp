@@ -1884,7 +1884,7 @@ function generarPDFMail($data, $dir_logo, $id, $email, $link, $esBoleta = false)
         return true;
 
     } catch (Exception $e) {
-        echo 'Error al enviar el correo. Detalles: ' . $mail->ErrorInfo;
+        //echo 'Error al enviar el correo. Detalles: ' . $mail->ErrorInfo;
         return false;
     }
 }
@@ -1987,7 +1987,7 @@ function generarPDFMailInterno($data, $dir_logo, $id, $esBoleta = false)
         return false;
 
     } catch (Exception $e) {
-        echo 'Error al enviar el correo: ' . $e->getMessage();
+        //echo 'Error al enviar el correo: ' . $e->getMessage();
         return false;
     }
 }
