@@ -3061,6 +3061,45 @@ function getEstadoDte($track_id)
         'token' => $token,
     ];
 
+    $app = Application::getInstance();
+       
+
+        $siiLazyWorker = $app
+            ->getBillingPackage()
+            ->getIntegrationComponent()
+            ->getSiiLazyWorker();
+
+        $certificateLoader = $app
+            ->getPrimePackage()
+            ->getCertificateComponent()
+            ->getLoaderWorker()
+        ;
+
+        $certificate = $certificateLoader->createFromData(
+            $GLOBALS["FirmaRaw"]["data"],
+            $GLOBALS["FirmaRaw"]["pass"],
+        );
+
+        $request = new SiiRequest(
+            certificate: $certificate,
+            options: [
+                'ambiente' => $GLOBALS["empresa"]["modo"] == "PROD" ? SiiAmbiente::PRODUCCION : SiiAmbiente::CERTIFICACION,
+            ],
+
+        );
+
+    $documentStatus = $siiLazyWorker->validateDocument(
+        $request,
+        $GLOBALS["empresa"]["rut"],
+        33,
+        1727,
+        '2025-04-01',
+        997700,
+        '77634816-3'
+    );
+
+    echo json_encode($documentStatus);die;
+
     echo json_encode($data);
     $xml = \sasco\LibreDTE\Sii::request('QueryEstDte', 'getEstDte', $data);
 
