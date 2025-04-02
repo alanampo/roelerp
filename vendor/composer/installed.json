@@ -940,7 +940,7 @@
             "dist": {
                 "type": "path",
                 "url": "lib/libredte-lib-core",
-                "reference": "f00212475e831a6ce1b3cca6ca0eeeb1e31778d6"
+                "reference": "53f33ef246d9b4e46ff1be66f1e3f35b2f351cca"
             },
             "require": {
                 "derafu/derafu-lib-core": "dev-master || dev-main",
@@ -949,7 +949,7 @@
                 "ext-mbstring": "*",
                 "ext-openssl": "*",
                 "ext-soap": "*",
-                "php": "^8.2",
+                "php": "^8.3",
                 "psr/simple-cache": "^3.0",
                 "symfony/cache": "^7.1",
                 "symfony/filesystem": "^7.1",

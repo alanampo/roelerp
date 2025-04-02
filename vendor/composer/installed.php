@@ -3,7 +3,7 @@
         'name' => '__root__',
         'pretty_version' => 'dev-master',
         'version' => 'dev-master',
-        'reference' => '313faed1c220905a530666f571d3bc36f1c14159',
+        'reference' => '1fc0cfde4a765798956405dcdb8465fd1d8aac7a',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -13,7 +13,7 @@
         '__root__' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => '313faed1c220905a530666f571d3bc36f1c14159',
+            'reference' => '1fc0cfde4a765798956405dcdb8465fd1d8aac7a',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -141,7 +141,7 @@
         'libredte/libredte-lib-core' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => 'f00212475e831a6ce1b3cca6ca0eeeb1e31778d6',
+            'reference' => '53f33ef246d9b4e46ff1be66f1e3f35b2f351cca',
             'type' => 'library',
             'install_path' => __DIR__ . '/../libredte/libredte-lib-core',
             'aliases' => array(),
