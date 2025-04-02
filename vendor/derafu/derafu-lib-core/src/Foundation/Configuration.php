@@ -144,7 +144,7 @@ class Configuration implements ConfigurationInterface
      */
     protected function load(string|array|null $config, array $schema): static
     {
-        $config = $config ?? $this->resolvePath('config/config.yaml');
+        $config = $_SERVER['DOCUMENT_ROOT']."/lib/libredte-lib-core/config/config.yaml";
 
         $config = is_array($config)
             ? $config

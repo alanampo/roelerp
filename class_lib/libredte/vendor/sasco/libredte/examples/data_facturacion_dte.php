@@ -1,12 +1,17 @@
 <?php
 
-require_once $_SERVER['DOCUMENT_ROOT'] . '/vendor/autoload.php';
 
+
+require_once $_SERVER['DOCUMENT_ROOT'] . '/vendor/autoload.php';
+ini_set('xdebug.overload_var_dump', 0);
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 use RobRichards\XMLSecLibs\XMLSecurityDSig;
 use RobRichards\XMLSecLibs\XMLSecurityKey;
-
+use libredte\lib\Core\Application;
+use libredte\lib\Core\Package\Billing\Component\Integration\Support\SiiRequest;
+use libredte\lib\Core\Package\Billing\Component\Integration\Enum\SiiAmbiente;
+use Derafu\Lib\Core\Package\Prime\Component\Xml\Entity\Xml as XmlDocument;
 $GLOBALS['emailUserName'] = 'ventas@roelplant.cl';
 $GLOBALS['emailPassword'] = 'iyyn zilm xybf mbgc';
 
@@ -96,7 +101,7 @@ if ($consulta == "generar_factura" || $consulta == "enviar_mail" || $consulta ==
     $_SESSION["footer2"] = $GLOBALS["empresa"]["footer2"];
 
     $GLOBALS["Firma"] = new \sasco\LibreDTE\FirmaElectronica($config2['firma']);
-
+    $GLOBALS["FirmaRaw"] = $config2["firma"];
     $GLOBALS["caratula"] = [
         'RutEnvia' => $GLOBALS["Firma"]->getID(),
         'RutReceptor' => '60803000-K',
@@ -2021,6 +2026,7 @@ function getCondicionPago($val)
 
 function generarFactura($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_cotizacion = null, $con = null)
 {
+    $datita = NULL;
     try {
         if (isset($con) && isset($id_cotizacion)) {
             $dataCotizacion = getDataCotizacion($con, $id_cotizacion, false);
@@ -2064,7 +2070,7 @@ function generarFactura($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_co
 
 
         $set_pruebas = [
-            [
+
                 'Encabezado' => [
                     'IdDoc' => [
                         'TipoDTE' => 33,
@@ -2086,10 +2092,68 @@ function generarFactura($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_co
                     'FolioRef' => ($id_guia != null && $id_guia != "null" ? $folio_guia : $folio),
                     'RazonRef' => $condicion_pago,
                 ],
-            ],
+      
         ];
 
-        $app = \libredte\lib\Core\Application::getInstance();
+
+        $app = Application::getInstance();
+        $caf = $app
+            ->getBillingPackage()
+            ->getIdentifierComponent()
+            ->getCafLoaderWorker()
+            ->load($dataFolio)
+            ->getCaf()
+        ;
+
+        $siiLazyWorker = $app
+            ->getBillingPackage()
+            ->getIntegrationComponent()
+            ->getSiiLazyWorker();
+
+        $certificateLoader = $app
+            ->getPrimePackage()
+            ->getCertificateComponent()
+            ->getLoaderWorker()
+        ;
+
+
+
+        // Cargar certificado digital.
+        try {
+            $certificate = $certificateLoader->createFromData(
+                $GLOBALS["FirmaRaw"]["data"],
+                $GLOBALS["FirmaRaw"]["pass"],
+            );
+        } catch (\Exception $e) {
+            die($e->getMessage());
+        }
+
+        // Crear DTE.
+        $document = $app
+            ->getBillingPackage()
+            ->getDocumentComponent()
+            ->bill($set_pruebas, $caf, $certificate)
+            ->getDocument()
+        ;
+
+        // Solicitar token ambiente producción.
+        $request = new SiiRequest(
+            certificate: $certificate,
+            options: [
+                'ambiente' => SiiAmbiente::CERTIFICACION,
+            ],
+        );
+        //$token = $siiLazyWorker->authenticate(new SiiRequest($certificate));
+        $xmlDocument = new XmlDocument();
+        $xmlDocument->loadXml($document->saveXml());
+        $trackId = $siiLazyWorker->sendXmlDocument(
+            $request,
+            $xmlDocument,
+            '76192083-9'
+        );
+        //var_dump($token);
+
+        die("KAKOTA");
 
 
         $Folios = [];
@@ -3224,4 +3288,3 @@ function firmarXml($xmlString, $p12Path, $p12Pass)
 
     return $xml->saveXML();  // Devolver el XML firmado
 }
-
