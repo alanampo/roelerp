@@ -125,7 +125,10 @@ class SiiValidateDocumentResponse extends AbstractSiiWsdlResponse
                     . '-' . $this->requestData['DvCompania']
                 : null
             ;
-
+            $track_id = $this->headers['TRACKID']
+                ?? $this->requestData['TrackId']
+                ?? null
+            ;
             // RUT del receptor del documento.
             $rutExists = isset($this->requestData['RutReceptor'])
                 && isset($this->requestData['DvReceptor'])
@@ -154,6 +157,7 @@ class SiiValidateDocumentResponse extends AbstractSiiWsdlResponse
                 'status' => $status,
                 'received' => $received,
                 'description' => $description,
+                'track_id' => $track_id,
                 'token' => $this->requestData['Token'] ?? null,
             ];
         }
