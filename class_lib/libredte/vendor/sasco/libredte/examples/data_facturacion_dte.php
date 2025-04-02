@@ -25,6 +25,8 @@ if (strpos($_SERVER['HTTP_HOST'], 'roelplant') !== false) {
 }
 $GLOBALS['emailUserName'] = getenv('EMAIL_USERNAME');
 $GLOBALS['emailPassword'] = getenv('EMAIL_PASSWORD');
+
+die(var_dump(getenv("EMAIL_USERNAME")));
 set_time_limit(0);
 
 header('Content-type: text/plain; charset=ISO-8859-1');
