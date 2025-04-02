@@ -2151,7 +2151,7 @@ function generarFactura($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_co
             $xmlDocument,
             $GLOBALS["empresa"]["rut"]
         );
-        var_dump($track_id);
+        var_dump($trackId);
 
         die("KAKOTA");
 
