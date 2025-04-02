@@ -37,12 +37,6 @@ error_reporting(E_ALL);
 // zona horaria
 date_default_timezone_set('America/Santiago');
 
-// incluir autocarga de composer
-if (is_readable(dirname(dirname(__FILE__)).'/vendor/autoload.php')) {
-    include dirname(dirname(__FILE__)).'/vendor/autoload.php';
-} else {
-    die('Para probar los ejemplos debes ejecutar primero "composer install" en el directorio '.dirname(dirname(__FILE__))."\n");
-}
 
 // todos los ejemplos se ejecutan con backtrace activado, esto para ayudar al
 // debug de los mismos

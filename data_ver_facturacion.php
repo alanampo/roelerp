@@ -3,7 +3,6 @@
 require "./class_lib/sesionSecurity.php";
 require 'class_lib/class_conecta_mysql.php';
 require 'class_lib/funciones.php';
-require 'class_lib/libredte/vendor/sasco/libredte/examples/inc.php';
 header('Content-type: text/html; charset=utf-8');
 $con = mysqli_connect($host, $user, $password, $dbname);
 // Check connection
