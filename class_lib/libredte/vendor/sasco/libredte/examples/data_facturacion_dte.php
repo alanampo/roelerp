@@ -2272,7 +2272,7 @@ function generarBoleta($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_cot
             ->load($dataFolio)
             ->getCaf()
         ;
-
+        
         $siiLazyWorker = $app
             ->getBillingPackage()
             ->getIntegrationComponent()
@@ -2288,6 +2288,15 @@ function generarBoleta($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_cot
             $GLOBALS["FirmaRaw"]["data"],
             $GLOBALS["FirmaRaw"]["pass"],
         );
+        $document = $app
+            ->getBillingPackage()
+            ->getDocumentComponent()
+            ->bill($set_pruebas, $caf, $certificate)
+            ->getDocument()
+        ;
+        $xmlDocument = new XmlDocument();
+        $xmlDocument->loadXml($document);
+
 
         $request = new SiiRequest(
             certificate: $certificate,
