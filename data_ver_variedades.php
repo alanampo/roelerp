@@ -131,14 +131,42 @@ if ($consulta == "busca_variedades") {
 } else if ($consulta == "busca_variedades_select") {
     try {
         $id_tipo = $_POST["id_tipo"];
-        $cadena = "select v.id, v.id_interno, v.nombre, ROUND(v.precio) as precio, t.codigo from variedades_producto v INNER JOIN tipos_producto t ON t.id = v.id_tipo WHERE v.eliminada IS NULL AND v.id_tipo = $id_tipo order by v.id_interno ASC;";
+        $cadena = "SELECT v.id, v.id_interno, v.nombre, ROUND(v.precio) as precio, t.codigo 
+                   FROM variedades_producto v 
+                   INNER JOIN tipos_producto t ON t.id = v.id_tipo 
+                   WHERE v.eliminada IS NULL AND v.id_tipo = $id_tipo 
+                   ORDER BY v.id_interno ASC";
         $val = mysqli_query($con, $cadena);
+        
         if (mysqli_num_rows($val) > 0) {
             while ($re = mysqli_fetch_array($val)) {
+                // Consulta para obtener los atributos de la variedad
+                $id_variedad = $re['id'];
+                $cadena_atributos = "SELECT av.valor 
+                                    FROM atributos_valores av
+                                    INNER JOIN atributos_valores_variedades avv ON avv.id_atributo_valor = av.id
+                                    INNER JOIN atributos at ON at.id = av.id_atributo
+                                    WHERE avv.id_variedad = $id_variedad AND at.visible_factura = 1
+                                    ORDER BY av.id";
+                
+                $val_atributos = mysqli_query($con, $cadena_atributos);
+                $atributos = array();
+                
+                while ($atr = mysqli_fetch_array($val_atributos)) {
+                    $atributos[] = $atr['valor'];
+                }
+                
+                // Construir el nombre con los atributos
+                $nombre_completo = $re['nombre'];
+                if (!empty($atributos)) {
+                    $nombre_completo .= ' ' . implode(' ', $atributos);
+                }
+                
                 $id_interno = str_pad($re["id_interno"], 2, '0', STR_PAD_LEFT);
                 $precio = $re["precio"] != null ? "- $$re[precio]" : "";
-                $nombre = mysqli_real_escape_string($con, $re["nombre"]);
-                echo "<option x-precio='$re[precio]' x-codigo='$re[codigo]' x-nombre='$nombre' x-codigofull='$re[codigo]$id_interno' value='$re[id]'>$re[nombre] ($re[codigo]$id_interno) $precio</option>";
+                $nombre_escaped = mysqli_real_escape_string($con, $nombre_completo);
+                
+                echo "<option x-precio='$re[precio]' x-codigo='$re[codigo]' x-nombre='$nombre_escaped' x-codigofull='$re[codigo]$id_interno' value='$re[id]'>$nombre_completo ($re[codigo]$id_interno) $precio</option>";
             }
         }
     } catch (\Throwable $th) {

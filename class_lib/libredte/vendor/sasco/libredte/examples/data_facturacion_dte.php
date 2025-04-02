@@ -200,6 +200,12 @@ if ($consulta == "generar_factura") {
                 mysqli_rollback($con);
             }
         } else {
+            mysqli_autocommit($con, true);
+            $datita = $DTEGenerado["data"];
+            $query = "UPDATE facturas SET data = '$datita' WHERE rowid = $id_fac";
+            if (!mysqli_query($con, $query)) {
+                array_push($arrErrores, mysqli_error($con));
+            }
             array_push($arrErrores, "ERROR_ENVIO_SII" . " " . json_encode($DTEGenerado["errores"]));
         }
     } else {
@@ -260,8 +266,9 @@ if ($consulta == "generar_factura") {
         $DTEGenerado = generarBoleta($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_cotizacion, $con);
 
         if (!isset($DTEGenerado["errores"]) && isset($DTEGenerado["trackID"])) {
-            $track_id = $DTEGenerado["trackID"];
+            $track_id = (string) $DTEGenerado["trackID"];
             $datita = $DTEGenerado["data"];
+            //$estado = $DTEGenerado["estado"];
             mysqli_autocommit($con, false);
             $query = "UPDATE boletas SET track_id = '$track_id', estado = 'EPR', data = '$datita'" . ($id_guia != null && $id_guia != "null" ? ", id_guia_despacho = $id_guia" : "") . " WHERE rowid = $id_fac";
             if (!mysqli_query($con, $query)) {
@@ -980,6 +987,12 @@ if ($consulta == "generar_factura") {
                     mysqli_rollback($con);
                 }
             } else {
+                mysqli_autocommit($con, true);
+                $datita = $DTEGenerado["data"];
+                $query = "UPDATE facturas SET data = '$datita' WHERE rowid = $id_fac";
+                if (!mysqli_query($con, $query)) {
+                    array_push($arrErrores, mysqli_error($con));
+                }
                 array_push($arrErrores, "ERROR_ENVIO_SII");
             }
         } else {
@@ -1924,7 +1937,7 @@ function generarPDFMailInterno($data, $dir_logo, $id, $esBoleta = false)
     $file_name_xml = ($esBoleta ? "boleta" : "factura") . "_$id.xml";
 
     $subject = ($esBoleta ? "Boleta" : "Factura") . " $id";
-    
+
     $message = "Te enviamos una copia de la " . ($esBoleta ? "Boleta" : "Factura") . " N° $id";
 
     $from_name = "Roelplant";
@@ -2008,120 +2021,131 @@ function getCondicionPago($val)
 
 function generarFactura($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_cotizacion = null, $con = null)
 {
-    if (isset($con) && isset($id_cotizacion)) {
-        $dataCotizacion = getDataCotizacion($con, $id_cotizacion, false);
-        if (!isset($dataCotizacion)) {
-            die("No se encontró la cotización");
-        }
-    } else {
-        $dataCotizacion = $json;
-    }
-
-    $comentario = $dataCotizacion["comentario"] ?? $dataCotizacion["observaciones"] ?? null;
-
-
-    $arrayproductos = array();
-    $i = 0;
-    foreach ($dataCotizacion["productos"] as $producto) {
-        if ($i == count($dataCotizacion["productos"]) - 1 && $comentario && mb_strlen($comentario) > 0100) {
-            array_push($arrayproductos, array(
-                'NmbItem' => $producto["variedad"] . " (" . $producto["codigo"] . ") " . ($producto["especie"] && strlen($producto["especie"]) > 0 ? $producto["especie"] : ""),
-                'DscItem' => $comentario,
-                'QtyItem' => (int) $producto["cantidad"],
-                'PrcItem' => (int) $producto["precio"],
-                'DescuentoPct' => $producto["descuento"] && $producto["descuento"]["tipo"] == "porcentual" ? (int) $producto["descuento"]["valor"] : false,
-                'DescuentoMonto' => $producto["descuento"] && $producto["descuento"]["tipo"] == "fijo" ? (int) $producto["descuento"]["valor"] : false,
-            ));
+    try {
+        if (isset($con) && isset($id_cotizacion)) {
+            $dataCotizacion = getDataCotizacion($con, $id_cotizacion, false);
+            if (!isset($dataCotizacion)) {
+                die("No se encontró la cotización");
+            }
         } else {
-            array_push($arrayproductos, array(
-                'NmbItem' => $producto["variedad"] . " (" . $producto["codigo"] . ") " . ($producto["especie"] && strlen($producto["especie"]) > 0 ? $producto["especie"] : ""),
-                'QtyItem' => (int) $producto["cantidad"],
-                'PrcItem' => (int) $producto["precio"],
-                'DescuentoPct' => $producto["descuento"] && $producto["descuento"]["tipo"] == "porcentual" ? (int) $producto["descuento"]["valor"] : false,
-                'DescuentoMonto' => $producto["descuento"] && $producto["descuento"]["tipo"] == "fijo" ? (int) $producto["descuento"]["valor"] : false,
-            ));
+            $dataCotizacion = $json;
         }
 
-        $i++;
-    }
-
-    $condicion_pago = getCondicionPago($dataCotizacion["condicion_pago"]);
+        $comentario = $dataCotizacion["comentario"] ?? $dataCotizacion["observaciones"] ?? null;
 
 
+        $arrayproductos = array();
+        $i = 0;
+        foreach ($dataCotizacion["productos"] as $producto) {
+            if ($i == count($dataCotizacion["productos"]) - 1 && $comentario && mb_strlen($comentario) > 0100) {
+                array_push($arrayproductos, array(
+                    'NmbItem' => $producto["variedad"] . " (" . $producto["codigo"] . ") " . ($producto["especie"] && strlen($producto["especie"]) > 0 ? $producto["especie"] : ""),
+                    'DscItem' => $comentario,
+                    'QtyItem' => (int) $producto["cantidad"],
+                    'PrcItem' => (int) $producto["precio"],
+                    'DescuentoPct' => $producto["descuento"] && $producto["descuento"]["tipo"] == "porcentual" ? (int) $producto["descuento"]["valor"] : false,
+                    'DescuentoMonto' => $producto["descuento"] && $producto["descuento"]["tipo"] == "fijo" ? (int) $producto["descuento"]["valor"] : false,
+                ));
+            } else {
+                array_push($arrayproductos, array(
+                    'NmbItem' => $producto["variedad"] . " (" . $producto["codigo"] . ") " . ($producto["especie"] && strlen($producto["especie"]) > 0 ? $producto["especie"] : ""),
+                    'QtyItem' => (int) $producto["cantidad"],
+                    'PrcItem' => (int) $producto["precio"],
+                    'DescuentoPct' => $producto["descuento"] && $producto["descuento"]["tipo"] == "porcentual" ? (int) $producto["descuento"]["valor"] : false,
+                    'DescuentoMonto' => $producto["descuento"] && $producto["descuento"]["tipo"] == "fijo" ? (int) $producto["descuento"]["valor"] : false,
+                ));
+            }
 
-    $set_pruebas = [
-        [
-            'Encabezado' => [
-                'IdDoc' => [
-                    'TipoDTE' => 33,
-                    'Folio' => $folio,
-                    'TermPagoGlosa' => $comentario && mb_strlen($comentario) <= 100 ? $comentario : NULL,
+            $i++;
+        }
+
+        $condicion_pago = getCondicionPago($dataCotizacion["condicion_pago"]);
+
+
+
+        $set_pruebas = [
+            [
+                'Encabezado' => [
+                    'IdDoc' => [
+                        'TipoDTE' => 33,
+                        'Folio' => $folio,
+                        'TermPagoGlosa' => $comentario && mb_strlen($comentario) <= 100 ? $comentario : NULL,
+                    ],
+                    'Emisor' => $GLOBALS["Emisor"],
+                    'Receptor' => [
+                        'RUTRecep' => $dataCotizacion["rut"],
+                        'RznSocRecep' => $dataCotizacion["cliente"],
+                        'GiroRecep' => $dataCotizacion["giro"] ? strtoupper($dataCotizacion["giro"]) : "-",
+                        'DirRecep' => $dataCotizacion["domicilio"],
+                        'CmnaRecep' => $dataCotizacion["comuna"] ? strtoupper($dataCotizacion["comuna"]) : "-",
+                    ],
                 ],
-                'Emisor' => $GLOBALS["Emisor"],
-                'Receptor' => [
-                    'RUTRecep' => $dataCotizacion["rut"],
-                    'RznSocRecep' => $dataCotizacion["cliente"],
-                    'GiroRecep' => $dataCotizacion["giro"] ? strtoupper($dataCotizacion["giro"]) : "-",
-                    'DirRecep' => $dataCotizacion["domicilio"],
-                    'CmnaRecep' => $dataCotizacion["comuna"] ? strtoupper($dataCotizacion["comuna"]) : "-",
+                'Detalle' => $arrayproductos,
+                'Referencia' => [
+                    'TpoDocRef' => ($id_guia != null && $id_guia != "null" ? 52 : 33),
+                    'FolioRef' => ($id_guia != null && $id_guia != "null" ? $folio_guia : $folio),
+                    'RazonRef' => $condicion_pago,
                 ],
             ],
-            'Detalle' => $arrayproductos,
-            'Referencia' => [
-                'TpoDocRef' => ($id_guia != null && $id_guia != "null" ? 52 : 33),
-                'FolioRef' => ($id_guia != null && $id_guia != "null" ? $folio_guia : $folio),
-                'RazonRef' => $condicion_pago,
-            ],
-        ],
-    ];
+        ];
 
-    $Folios = [];
-    $Folios[33] = new \sasco\LibreDTE\Sii\Folios($dataFolio);
-    $EnvioDTE = new \sasco\LibreDTE\Sii\EnvioDte();
+        $app = \libredte\lib\Core\Application::getInstance();
 
-    // generar cada DTE, timbrar, firmar y agregar al sobre de EnvioDTE
-    foreach ($set_pruebas as $documento) {
-        $DTE = new \sasco\LibreDTE\Sii\Dte($documento);
-        if (!$DTE->timbrar($Folios[$DTE->getTipo()])) {
-            break;
+
+        $Folios = [];
+        $Folios[33] = new \sasco\LibreDTE\Sii\Folios($dataFolio);
+        $EnvioDTE = new \sasco\LibreDTE\Sii\EnvioDte();
+
+        // generar cada DTE, timbrar, firmar y agregar al sobre de EnvioDTE
+        foreach ($set_pruebas as $documento) {
+            $DTE = new \sasco\LibreDTE\Sii\Dte($documento);
+            if (!$DTE->timbrar($Folios[$DTE->getTipo()])) {
+                break;
+            }
+
+            if (!$DTE->firmar($GLOBALS["Firma"])) {
+                break;
+            }
+
+            $EnvioDTE->agregar($DTE);
         }
 
-        if (!$DTE->firmar($GLOBALS["Firma"])) {
-            break;
+        $caratula = $GLOBALS["caratula"];
+        //$caratula["RutReceptor"] = $dataCotizacion["rut"];
+        // enviar dtes y mostrar resultado del envío: track id o bien =false si hubo error
+        $EnvioDTE->setCaratula($caratula);
+        $EnvioDTE->setFirma($GLOBALS["Firma"]);
+
+        $dataDTE = $EnvioDTE->generar();
+        $datita = base64_encode($dataDTE);
+
+        $track_id = $EnvioDTE->enviar();
+
+        $err = array();
+        foreach (\sasco\LibreDTE\Log::readAll() as $error) {
+            array_push($err, $error);
         }
-
-        $EnvioDTE->agregar($DTE);
-    }
-
-    $caratula = $GLOBALS["caratula"];
-    //$caratula["RutReceptor"] = $dataCotizacion["rut"];
-    // enviar dtes y mostrar resultado del envío: track id o bien =false si hubo error
-    $EnvioDTE->setCaratula($caratula);
-    $EnvioDTE->setFirma($GLOBALS["Firma"]);
-
-    $dataDTE = $EnvioDTE->generar();
-    $datita = base64_encode($dataDTE);
-
-    $track_id = $EnvioDTE->enviar();
-
-    $err = array();
-    foreach (\sasco\LibreDTE\Log::readAll() as $error) {
-        array_push($err, $error);
-
-    }
-    //die(json_encode($err));
-    if (count($err) > 0) {
+        //die(json_encode($err));
+        if (count($err) > 0) {
+            return array(
+                "errores" => $err,
+                "data" => $datita
+            );
+        } else if (!$track_id) {
+            return array(
+                "errores" => "Error al enviar al SII",
+                "data" => $datita
+            );
+        } else {
+            return array(
+                "trackID" => $track_id,
+                "data" => $datita,
+            );
+        }
+    } catch (\Throwable $th) {
         return array(
-            "errores" => $err,
-        );
-    } else if (!$track_id) {
-        return array(
-            "errores" => "Error al enviar al SII",
-        );
-    } else {
-        return array(
-            "trackID" => $track_id,
-            "data" => $datita,
+            "errores" => $th->getMessage() . " - " . $th->getTraceAsString(),
+            "data" => $datita
         );
     }
 }
@@ -2134,6 +2158,7 @@ function limpiarYRecortar($texto, $limite = 100)
     // Recortar a 100 caracteres si es necesario
     return mb_substr($textoLimpio, 0, $limite);
 }
+
 function generarBoleta($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_cotizacion = null, $con = null)
 {
     if (isset($con) && isset($id_cotizacion)) {
@@ -2179,11 +2204,11 @@ function generarBoleta($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_cot
                 ],
             ],
             'Detalle' => $arrayproductos,
-            'Referencia' => [
-                'TpoDocRef' => ($id_guia != null && $id_guia != "null" ? 52 : 39),
-                'FolioRef' => ($id_guia != null && $id_guia != "null" ? $folio_guia : $folio),
-                'RazonRef' => $condicion_pago,
-            ],
+            // 'Referencia' => [
+            //     'TpoDocRef' => ($id_guia != null && $id_guia != "null" ? 52 : 39),
+            //     'FolioRef' => ($id_guia != null && $id_guia != "null" ? $folio_guia : $folio),
+            //     'RazonRef' => $condicion_pago,
+            // ],
         ],
     ];
 
@@ -2213,6 +2238,8 @@ function generarBoleta($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_cot
     $EnvioDTE->setFirma($GLOBALS["Firma"]);
 
     $dataDTE = $EnvioDTE->generar();
+    $dataDTE = preg_replace('/<MntNeto>.*?<\/MntNeto>\s*/', '', (string) $dataDTE);
+    $dataDTE = preg_replace('/<IVA>.*?<\/IVA>\s*/', '', $dataDTE);
     $token = NULL;
     try {
         $certPath = base64_decode(str_replace("data:application/x-pkcs12;base64,", "", $GLOBALS["empresa"]["certificado"])); // contenido del archivo certificado.p12
@@ -2235,7 +2262,7 @@ function generarBoleta($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_cot
 
     // Definir la URL del endpoint del SII
     $entorno = $GLOBALS["empresa"]["modo"] == "PROD" ? "rahue" : "pangal";
-    $url = "https://{$entorno}.sii.cl/recursos/v1/boleta.electronica.envio"; // Ajusta la URL según sea producción o pruebas
+    $url = "https://rahue.sii.cl/recursos/v1/boleta.electronica.envio"; // Ajusta la URL según sea producción o pruebas
 
     // Token de autorización
     $rutsplit = explode("-", $GLOBALS["empresa"]["rut"]);
@@ -2246,6 +2273,9 @@ function generarBoleta($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_cot
     $dvSender = $rutsplit[1];         // Dígito verificador del emisor
     $rutCompany = $rutReceptorSplit[0]; // RUT de la empresa sin puntos ni guion
     $dvCompany = $rutReceptorSplit[1];         // Dígito verificador de la empresa
+
+    //$dataDTE = firmarBoletaElectronica($dataDTE, $certPath, $certPass);
+    //$dataDTE = firmarXml($dataDTE, $certPath, $certPass);
 
     // Crear un archivo temporal en memoria con el XML
     $temp = tmpfile();
@@ -2307,6 +2337,7 @@ function generarBoleta($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_cot
                     );
                 }
                 return array(
+                    "estado" => $rta->estado,
                     "trackID" => $rta->trackid,
                     "data" => $datita,
                 );
@@ -2321,18 +2352,27 @@ function generarBoleta($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_cot
 
 function getEstadoBoleta($token)
 {
-    $host_servidor = "https://api.sii.cl/recursos/v1/boleta.electronica.envio/77436423-4-16504396257";
+    $monto = 3600;
+    $tipoDte = 39;
+    $folio = 5014;
+    $rutEmisor = "16182953";
+    $dvEmisor = "6";
+    $rutReceptor = "11362816";
+    $dvReceptor = "2";
+    $fecha = "16-03-2025";
+    $trackid = "16576658792";
+    //$host_servidor = "https://api.sii.cl/recursos/v1/boleta.electronica/{$rutEmisor}-{$dvEmisor}-{$tipoDte}-{$folio}/estado?rut_receptor={$rutReceptor}&dv_receptor={$dvReceptor}&monto={$monto}&fechaEmision={$fecha}"; // CERTIFICACION
 
-    // $host_servidor = "https://apicert.sii.cl/recursos/v1/boleta.electronica.envio/76958430-7-"; // CERTIFICACION
+    $host_servidor = "https://api.sii.cl/recursos/v1/boleta.electronica.envio/{$rutEmisor}-{$dvEmisor}-{$trackid}";
 
-    $client = curl_init($host_servidor );
+    $client = curl_init($host_servidor);
     curl_setopt($client, CURLOPT_TIMEOUT, -1);
     curl_setopt($client, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($client, CURLOPT_HTTPHEADER, array(
         "Cookie: TOKEN=" . $token,
         "Accept: application/json"
     ));
-    curl_setopt($client, CURLOPT_POST, true);
+    //curl_setopt($client, CURLOPT_POST, true);
 
     $response = curl_exec($client);
 
@@ -2869,9 +2909,9 @@ function getEstadoDte($track_id)
 function obtenerSemilla()
 {
     $entorno = $GLOBALS["empresa"]["modo"] != "PROD" ? "" : "cert";
-    $url = "https://api{$entorno}.sii.cl/recursos/v1/boleta.electronica.semilla";
+    $url = "https://api.sii.cl/recursos/v1/boleta.electronica.semilla";
     $ch = curl_init($url);
-    
+
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
         "Accept: application/xml"
@@ -2937,6 +2977,88 @@ function firmarSemilla($semilla, $certPath, $certPass)
     $xmlString = preg_replace('/<\/Signature><\/getToken>/', PHP_EOL . '</Signature></getToken>', $pulito);
     return $xmlString;
 }
+
+function firmarBoletaElectronica($xmlString, $certPath, $certPass)
+{
+    // Cargar el XML en un objeto DOMDocument
+    $doc = new DOMDocument();
+    $doc->loadXML($xmlString);
+
+    // Eliminar las firmas existentes
+    $xpath = new DOMXPath($doc);
+    $xpath->registerNamespace('ds', 'http://www.w3.org/2000/09/xmldsig#');
+
+    // Eliminar firma del DTE
+    $dteSignature = $xpath->query('//ds:Signature[ancestor::DTE]')->item(0);
+    if ($dteSignature) {
+        $dteSignature->parentNode->removeChild($dteSignature);
+    }
+
+    // Eliminar firma del EnvioBOLETA
+    $envioSignature = $xpath->query('//ds:Signature[ancestor::EnvioBOLETA]')->item(0);
+    if ($envioSignature) {
+        $envioSignature->parentNode->removeChild($envioSignature);
+    }
+
+    // Cargar el certificado desde el archivo .p12
+    $pkcs12 = $certPath;
+    if (!openssl_pkcs12_read($pkcs12, $certs, $certPass)) {
+        throw new Exception("Error leyendo el certificado.");
+    }
+
+    $privateKey = $certs['pkey'];
+    $publicCert = $certs['cert'];
+
+    // Firmar el DTE
+    $dte = $xpath->query('//DTE')->item(0);
+    if ($dte) {
+        $dteID = $dte->getAttribute('ID');
+        $dteSignature = firmarNodo($doc, $dte, $privateKey, $publicCert, $dteID);
+        $dte->appendChild($dteSignature);
+    }
+
+    // Firmar el EnvioBOLETA
+    $envioBOLETA = $xpath->query('//EnvioBOLETA')->item(0);
+    if ($envioBOLETA) {
+        $envioID = $envioBOLETA->getElementsByTagName('SetDTE')->item(0)->getAttribute('ID');
+        $envioSignature = firmarNodo($doc, $envioBOLETA, $privateKey, $publicCert, $envioID);
+        $envioBOLETA->appendChild($envioSignature);
+    }
+
+    // Devolver el XML firmado como string
+    $pulito = str_replace("ds:", "", $doc->saveXML());
+    $xmlString = preg_replace('/<\/Signature><\/EnvioBOLETA>/', PHP_EOL . '</Signature></EnvioBOLETA>', $pulito);
+    return $xmlString;
+}
+
+function firmarNodo($doc, $nodo, $privateKey, $publicCert, $referenceURI)
+{
+    // Crear la firma usando xmlseclibs
+    $objDSig = new XMLSecurityDSig();
+    $objDSig->setCanonicalMethod(XMLSecurityDSig::C14N); // Método de canonicalización
+    $objDSig->addReference(
+        $nodo, // Se firma el nodo específico
+        XMLSecurityDSig::SHA1, // Algoritmo de hash
+        ['http://www.w3.org/2000/09/xmldsig#enveloped-signature'], // Tipo de transformación
+        ['force_uri' => true, 'uri' => '#' . $referenceURI] // Referencia URI
+    );
+
+    // Crear la clave de seguridad con la clave privada
+    $objKey = new XMLSecurityKey(XMLSecurityKey::RSA_SHA1, ['type' => 'private']);
+    $objKey->loadKey($privateKey);
+
+    // Firmar el documento
+    $objDSig->sign($objKey);
+
+    // Agregar el certificado público
+    $objDSig->add509Cert($publicCert);
+
+    // Insertar la firma en el nodo
+    $objDSig->appendSignature($nodo);
+
+    // Retornar el nodo de la firma
+    return $nodo->lastChild;
+}
 function obtenerToken($xmlFirmado)
 {
     $url = "https://api.sii.cl/recursos/v1/boleta.electronica.token";
@@ -2962,5 +3084,144 @@ function obtenerToken($xmlFirmado)
     }
 
     return NULL;
+}
+
+function firmarXml($xmlString, $p12Path, $p12Pass)
+{
+    // Cargar el XML
+    $xml = new DOMDocument();
+    $xml->loadXML($xmlString);
+
+    // Eliminar todas las firmas existentes
+    $signatureNodes = $xml->getElementsByTagName('Signature');
+    while ($signatureNodes->length > 0) {
+        $signatureNode = $signatureNodes->item(0);
+        $signatureNode->parentNode->removeChild($signatureNode);
+    }
+
+    // Cargar el archivo .p12
+    if (!openssl_pkcs12_read($p12Path, $certs, $p12Pass)) {
+        throw new Exception('No se pudo cargar el archivo PKCS#12.');
+    }
+
+    // Obtener la clave privada y pública
+    $privateKey = $certs['pkey'];
+    $publicCert = $certs['cert'];
+
+    // Obtener la clave pública como un objeto OpenSSL
+    $publicKey = openssl_pkey_get_public($publicCert);
+    if (!$publicKey) {
+        throw new Exception('No se pudo obtener la clave pública.');
+    }
+
+    // Obtener los detalles de la clave pública (modulus y exponent)
+    $keyDetails = openssl_pkey_get_details($publicKey);
+    if (!$keyDetails) {
+        throw new Exception('No se pudo obtener detalles de la clave pública.');
+    }
+
+    $modulus = $keyDetails['rsa']['n'];  // Modulus
+    $exponent = $keyDetails['rsa']['e'];  // Exponent
+
+    // Convertir modulus y exponent a base64
+    $modulusBase64 = base64_encode($modulus);
+    $exponentBase64 = base64_encode($exponent);
+
+    // Crear un objeto para manejar el XML y obtener el contenido a firmar
+    $canonicalXml = $xml->C14N();  // Obtener el XML en formato canónico
+
+    // Firmar el contenido dos veces con la misma o diferentes claves
+    $signature1 = null;
+    if (!openssl_sign($canonicalXml, $signature1, $privateKey, OPENSSL_ALGO_SHA1)) {
+        throw new Exception('No se pudo firmar el XML.');
+    }
+
+    // Crear la primera firma
+    $signatureNode1 = $xml->createElement('Signature');
+    $signedInfo1 = $xml->createElement('SignedInfo');
+    $canonicalizationMethod1 = $xml->createElement('CanonicalizationMethod', 'http://www.w3.org/TR/2001/REC-xml-c14n-20010315');
+    $signedInfo1->appendChild($canonicalizationMethod1);
+    $signatureMethod1 = $xml->createElement('SignatureMethod', 'http://www.w3.org/2000/09/xmldsig#rsa-sha1');
+    $signedInfo1->appendChild($signatureMethod1);
+
+    $reference1 = $xml->createElement('Reference');
+    $reference1->setAttribute('URI', '#LibreDTE_T39F5024');
+    $transforms1 = $xml->createElement('Transforms');
+    $transform1 = $xml->createElement('Transform');
+    $transform1->setAttribute('Algorithm', 'http://www.w3.org/2000/09/xmldsig#enveloped-signature');
+    $transforms1->appendChild($transform1);
+    $reference1->appendChild($transforms1);
+    $digestMethod1 = $xml->createElement('DigestMethod', 'http://www.w3.org/2000/09/xmldsig#sha1');
+    $digestValue1 = $xml->createElement('DigestValue', base64_encode(sha1($canonicalXml, true)));
+    $reference1->appendChild($digestMethod1);
+    $reference1->appendChild($digestValue1);
+    $signedInfo1->appendChild($reference1);
+
+    $signatureValue1 = $xml->createElement('SignatureValue', base64_encode($signature1));
+
+    $keyInfo1 = $xml->createElement('KeyInfo');
+    $keyValue1 = $xml->createElement('KeyValue');
+    $rsaKeyValue1 = $xml->createElement('RSAKeyValue');
+    $modulusElement1 = $xml->createElement('Modulus', $modulusBase64);  // Modulus codificado en base64
+    $exponentElement1 = $xml->createElement('Exponent', $exponentBase64);  // Exponent codificado en base64
+    $rsaKeyValue1->appendChild($modulusElement1);
+    $rsaKeyValue1->appendChild($exponentElement1);
+    $keyValue1->appendChild($rsaKeyValue1);
+    $keyInfo1->appendChild($keyValue1);
+
+    $signatureNode1->appendChild($signedInfo1);
+    $signatureNode1->appendChild($signatureValue1);
+    $signatureNode1->appendChild($keyInfo1);
+
+    // Insertar la primera firma en el XML
+    $xml->documentElement->appendChild($signatureNode1);
+
+    // Firmar el contenido por segunda vez
+    $signature2 = null;
+    if (!openssl_sign($canonicalXml, $signature2, $privateKey, OPENSSL_ALGO_SHA1)) {
+        throw new Exception('No se pudo firmar el XML.');
+    }
+
+    // Crear la segunda firma (lo mismo que antes)
+    $signatureNode2 = $xml->createElement('Signature');
+    $signedInfo2 = $xml->createElement('SignedInfo');
+    $canonicalizationMethod2 = $xml->createElement('CanonicalizationMethod', 'http://www.w3.org/TR/2001/REC-xml-c14n-20010315');
+    $signedInfo2->appendChild($canonicalizationMethod2);
+    $signatureMethod2 = $xml->createElement('SignatureMethod', 'http://www.w3.org/2000/09/xmldsig#rsa-sha1');
+    $signedInfo2->appendChild($signatureMethod2);
+
+    $reference2 = $xml->createElement('Reference');
+    $reference2->setAttribute('URI', '#LibreDTE_T39F5024');
+    $transforms2 = $xml->createElement('Transforms');
+    $transform2 = $xml->createElement('Transform');
+    $transform2->setAttribute('Algorithm', 'http://www.w3.org/2000/09/xmldsig#enveloped-signature');
+    $transforms2->appendChild($transform2);
+    $reference2->appendChild($transforms2);
+    $digestMethod2 = $xml->createElement('DigestMethod', 'http://www.w3.org/2000/09/xmldsig#sha1');
+    $digestValue2 = $xml->createElement('DigestValue', base64_encode(sha1($canonicalXml, true)));
+    $reference2->appendChild($digestMethod2);
+    $reference2->appendChild($digestValue2);
+    $signedInfo2->appendChild($reference2);
+
+    $signatureValue2 = $xml->createElement('SignatureValue', base64_encode($signature2));
+
+    $keyInfo2 = $xml->createElement('KeyInfo');
+    $keyValue2 = $xml->createElement('KeyValue');
+    $rsaKeyValue2 = $xml->createElement('RSAKeyValue');
+    $modulusElement2 = $xml->createElement('Modulus', $modulusBase64);  // Modulus codificado en base64
+    $exponentElement2 = $xml->createElement('Exponent', $exponentBase64);  // Exponent codificado en base64
+    $rsaKeyValue2->appendChild($modulusElement2);
+    $rsaKeyValue2->appendChild($exponentElement2);
+    $keyValue2->appendChild($rsaKeyValue2);
+    $keyInfo2->appendChild($keyValue2);
+
+    $signatureNode2->appendChild($signedInfo2);
+    $signatureNode2->appendChild($signatureValue2);
+    $signatureNode2->appendChild($keyInfo2);
+
+    // Insertar la segunda firma en el XML
+    $xml->documentElement->appendChild($signatureNode2);
+
+    return $xml->saveXML();  // Devolver el XML firmado
 }
 

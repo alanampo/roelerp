@@ -393,19 +393,43 @@ else if ($consulta == "cargar_cotizacion") {
         if (mysqli_num_rows($val2) > 0) {
             $productos = array();
             while ($ww2 = mysqli_fetch_array($val2)) {
+                // Consulta para obtener los atributos de la variedad
+                $id_variedad = $ww2['id_variedad_real'];
+                $query_atributos = "SELECT av.valor 
+                                    FROM atributos_valores av
+                                    INNER JOIN atributos_valores_variedades avv ON avv.id_atributo_valor = av.id
+                                    INNER JOIN atributos at ON at.id = avv.id_atributo
+                                    WHERE avv.id_variedad = $id_variedad
+                                    AND at.visible_factura = 1
+                                    ORDER BY av.id";
+
+                $val_atributos = mysqli_query($con, $query_atributos);
+                $atributos = array();
+                
+                while ($atr = mysqli_fetch_array($val_atributos)) {
+                    $atributos[] = $atr['valor'];
+                }
+                
+                // Construir el nombre de variedad con los atributos
+                $nombre_variedad_completo = $ww2['nombre_variedad'];
+                if (!empty($atributos)) {
+                    $nombre_variedad_completo .= ' ' . implode(' ', $atributos);
+                }
+
                 $subtotal = (int) $ww2["precio"] * (int) $ww2["cantidad"];
 
                 if ($ww2["tipo_descuento"] == 1) { //PORCENTUAL
                     $total = $subtotal - (($subtotal * $ww2["valor_descuento"]) / 100);
-                } else if ($ww2["tipo_descuento"] == 2) { //PORCENTUAL
+                } else if ($ww2["tipo_descuento"] == 2) { //FIJO
                     $total = $subtotal - $ww2["valor_descuento"];
                 } else {
                     $total = $subtotal;
                 }
+                
                 array_push($productos, array(
                     "tipo" => $ww2["nombre_tipo"],
                     "id_tipo" => $ww2["id_tipo"],
-                    "variedad" => $ww2["nombre_variedad"],
+                    "variedad" => $nombre_variedad_completo, // Usamos el nombre completo con atributos
                     "id_variedad" => $ww2["id_variedad"],
                     "id_variedad_real" => $ww2["id_variedad_real"],
                     "cantidad" => $ww2["cantidad"],

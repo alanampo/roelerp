@@ -5,9 +5,9 @@ if (strpos($_SERVER['HTTP_HOST'], 'roelplant') !== false) {
     require $_SERVER['DOCUMENT_ROOT'] . '/class_lib/class_conecta_mysql.php';
     require $_SERVER['DOCUMENT_ROOT'] . '/class_lib/funciones.php';
 } else {
-    include $_SERVER['DOCUMENT_ROOT'] . "/roelerp/class_lib/sesionSecurity.php";
-    require $_SERVER['DOCUMENT_ROOT'] . '/roelerp/class_lib/class_conecta_mysql.php';
-    require $_SERVER['DOCUMENT_ROOT'] . '/roelerp/class_lib/funciones.php';
+    include $_SERVER['DOCUMENT_ROOT'] . "/class_lib/sesionSecurity.php";
+    require $_SERVER['DOCUMENT_ROOT'] . '/class_lib/class_conecta_mysql.php';
+    require $_SERVER['DOCUMENT_ROOT'] . '/class_lib/funciones.php';
 }
 
 set_time_limit(0);
@@ -24,7 +24,7 @@ mysqli_query($con, "SET NAMES 'utf8'");
 
 $config = [
     'firma' => [
-        'file' => 'firma.p12',
+        'file' => 'new.p12',
         'pass' => '2270',
     ],
 ];
@@ -42,7 +42,7 @@ if ($consulta == "get_compras") {
 
     $rutEmpresa = '77436423';
     $dv = '4';
-
+    
     try {
         // URL del servicio
         $url = "https://www4.sii.cl/consdcvinternetui/services/data/facadeService/getDetalleCompra";
@@ -84,7 +84,7 @@ if ($consulta == "get_compras") {
 
         // Ejecutar la solicitud cURL y obtener la respuesta
         $response = curl_exec($ch);
-
+        die(json_encode($response));
         // Verificar errores
         if (curl_errno($ch)) {
             echo "Error al realizar la solicitud: " . curl_error($ch);
