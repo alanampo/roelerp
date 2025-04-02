@@ -472,7 +472,10 @@ if ($consulta == "generar_factura") {
     }
 } else if ($consulta == "get_estado_dte") {
     $trackID = $_POST["track_id"];
-    echo getEstadoDte($trackID);
+    $rowid = $_POST["rowid"];
+    $folio = $_POST["folio"];
+    $tipoDTE = $_POST["tipoDoc"];
+    echo getEstadoDte($trackID, $rowid, $folio, $tipoDTE, $con);
     exit;
     $certPath = base64_decode(str_replace("data:application/x-pkcs12;base64,", "", $GLOBALS["empresa"]["certificado"])); // contenido del archivo certificado.p12
     $certPass = $GLOBALS["empresa"]["pass"];
@@ -3030,75 +3033,88 @@ function getDataCotizacion($con, $id_cotizacion, $directa)
     return null;
 }
 
-function getEstadoDte($track_id)
+function getEstadoDte($track_id, $rowid, $folio, $tipoDTE, $con)
 {
+    $fecha = "";
+    $tabla = "";
+    switch ($tipoDTE) {
+        case 0://FACTURA
+            $tipoDTE = 33;
+            $tabla = "facturas";
+            break;
+        case 1://NOTA CREDITO
+            $tipoDTE = 61;
+            $tabla = "notas_credito";
+            break;
+        case 2://GUIA DESPACHO
+            $tipoDTE = 52;
+            $tabla = "guias_despacho";
+            break;
+        case 3://NOTA DEBITO
+            $tipoDTE = 56;
+            $tabla = "notas_debito";
+            break;
+        default:
+            break;
+    }
+
+    $q = "SELECT * FROM $tabla WHERE rowid = $rowid";
+    $row = mysqli_fetch_assoc(mysqli_query($con, $q));
+    $fecha = explode(" ", $row["fecha"])[0];
+    $data = base64_decode($row["data"]);
+    $rutReceptor = "";
+    $montoTotal = "";
+    if (preg_match('/<RUTRecep>([^<]+)<\/RUTRecep>/', $data, $matches)) {
+        $rutReceptor = $matches[1]; // El valor dentro de <RutReceptor>
+    }
+
+    if (preg_match('/<MntTotal>([^<]+)<\/MntTotal>/', $data, $matches)) {
+        $montoTotal = $matches[1]; // El valor dentro de <RutReceptor>
+    }
 
     $token = \sasco\LibreDTE\Sii\Autenticacion::getToken($GLOBALS['Firma']);
     if (!$token) {
         return null;
     }
-    $rutsplit = explode("-", $GLOBALS["empresa"]["rut"]);
-
-    $rut = $rutsplit[0];
-    $dv = $rutsplit[1];
-
-
-    $rutConsultanteSplit = explode("-", (string)$GLOBALS["Firma"]->getID());
-    $rutConsultante = $rutConsultanteSplit[0];
-    $dvConsultante = $rutConsultanteSplit[1];
-    // consultar estado dte
-    $data = [
-        'RutConsultante' => $rutConsultante,
-        'DvConsultante' => $dvConsultante,
-        'RutCompania' => $rut,
-        'DvCompania' => $dv,
-        'RutReceptor' => '77634816',
-        'DvReceptor' => '3',
-        'TipoDte' => '33',
-        'FolioDte' => '1727',
-        'FechaEmisionDte' => '2025-04-01',
-        'MontoDte' => 997700,
-        'token' => $token,
-    ];
 
     $app = Application::getInstance();
-       
 
-        $siiLazyWorker = $app
-            ->getBillingPackage()
-            ->getIntegrationComponent()
-            ->getSiiLazyWorker();
+    $siiLazyWorker = $app
+        ->getBillingPackage()
+        ->getIntegrationComponent()
+        ->getSiiLazyWorker();
 
-        $certificateLoader = $app
-            ->getPrimePackage()
-            ->getCertificateComponent()
-            ->getLoaderWorker()
-        ;
+    $certificateLoader = $app
+        ->getPrimePackage()
+        ->getCertificateComponent()
+        ->getLoaderWorker()
+    ;
 
-        $certificate = $certificateLoader->createFromData(
-            $GLOBALS["FirmaRaw"]["data"],
-            $GLOBALS["FirmaRaw"]["pass"],
-        );
+    $certificate = $certificateLoader->createFromData(
+        $GLOBALS["FirmaRaw"]["data"],
+        $GLOBALS["FirmaRaw"]["pass"],
+    );
 
-        $request = new SiiRequest(
-            certificate: $certificate,
-            options: [
-                'ambiente' => $GLOBALS["empresa"]["modo"] == "PROD" ? SiiAmbiente::PRODUCCION : SiiAmbiente::CERTIFICACION,
-            ],
+    $request = new SiiRequest(
+        certificate: $certificate,
+        options: [
+            'ambiente' => $GLOBALS["empresa"]["modo"] == "PROD" ? SiiAmbiente::PRODUCCION : SiiAmbiente::CERTIFICACION,
+        ],
 
-        );
+    );
 
     $documentStatus = $siiLazyWorker->validateDocument(
         $request,
         $GLOBALS["empresa"]["rut"],
-        33,
-        1727,
-        '2025-04-01',
-        1187263,
-        '77634816-3'
+        $tipoDTE,
+        $folio,
+        $fecha,
+        $montoTotal,
+        $rutReceptor
     );
-    
-    var_dump($documentStatus->getData());die;
+
+    var_dump($documentStatus->getData());
+    die;
 
     echo json_encode($data);
     $xml = \sasco\LibreDTE\Sii::request('QueryEstDte', 'getEstDte', $data);

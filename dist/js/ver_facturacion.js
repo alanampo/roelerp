@@ -1057,6 +1057,9 @@ function getEstadoDTE(trackID, facturaID, tipoDoc, estadoActual, rowid) {
     data: {
       consulta: "get_estado_dte",
       track_id: trackID,
+      tipoDoc,
+      rowid,
+      folio: facturaID
     },
     success: function (x) {
       console.log(x);
