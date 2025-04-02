@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "62049626ac00e3d7ebbdbcbe0291bd59",
+    "content-hash": "4ebaaa24598aa5b0fdf799c1cdc1c8ac",
     "packages": [
         {
             "name": "carbonphp/carbon-doctrine-types",
@@ -4455,7 +4455,8 @@
     "aliases": [],
     "minimum-stability": "dev",
     "stability-flags": {
-        "libredte/libredte-lib-core": 20
+        "libredte/libredte-lib-core": 20,
+        "sasco/libredte": 20
     },
     "prefer-stable": true,
     "prefer-lowest": false,

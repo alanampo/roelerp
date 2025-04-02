@@ -2048,17 +2048,13 @@ function generarFactura($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_co
                     'NmbItem' => $producto["variedad"] . " (" . $producto["codigo"] . ") " . ($producto["especie"] && strlen($producto["especie"]) > 0 ? $producto["especie"] : ""),
                     'DscItem' => $comentario,
                     'QtyItem' => (int) $producto["cantidad"],
-                    'PrcItem' => (int) $producto["precio"],
-                    'DescuentoPct' => $producto["descuento"] && $producto["descuento"]["tipo"] == "porcentual" ? (int) $producto["descuento"]["valor"] : false,
-                    'DescuentoMonto' => $producto["descuento"] && $producto["descuento"]["tipo"] == "fijo" ? (int) $producto["descuento"]["valor"] : false,
+                    'PrcItem' => (int) $producto["precio"]
                 ));
             } else {
                 array_push($arrayproductos, array(
                     'NmbItem' => $producto["variedad"] . " (" . $producto["codigo"] . ") " . ($producto["especie"] && strlen($producto["especie"]) > 0 ? $producto["especie"] : ""),
                     'QtyItem' => (int) $producto["cantidad"],
-                    'PrcItem' => (int) $producto["precio"],
-                    'DescuentoPct' => $producto["descuento"] && $producto["descuento"]["tipo"] == "porcentual" ? (int) $producto["descuento"]["valor"] : false,
-                    'DescuentoMonto' => $producto["descuento"] && $producto["descuento"]["tipo"] == "fijo" ? (int) $producto["descuento"]["valor"] : false,
+                    'PrcItem' => (int) $producto["precio"]
                 ));
             }
 
@@ -2067,10 +2063,8 @@ function generarFactura($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_co
 
         $condicion_pago = getCondicionPago($dataCotizacion["condicion_pago"]);
 
-
-
         $set_pruebas = [
-
+            [
                 'Encabezado' => [
                     'IdDoc' => [
                         'TipoDTE' => 33,
@@ -2092,69 +2086,8 @@ function generarFactura($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_co
                     'FolioRef' => ($id_guia != null && $id_guia != "null" ? $folio_guia : $folio),
                     'RazonRef' => $condicion_pago,
                 ],
-      
-        ];
-
-
-        $app = Application::getInstance();
-        $caf = $app
-            ->getBillingPackage()
-            ->getIdentifierComponent()
-            ->getCafLoaderWorker()
-            ->load($dataFolio)
-            ->getCaf()
-        ;
-
-        $siiLazyWorker = $app
-            ->getBillingPackage()
-            ->getIntegrationComponent()
-            ->getSiiLazyWorker();
-
-        $certificateLoader = $app
-            ->getPrimePackage()
-            ->getCertificateComponent()
-            ->getLoaderWorker()
-        ;
-
-
-
-        // Cargar certificado digital.
-        try {
-            $certificate = $certificateLoader->createFromData(
-                $GLOBALS["FirmaRaw"]["data"],
-                $GLOBALS["FirmaRaw"]["pass"],
-            );
-        } catch (\Exception $e) {
-            die($e->getMessage());
-        }
-
-        // Crear DTE.
-        $document = $app
-            ->getBillingPackage()
-            ->getDocumentComponent()
-            ->bill($set_pruebas, $caf, $certificate)
-            ->getDocument()
-        ;
-
-        // Solicitar token ambiente producción.
-        $request = new SiiRequest(
-            certificate: $certificate,
-            options: [
-                'ambiente' => SiiAmbiente::CERTIFICACION,
             ],
-        );
-        //$token = $siiLazyWorker->authenticate(new SiiRequest($certificate));
-        $xmlDocument = new XmlDocument();
-        $xmlDocument->loadXml($document->saveXml());
-        $trackId = $siiLazyWorker->sendXmlDocument(
-            $request,
-            $xmlDocument,
-            $GLOBALS["empresa"]["rut"]
-        );
-        var_dump($trackId);
-
-        die("KAKOTA");
-
+        ];
 
         $Folios = [];
         $Folios[33] = new \sasco\LibreDTE\Sii\Folios($dataFolio);
@@ -2181,31 +2114,60 @@ function generarFactura($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_co
         $EnvioDTE->setFirma($GLOBALS["Firma"]);
 
         $dataDTE = $EnvioDTE->generar();
-        $datita = base64_encode($dataDTE);
 
-        $track_id = $EnvioDTE->enviar();
+        // Crear DTE.
+        // $document = $app
+        //     ->getBillingPackage()
+        //     ->getDocumentComponent()
+        //     ->bill($set_pruebas, $caf, $certificate)
+        //     ->getDocument()
+        // ;
+        $xmlDocument = new XmlDocument();
+        $xmlDocument->loadXml((string) $dataDTE);
+        $app = Application::getInstance();
+        $caf = $app
+            ->getBillingPackage()
+            ->getIdentifierComponent()
+            ->getCafLoaderWorker()
+            ->load($dataFolio)
+            ->getCaf()
+        ;
 
-        $err = array();
-        foreach (\sasco\LibreDTE\Log::readAll() as $error) {
-            array_push($err, $error);
-        }
-        //die(json_encode($err));
-        if (count($err) > 0) {
-            return array(
-                "errores" => $err,
-                "data" => $datita
-            );
-        } else if (!$track_id) {
-            return array(
-                "errores" => "Error al enviar al SII",
-                "data" => $datita
-            );
-        } else {
-            return array(
-                "trackID" => $track_id,
-                "data" => $datita,
-            );
-        }
+        $siiLazyWorker = $app
+            ->getBillingPackage()
+            ->getIntegrationComponent()
+            ->getSiiLazyWorker();
+
+        $certificateLoader = $app
+            ->getPrimePackage()
+            ->getCertificateComponent()
+            ->getLoaderWorker()
+        ;
+
+        $certificate = $certificateLoader->createFromData(
+            $GLOBALS["FirmaRaw"]["data"],
+            $GLOBALS["FirmaRaw"]["pass"],
+        );
+
+        $request = new SiiRequest(
+            certificate: $certificate,
+            options: [
+                'ambiente' => $GLOBALS["empresa"]["modo"] == "PROD" ? SiiAmbiente::PRODUCCION : SiiAmbiente::CERTIFICACION,
+            ],
+
+        );
+
+        $datita = base64_encode((string) $dataDTE);
+
+        $track_id = $siiLazyWorker->sendXmlDocument(
+            $request,
+            $xmlDocument,
+            $GLOBALS["empresa"]["rut"]
+        );
+        return array(
+            "trackID" => $track_id,
+            "data" => $datita,
+        );
     } catch (\Throwable $th) {
         return array(
             "errores" => $th->getMessage() . " - " . $th->getTraceAsString(),
@@ -2225,193 +2187,246 @@ function limpiarYRecortar($texto, $limite = 100)
 
 function generarBoleta($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_cotizacion = null, $con = null)
 {
-    if (isset($con) && isset($id_cotizacion)) {
-        $dataCotizacion = getDataCotizacion($con, $id_cotizacion, false);
-        if (!isset($dataCotizacion)) {
-            die("No se encontró la cotización");
-        }
-    } else {
-        $dataCotizacion = $json;
-    }
-
-    $arrayproductos = array();
-    foreach ($dataCotizacion["productos"] as $producto) {
-        $prod = $producto["variedad"] . " (" . $producto["codigo"] . ") " . ($producto["especie"] && strlen($producto["especie"]) > 0 ? $producto["especie"] : "");
-        array_push($arrayproductos, array(
-            'NmbItem' => trim($prod),
-            'QtyItem' => (int) $producto["cantidad"],
-            'PrcItem' => (int) $producto["precio"],
-            'DescuentoPct' => $producto["descuento"] && $producto["descuento"]["tipo"] == "porcentual" ? (int) $producto["descuento"]["valor"] : false,
-            'DescuentoMonto' => $producto["descuento"] && $producto["descuento"]["tipo"] == "fijo" ? (int) $producto["descuento"]["valor"] : false,
-        ));
-    }
-
-    $condicion_pago = getCondicionPago($dataCotizacion["condicion_pago"]);
-    $comentario = $dataCotizacion["comentario"] ?? $dataCotizacion["observaciones"] ?? null;
-
-    $emisor = $GLOBALS["Emisor"];
-    $emisor['RznSoc'] = "PLANTINERA V.V. LIMITADA";
-    $set_pruebas = [
-        [
-            'Encabezado' => [
-                'IdDoc' => [
-                    'TipoDTE' => 39,
-                    'Folio' => $folio
-                ],
-                'Emisor' => $emisor,
-                'Receptor' => [
-                    'RUTRecep' => $dataCotizacion["rut"],
-                    'RznSocRecep' => $dataCotizacion["cliente"],
-                    'GiroRecep' => $dataCotizacion["giro"] ? strtoupper($dataCotizacion["giro"]) : "-",
-                    'DirRecep' => $dataCotizacion["domicilio"],
-                    'CmnaRecep' => $dataCotizacion["comuna"] ? strtoupper($dataCotizacion["comuna"]) : "-",
-                ],
-            ],
-            'Detalle' => $arrayproductos,
-            // 'Referencia' => [
-            //     'TpoDocRef' => ($id_guia != null && $id_guia != "null" ? 52 : 39),
-            //     'FolioRef' => ($id_guia != null && $id_guia != "null" ? $folio_guia : $folio),
-            //     'RazonRef' => $condicion_pago,
-            // ],
-        ],
-    ];
-
-    $Folios = [];
-    $Folios[39] = new \sasco\LibreDTE\Sii\Folios($dataFolio);
-    $EnvioDTE = new \sasco\LibreDTE\Sii\EnvioDte();
-
-    // generar cada DTE, timbrar, firmar y agregar al sobre de EnvioDTE
-    foreach ($set_pruebas as $documento) {
-        $DTE = new \sasco\LibreDTE\Sii\Dte($documento);
-        if (!$DTE->timbrar($Folios[$DTE->getTipo()])) {
-            break;
-        }
-
-        if (!$DTE->firmar($GLOBALS["Firma"])) {
-            break;
-        }
-
-        $EnvioDTE->agregar($DTE);
-    }
-
-    // enviar dtes y mostrar resultado del envío: track id o bien =false si hubo error
-    $caratula = $GLOBALS["caratula"];
-    //$caratula["RutReceptor"] = $dataCotizacion["rut"];
-    // enviar dtes y mostrar resultado del envío: track id o bien =false si hubo error
-    $EnvioDTE->setCaratula($caratula);
-    $EnvioDTE->setFirma($GLOBALS["Firma"]);
-
-    $dataDTE = $EnvioDTE->generar();
-    $dataDTE = preg_replace('/<MntNeto>.*?<\/MntNeto>\s*/', '', (string) $dataDTE);
-    $dataDTE = preg_replace('/<IVA>.*?<\/IVA>\s*/', '', $dataDTE);
-    $token = NULL;
     try {
-        $certPath = base64_decode(str_replace("data:application/x-pkcs12;base64,", "", $GLOBALS["empresa"]["certificado"])); // contenido del archivo certificado.p12
-        $certPass = $GLOBALS["empresa"]["pass"];
-        // Paso 1: Obtener semilla
-        $semilla = obtenerSemilla();
-        // echo "Semilla obtenida: $semilla\n";
-
-        $xmlFirmado = firmarSemilla($semilla, $certPath, $certPass);
-
-
-        //echo "XML firmado correctamente.\n";
-        //$xmlFirmado = file_get_contents("firmado.xml");
-        // Paso 3: Obtener token
-        $token = obtenerToken($xmlFirmado);
-    } catch (Exception $e) {
-        echo "Error: " . $e->getMessage();
-        die;
-    }
-
-    // Definir la URL del endpoint del SII
-    $entorno = $GLOBALS["empresa"]["modo"] == "PROD" ? "rahue" : "pangal";
-    $url = "https://rahue.sii.cl/recursos/v1/boleta.electronica.envio"; // Ajusta la URL según sea producción o pruebas
-
-    // Token de autorización
-    $rutsplit = explode("-", $GLOBALS["empresa"]["rut"]);
-    $rutReceptorSplit = explode("-", $dataCotizacion["rut"]);
-
-    // Datos requeridos por la API
-    $rutSender = $rutsplit[0];// RUT del emisor sin puntos ni guion
-    $dvSender = $rutsplit[1];         // Dígito verificador del emisor
-    $rutCompany = $rutReceptorSplit[0]; // RUT de la empresa sin puntos ni guion
-    $dvCompany = $rutReceptorSplit[1];         // Dígito verificador de la empresa
-
-    //$dataDTE = firmarBoletaElectronica($dataDTE, $certPath, $certPass);
-    //$dataDTE = firmarXml($dataDTE, $certPath, $certPass);
-
-    // Crear un archivo temporal en memoria con el XML
-    $temp = tmpfile();
-    fwrite($temp, (string) $dataDTE);
-    fseek($temp, 0);
-
-    // Obtener la ruta del archivo temporal
-    $meta_data = stream_get_meta_data($temp);
-    $temp_path = $meta_data['uri'];
-
-    // Construir la solicitud con cURL
-    $ch = curl_init();
-
-    $post_fields = [
-        "rutSender" => $rutSender,
-        "dvSender" => $dvSender,
-        "rutCompany" => $rutCompany,
-        "dvCompany" => $dvCompany,
-        "archivo" => new CURLFile($temp_path, "text/xml", "factura.xml")
-    ];
-
-    $headers = [
-        "accept: application/json",
-        "User-Agent: Mozilla/4.0 ( compatible; PROG 1.0; Windows NT)",
-        "Content-Type: multipart/form-data",
-        "Cookie: TOKEN=" . $token
-    ];
-
-    curl_setopt($ch, CURLOPT_URL, $url);
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $post_fields);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-
-    // Ejecutar la petición y obtener la respuesta
-    $response = curl_exec($ch);
-    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    $error = curl_error($ch);
-
-    // Cerrar cURL
-    curl_close($ch);
-
-    // Cerrar el archivo temporal
-    fclose($temp);
-    // Manejo de la respuesta
-    if ($error) {
-        return array(
-            "errores" => $error,
-        );
-    } else {
-        try {
-            $datita = base64_encode((string) $dataDTE);
-            $rta = json_decode($response);
-
-            if (isset($rta)) {
-                if (!isset($rta->trackid) || (!isset($rta->estado) || $rta->estado != "REC")) {
-                    return array(
-                        "errores" => "Error al enviar al SII " . json_encode($rta),
-                    );
-                }
-                return array(
-                    "estado" => $rta->estado,
-                    "trackID" => $rta->trackid,
-                    "data" => $datita,
-                );
+        if (isset($con) && isset($id_cotizacion)) {
+            $dataCotizacion = getDataCotizacion($con, $id_cotizacion, false);
+            if (!isset($dataCotizacion)) {
+                die("No se encontró la cotización");
             }
-        } catch (Throwable $th) {
-            return array(
-                "errores" => "Error al enviar al SII {$th->getMessage()}",
-            );
+        } else {
+            $dataCotizacion = $json;
         }
+
+        $arrayproductos = array();
+        foreach ($dataCotizacion["productos"] as $producto) {
+            $prod = $producto["variedad"] . " (" . $producto["codigo"] . ") " . ($producto["especie"] && strlen($producto["especie"]) > 0 ? $producto["especie"] : "");
+            array_push($arrayproductos, array(
+                'NmbItem' => trim($prod),
+                'QtyItem' => (int) $producto["cantidad"],
+                'PrcItem' => (int) $producto["precio"],
+                'DescuentoPct' => $producto["descuento"] && $producto["descuento"]["tipo"] == "porcentual" ? (int) $producto["descuento"]["valor"] : false,
+                'DescuentoMonto' => $producto["descuento"] && $producto["descuento"]["tipo"] == "fijo" ? (int) $producto["descuento"]["valor"] : false,
+            ));
+        }
+
+        $condicion_pago = getCondicionPago($dataCotizacion["condicion_pago"]);
+        $comentario = $dataCotizacion["comentario"] ?? $dataCotizacion["observaciones"] ?? null;
+
+        $emisor = $GLOBALS["Emisor"];
+
+        $set_pruebas = [
+            [
+                'Encabezado' => [
+                    'IdDoc' => [
+                        'TipoDTE' => 39,
+                        'Folio' => $folio
+                    ],
+                    'Emisor' => $emisor,
+                    'Receptor' => [
+                        'RUTRecep' => $dataCotizacion["rut"],
+                        'RznSocRecep' => $dataCotizacion["cliente"],
+                        'GiroRecep' => $dataCotizacion["giro"] ? strtoupper($dataCotizacion["giro"]) : "-",
+                        'DirRecep' => $dataCotizacion["domicilio"],
+                        'CmnaRecep' => $dataCotizacion["comuna"] ? strtoupper($dataCotizacion["comuna"]) : "-",
+                    ],
+                ],
+                'Detalle' => $arrayproductos,
+            ],
+        ];
+
+        $Folios = [];
+        $Folios[39] = new \sasco\LibreDTE\Sii\Folios($dataFolio);
+        $EnvioDTE = new \sasco\LibreDTE\Sii\EnvioDte();
+
+        // generar cada DTE, timbrar, firmar y agregar al sobre de EnvioDTE
+        foreach ($set_pruebas as $documento) {
+            $DTE = new \sasco\LibreDTE\Sii\Dte($documento);
+            if (!$DTE->timbrar($Folios[$DTE->getTipo()])) {
+                break;
+            }
+
+            if (!$DTE->firmar($GLOBALS["Firma"])) {
+                break;
+            }
+
+            $EnvioDTE->agregar($DTE);
+        }
+
+        // enviar dtes y mostrar resultado del envío: track id o bien =false si hubo error
+        $caratula = $GLOBALS["caratula"];
+        //$caratula["RutReceptor"] = $dataCotizacion["rut"];
+        // enviar dtes y mostrar resultado del envío: track id o bien =false si hubo error
+        $EnvioDTE->setCaratula($caratula);
+        $EnvioDTE->setFirma($GLOBALS["Firma"]);
+
+        $dataDTE = $EnvioDTE->generar();
+
+
+        $xmlDocument = new XmlDocument();
+        $xmlDocument->loadXml((string) $dataDTE);
+        $app = Application::getInstance();
+        $caf = $app
+            ->getBillingPackage()
+            ->getIdentifierComponent()
+            ->getCafLoaderWorker()
+            ->load($dataFolio)
+            ->getCaf()
+        ;
+
+        $siiLazyWorker = $app
+            ->getBillingPackage()
+            ->getIntegrationComponent()
+            ->getSiiLazyWorker();
+
+        $certificateLoader = $app
+            ->getPrimePackage()
+            ->getCertificateComponent()
+            ->getLoaderWorker()
+        ;
+
+        $certificate = $certificateLoader->createFromData(
+            $GLOBALS["FirmaRaw"]["data"],
+            $GLOBALS["FirmaRaw"]["pass"],
+        );
+
+        $request = new SiiRequest(
+            certificate: $certificate,
+            options: [
+                'ambiente' => $GLOBALS["empresa"]["modo"] == "PROD" ? SiiAmbiente::PRODUCCION : SiiAmbiente::CERTIFICACION,
+            ],
+
+        );
+
+        $datita = base64_encode((string) $dataDTE);
+
+        $track_id = $siiLazyWorker->sendXmlDocument(
+            $request,
+            $xmlDocument,
+            $GLOBALS["empresa"]["rut"]
+        );
+
+
+        return array(
+            "trackID" => $track_id,
+            "data" => $datita,
+        );
+
+    } catch (Throwable $th) {
+        return array(
+            "errores" => "Error al enviar al SII {$th->getMessage()}",
+        );
     }
+
+    // $dataDTE = preg_replace('/<MntNeto>.*?<\/MntNeto>\s*/', '', (string) $dataDTE);
+    // $dataDTE = preg_replace('/<IVA>.*?<\/IVA>\s*/', '', $dataDTE);
+    // $token = NULL;
+    // try {
+    //     $certPath = base64_decode(str_replace("data:application/x-pkcs12;base64,", "", $GLOBALS["empresa"]["certificado"])); // contenido del archivo certificado.p12
+    //     $certPass = $GLOBALS["empresa"]["pass"];
+    //     // Paso 1: Obtener semilla
+    //     $semilla = obtenerSemilla();
+    //     // echo "Semilla obtenida: $semilla\n";
+
+    //     $xmlFirmado = firmarSemilla($semilla, $certPath, $certPass);
+
+
+    //     //echo "XML firmado correctamente.\n";
+    //     //$xmlFirmado = file_get_contents("firmado.xml");
+    //     // Paso 3: Obtener token
+    //     $token = obtenerToken($xmlFirmado);
+    // } catch (Exception $e) {
+    //     echo "Error: " . $e->getMessage();
+    //     die;
+    // }
+
+    // // Definir la URL del endpoint del SII
+    // $entorno = $GLOBALS["empresa"]["modo"] == "PROD" ? "rahue" : "pangal";
+    // $url = "https://rahue.sii.cl/recursos/v1/boleta.electronica.envio"; // Ajusta la URL según sea producción o pruebas
+
+    // // Token de autorización
+    // $rutsplit = explode("-", $GLOBALS["empresa"]["rut"]);
+    // $rutReceptorSplit = explode("-", $dataCotizacion["rut"]);
+
+    // // Datos requeridos por la API
+    // $rutSender = $rutsplit[0];// RUT del emisor sin puntos ni guion
+    // $dvSender = $rutsplit[1];         // Dígito verificador del emisor
+    // $rutCompany = $rutReceptorSplit[0]; // RUT de la empresa sin puntos ni guion
+    // $dvCompany = $rutReceptorSplit[1];         // Dígito verificador de la empresa
+
+    // //$dataDTE = firmarBoletaElectronica($dataDTE, $certPath, $certPass);
+    // //$dataDTE = firmarXml($dataDTE, $certPath, $certPass);
+
+    // // Crear un archivo temporal en memoria con el XML
+    // $temp = tmpfile();
+    // fwrite($temp, (string) $dataDTE);
+    // fseek($temp, 0);
+
+    // // Obtener la ruta del archivo temporal
+    // $meta_data = stream_get_meta_data($temp);
+    // $temp_path = $meta_data['uri'];
+
+    // // Construir la solicitud con cURL
+    // $ch = curl_init();
+
+    // $post_fields = [
+    //     "rutSender" => $rutSender,
+    //     "dvSender" => $dvSender,
+    //     "rutCompany" => $rutCompany,
+    //     "dvCompany" => $dvCompany,
+    //     "archivo" => new CURLFile($temp_path, "text/xml", "factura.xml")
+    // ];
+
+    // $headers = [
+    //     "accept: application/json",
+    //     "User-Agent: Mozilla/4.0 ( compatible; PROG 1.0; Windows NT)",
+    //     "Content-Type: multipart/form-data",
+    //     "Cookie: TOKEN=" . $token
+    // ];
+
+    // curl_setopt($ch, CURLOPT_URL, $url);
+    // curl_setopt($ch, CURLOPT_POST, true);
+    // curl_setopt($ch, CURLOPT_POSTFIELDS, $post_fields);
+    // curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    // curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+
+    // // Ejecutar la petición y obtener la respuesta
+    // $response = curl_exec($ch);
+    // $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    // $error = curl_error($ch);
+
+    // // Cerrar cURL
+    // curl_close($ch);
+
+    // // Cerrar el archivo temporal
+    // fclose($temp);
+    // // Manejo de la respuesta
+    // if ($error) {
+    //     return array(
+    //         "errores" => $error,
+    //     );
+    // } else {
+    //     try {
+    //         $datita = base64_encode((string) $dataDTE);
+    //         $rta = json_decode($response);
+
+    //         if (isset($rta)) {
+    //             if (!isset($rta->trackid) || (!isset($rta->estado) || $rta->estado != "REC")) {
+    //                 return array(
+    //                     "errores" => "Error al enviar al SII " . json_encode($rta),
+    //                 );
+    //             }
+    //             return array(
+    //                 "estado" => $rta->estado,
+    //                 "trackID" => $rta->trackid,
+    //                 "data" => $datita,
+    //             );
+    //         }
+    //     } catch (Throwable $th) {
+    //         return array(
+    //             "errores" => "Error al enviar al SII {$th->getMessage()}",
+    //         );
+    //     }
+    // }
 }
 
 function getEstadoBoleta($token)
