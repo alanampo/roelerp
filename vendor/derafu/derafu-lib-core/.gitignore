@@ -1,0 +1,10 @@
+/.php-cs-fixer.cache
+/.phpunit.result.cache
+/build/
+/tests/env-tests
+/tools/
+/var/
+/vendor/
+/ast.dump
+
+.codegpt

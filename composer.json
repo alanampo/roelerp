@@ -1,6 +1,27 @@
 {
+    "minimum-stability": "dev",
+    "prefer-stable": true,
     "require": {
         "robrichards/xmlseclibs": "^3.1",
-        "phpmailer/phpmailer": "^6.9"
+        "phpmailer/phpmailer": "^6.9",
+        "libredte/libredte-lib-core": "@dev"
+    },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "lib/libredte-lib-core",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/derafu/derafu-lib-core"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "libredte\\lib\\Core\\": "lib/libredte-lib-core/src/"
+        }
     }
 }

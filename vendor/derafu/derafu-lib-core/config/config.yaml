@@ -1,0 +1,34 @@
+# Configuraciones de "Derafu".
+derafu:
+
+    # Configuraciones para la biblioteca de "Derafu".
+    lib:
+
+        # Configuraciones generales asociadas a los servicios.
+        services:
+
+            # Prefijo con el que deben ser nombrados todos los servicios
+            # asociados a la aplicación. Esto se utiliza especialmente al
+            # nombrar paquetes.
+            prefix: derafu.lib.
+
+            # Clase del núcleo de la aplicación.
+            kernelClass: Derafu\Lib\Core\Foundation\Kernel
+
+            # Clase para el registro de los servicios de la aplicación.
+            serviceRegistryClass: Derafu\Lib\Core\Foundation\ServiceRegistry
+
+            # Clase del Compiler Pass que se debe utilizar.
+            #
+            # Asignar esta clase permite procesar automáticamente los servicios
+            # después de haber sido registrados durante el tiempo de compilación
+            # utilizando un Compiler Pass personalizado.
+            #
+            # Esto permite autoconfigurar opciones que no se asignaron en
+            # services.yaml o ejecutar cualquier otra lógica una vez que el
+            # servicio ya fue registrado en el contenedor de servicios.
+            #
+            # Para desactivar esta opción solo se debe asignar este atributo con
+            # el valor `null`. En cuyo caso el archivo services.yaml debe
+            # contener toda la configuración necesaria de manera explícita.
+            compilerPassClass: Derafu\Lib\Core\Foundation\ServiceProcessingCompilerPass

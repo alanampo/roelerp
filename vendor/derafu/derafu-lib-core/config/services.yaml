@@ -1,0 +1,101 @@
+# Configuración de servicios que provee la biblioteca.
+services:
+
+    # Configuración por defecto de los servicios.
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: false
+
+    # Paquetes.
+    Derafu\Lib\Core\Package\Prime\Contract\PrimePackageInterface:
+        class: Derafu\Lib\Core\Package\Prime\PrimePackage
+
+    # Componentes del paquete "prime".
+    Derafu\Lib\Core\Package\Prime\Component\Certificate\Contract\CertificateComponentInterface:
+        class: Derafu\Lib\Core\Package\Prime\Component\Certificate\CertificateComponent
+    Derafu\Lib\Core\Package\Prime\Component\Entity\Contract\EntityComponentInterface:
+        class: Derafu\Lib\Core\Package\Prime\Component\Entity\EntityComponent
+    Derafu\Lib\Core\Package\Prime\Component\Mail\Contract\MailComponentInterface:
+        class: Derafu\Lib\Core\Package\Prime\Component\Mail\MailComponent
+    Derafu\Lib\Core\Package\Prime\Component\Log\Contract\LogComponentInterface:
+        class: Derafu\Lib\Core\Package\Prime\Component\Log\LogComponent
+    Derafu\Lib\Core\Package\Prime\Component\Signature\Contract\SignatureComponentInterface:
+        class: Derafu\Lib\Core\Package\Prime\Component\Signature\SignatureComponent
+    Derafu\Lib\Core\Package\Prime\Component\Template\Contract\TemplateComponentInterface:
+        class: Derafu\Lib\Core\Package\Prime\Component\Template\TemplateComponent
+    Derafu\Lib\Core\Package\Prime\Component\Xml\Contract\XmlComponentInterface:
+        class: Derafu\Lib\Core\Package\Prime\Component\Xml\XmlComponent
+
+    # Workers del componente "prime.certificate".
+    Derafu\Lib\Core\Package\Prime\Component\Certificate\Contract\FakerWorkerInterface:
+        class: Derafu\Lib\Core\Package\Prime\Component\Certificate\Worker\FakerWorker
+    Derafu\Lib\Core\Package\Prime\Component\Certificate\Contract\LoaderWorkerInterface:
+        class: Derafu\Lib\Core\Package\Prime\Component\Certificate\Worker\LoaderWorker
+    Derafu\Lib\Core\Package\Prime\Component\Certificate\Contract\ValidatorWorkerInterface:
+        class: Derafu\Lib\Core\Package\Prime\Component\Certificate\Worker\ValidatorWorker
+
+    # Workers del componente "prime.entity".
+    Derafu\Lib\Core\Package\Prime\Component\Entity\Contract\DatasourceProviderWorkerInterface:
+        class: Derafu\Lib\Core\Package\Prime\Component\Entity\Worker\DatasourceProviderWorker
+    Derafu\Lib\Core\Package\Prime\Component\Entity\Contract\ManagerWorkerInterface:
+        class: Derafu\Lib\Core\Package\Prime\Component\Entity\Worker\ManagerWorker
+
+    # Workers del componente "prime.mail".
+    Derafu\Lib\Core\Package\Prime\Component\Mail\Contract\ReceiverWorkerInterface:
+        class: Derafu\Lib\Core\Package\Prime\Component\Mail\Worker\ReceiverWorker
+        arguments:
+            $strategies: !tagged_iterator { tag: 'prime.mail.receiver.strategy', index_by: 'name' }
+    Derafu\Lib\Core\Package\Prime\Component\Mail\Contract\SenderWorkerInterface:
+        class: Derafu\Lib\Core\Package\Prime\Component\Mail\Worker\SenderWorker
+        arguments:
+            $strategies: !tagged_iterator { tag: 'prime.mail.sender.strategy', index_by: 'name' }
+
+    # Workers del componente "prime.log".
+    Derafu\Lib\Core\Package\Prime\Component\Log\Contract\LoggerWorkerInterface:
+        class: Derafu\Lib\Core\Package\Prime\Component\Log\Worker\LoggerWorker
+
+    # Workers del componente "prime.signature".
+    Derafu\Lib\Core\Package\Prime\Component\Signature\Contract\GeneratorWorkerInterface:
+        class: Derafu\Lib\Core\Package\Prime\Component\Signature\Worker\GeneratorWorker
+    Derafu\Lib\Core\Package\Prime\Component\Signature\Contract\ValidatorWorkerInterface:
+        class: Derafu\Lib\Core\Package\Prime\Component\Signature\Worker\ValidatorWorker
+
+    # Workers del componente "prime.template".
+    Derafu\Lib\Core\Package\Prime\Component\Template\Contract\RendererWorkerInterface:
+        class: Derafu\Lib\Core\Package\Prime\Component\Template\Worker\RendererWorker
+        arguments:
+            $strategies: !tagged_iterator { tag: 'prime.template.renderer.strategy', index_by: 'name' }
+
+    # Estrategias del worker "prime.mail.receiver".
+    Derafu\Lib\Core\Package\Prime\Component\Mail\Worker\Receiver\Strategy\ImapReceiverStrategy: ~
+
+    # Estrategias del worker "prime.mail.sender".
+    Derafu\Lib\Core\Package\Prime\Component\Mail\Worker\Sender\Strategy\SmtpSenderStrategy: ~
+
+    # Servicios del componente "prime.mail".
+    Derafu\Lib\Core\Package\Prime\Component\Mail\Factory\EnvelopeFactory: ~
+
+    # Estrategias del worker "prime.template.renderer".
+    Derafu\Lib\Core\Package\Prime\Component\Template\Contract\Renderer\Strategy\HtmlRendererStrategyInterface:
+        class: Derafu\Lib\Core\Package\Prime\Component\Template\Worker\Renderer\Strategy\TwigRendererStrategy
+        arguments:
+            $paths: '%kernel.project_dir%/resources/templates'
+            $extensions:
+                - '@Derafu\Lib\Core\Package\Prime\Component\Template\Service\DataFormatterTwigExtension'
+    Derafu\Lib\Core\Package\Prime\Component\Template\Contract\Renderer\Strategy\PdfRendererStrategyInterface:
+        class: Derafu\Lib\Core\Package\Prime\Component\Template\Worker\Renderer\Strategy\PdfRendererStrategy
+
+    # Servicios del componente "prime.template".
+    Derafu\Lib\Core\Package\Prime\Component\Template\Contract\DataFormatterInterface:
+        class: Derafu\Lib\Core\Package\Prime\Component\Template\Service\DataFormatter
+        public: true
+    Derafu\Lib\Core\Package\Prime\Component\Template\Service\DataFormatterTwigExtension: ~
+
+    # Workers del componente "prime.xml".
+    Derafu\Lib\Core\Package\Prime\Component\Xml\Contract\EncoderWorkerInterface:
+        class: Derafu\Lib\Core\Package\Prime\Component\Xml\Worker\EncoderWorker
+    Derafu\Lib\Core\Package\Prime\Component\Xml\Contract\DecoderWorkerInterface:
+        class: Derafu\Lib\Core\Package\Prime\Component\Xml\Worker\DecoderWorker
+    Derafu\Lib\Core\Package\Prime\Component\Xml\Contract\ValidatorWorkerInterface:
+        class: Derafu\Lib\Core\Package\Prime\Component\Xml\Worker\ValidatorWorker

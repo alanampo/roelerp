@@ -1,0 +1,4 @@
+derafu:
+  lib:
+    services:
+      serviceRegistryClass: Derafu\Lib\Tests\Functional\Foundation\TestServiceRegistry
