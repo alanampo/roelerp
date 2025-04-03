@@ -1554,7 +1554,7 @@ function vistaPreviaReenviarFactura(
 
           $(".row-select-folio").html(`
             <div class="col col-md-6">
-              <button onclick="reenviarFactura(${rowid_factura}, ${esBoleta.toString()})" class="btn btn-success"><i class="fa fa-arrow-circle-right"></i> REENVIAR ${esBoleta ? "BOLETA" : "FACTURA"}</button>
+              <button onclick="reenviarFactura(${rowid_factura}, ${esBoleta && esBoleta === true ? "true" : "false"})" class="btn btn-success"><i class="fa fa-arrow-circle-right"></i> REENVIAR ${esBoleta ? "BOLETA" : "FACTURA"}</button>
             </div>
           
           `);
