@@ -449,27 +449,32 @@ if ($consulta == "generar_factura") {
         generarPDF($data, $dir_logo, null, null);
     }
 } else if ($consulta == "enviar_mail") {
-    $rowid = $_POST["rowid"];
-    $tipoDTE = (int) $_POST["tipoDTE"];
-    $folio = (int) $_POST["folio"];
-    $email = $_POST["email"];
+    try {
+        $rowid = $_POST["rowid"];
+        $tipoDTE = (int) $_POST["tipoDTE"];
+        $folio = (int) $_POST["folio"];
+        $email = $_POST["email"];
 
-    $esBoleta = isset($_POST["esBoleta"]) && $_POST["esBoleta"] == 1 ? TRUE : FALSE;
-    $dir_logo = getDataLogo();
-    $tablas = ["facturas", "notas_credito", "guias_despacho", "notas_debito"];
-    $tablas[10] = "boletas";
-    $query = "SELECT d.data FROM $tablas[$tipoDTE] d
+        $esBoleta = isset($_POST["esBoleta"]) && $_POST["esBoleta"] == 1 ? TRUE : FALSE;
+        $dir_logo = getDataLogo();
+        $tablas = ["facturas", "notas_credito", "guias_despacho", "notas_debito"];
+        $tablas[10] = "boletas";
+        $query = "SELECT d.data FROM $tablas[$tipoDTE] d
      WHERE d.rowid = $rowid;";
-    $val = mysqli_query($con, $query);
+        $val = mysqli_query($con, $query);
 
-    if (mysqli_num_rows($val) > 0) {
-        $re = mysqli_fetch_assoc($val);
-        $data = $re["data"];
-        $data = base64_decode($re["data"]);
-        if (generarPDFMail($data, $dir_logo, $folio, $email, $_POST["link"], $esBoleta)) {
-            echo "success";
+        if (mysqli_num_rows($val) > 0) {
+            $re = mysqli_fetch_assoc($val);
+            $data = $re["data"];
+            $data = base64_decode($re["data"]);
+            if (generarPDFMail($data, $dir_logo, $folio, $email, $_POST["link"], $esBoleta)) {
+                echo "success";
+            }
         }
+    } catch (\Throwable $th) {
+        throw $th;
     }
+
 } else if ($consulta == "get_estado_dte") {
     $trackID = $_POST["track_id"];
     $rowid = $_POST["rowid"];
@@ -3313,7 +3318,7 @@ function getEstadoDteByTrackId($track_id, $token = null, $tabla = null, $rowid =
 
             $estado = ($documentStatus->getStatus());
 
-            if ($estado != "DOK" && $estado != "DNK"){
+            if ($estado != "DOK" && $estado != "DNK") {
                 $query = "UPDATE $tabla SET estado = 'NOREC' WHERE rowid = $rowid;";
                 mysqli_query($con, $query);
                 return [
