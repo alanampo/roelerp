@@ -109,11 +109,12 @@ if ($consulta == "cargar_historial") { //FACTURAS
             $id_guia = (isset($ww["id_guia_despacho"]) ? $ww["id_guia_despacho"] : "null");
             $onclick = "";
 
-            if (!isset($ww["track_id"]) || $ww["estado"] == "NOENV") {
-                $onclick = "onclick='getEstadoDTE(null, $ww[folio], 0, \"$ww[estado]\", $ww[rowid])'";
-            } else if ($ww["estado"] == "NOREC") {
+            if ($ww["estado"] == "NOREC") {
                 $onclick = "onclick='vistaPreviaReenviarFactura(" . ($ww['id_cotizacion'] != null ? $ww['id_cotizacion'] : $ww['id_cotizacion_directa']) . ", " . ($ww['id_cotizacion_directa'] ? "true" : "false") . ", $ww[folio], $ww[rowid], $ww[caf], $id_guia)'";
-            } else if (!isset($ww["estado"]) || $ww["estado"] === "EPR" || $ww["estado"] === "RECHAZADO" || $ww["estado"] === "ACEPTADO") {
+            }
+            else if (!isset($ww["track_id"]) || $ww["estado"] == "NOENV") {
+                $onclick = "onclick='getEstadoDTE(null, $ww[folio], 0, \"$ww[estado]\", $ww[rowid])'";
+            }  else if (!isset($ww["estado"]) || $ww["estado"] === "EPR" || $ww["estado"] === "RECHAZADO" || $ww["estado"] === "ACEPTADO") {
                 $onclick = "onclick='getEstadoDTE($ww[track_id], $ww[folio], 0, \"$ww[estado]\", $ww[rowid])'";
             }
 
@@ -272,12 +273,13 @@ if ($consulta == "cargar_historial") { //FACTURAS
             $id_guia = (isset($ww["id_guia_despacho"]) ? $ww["id_guia_despacho"] : "null");
             $onclick = "";
 
-            if (!isset($ww["track_id"]) || $ww["estado"] == "NOENV") {
+            if ($ww["estado"] === "NOREC") {
+                $onclick = "onclick='vistaPreviaReenviarFactura(" . ($ww['id_cotizacion'] != null ? $ww['id_cotizacion'] : $ww['id_cotizacion_directa']) . ", " . ($ww['id_cotizacion_directa'] ? "true" : "false") . ", $ww[folio], $ww[rowid], $ww[caf], $id_guia, true)'";
+            }
+            else if (!isset($ww["track_id"]) || $ww["estado"] == "NOENV") {
                 $onclick = "onclick='getEstadoDTE(null, $ww[folio], 4, \"$ww[estado]\", $ww[rowid])'";
             }
-            else if ($ww["estado"] === "NOREC") {
-                $onclick = "onclick='vistaPreviaReenviarFactura(" . ($ww['id_cotizacion'] != null ? $ww['id_cotizacion'] : $ww['id_cotizacion_directa']) . ", " . ($ww['id_cotizacion_directa'] ? "true" : "false") . ", $ww[folio], $ww[rowid], $ww[caf], $id_guia, true)'";
-            } else if (!isset($ww["estado"]) || $ww["estado"] === "EPR" || $ww["estado"] === "RECHAZADO" || $ww["estado"] === "ACEPTADO") {
+            else if (!isset($ww["estado"]) || $ww["estado"] === "EPR" || $ww["estado"] === "RECHAZADO" || $ww["estado"] === "ACEPTADO") {
                 $onclick = "onclick='getEstadoDTE($ww[track_id], $ww[folio], 4, \"$ww[estado]\", $ww[rowid])'";
             }
 
@@ -764,11 +766,10 @@ UNION
 
             $onclick = "";
             
-            if (!isset($ww["track_id"]) || $ww["estado"] == "NOENV") {
-                $onclick = "onclick='getEstadoDTE(null, $ww[folio], 1, \"$ww[estado]\", $ww[rowid])'";
-            }
-            else if ($ww["estado"] == "NOREC" && $ww["rowid_factura"]) {
+            if ($ww["estado"] == "NOREC" && $ww["rowid_factura"]) {
                 $onclick = "onclick='reenviarNotaCredito($ww[folio], $ww[rowid], $ww[caf], $ww[folio_factura], $rowid_factura, $esDirecta)'";
+            }else if (!isset($ww["track_id"]) || $ww["estado"] == "NOENV") {
+                $onclick = "onclick='getEstadoDTE(null, $ww[folio], 1, \"$ww[estado]\", $ww[rowid])'";
             }
             else if (!isset($ww["estado"]) || $ww["estado"] === "EPR" || $ww["estado"] === "RECHAZADO" || $ww["estado"] === "ACEPTADO") {
                 $onclick = "onclick='getEstadoDTE($ww[track_id], $ww[folio], 1, \"$ww[estado]\", $ww[rowid])'";
@@ -853,14 +854,15 @@ UNION
             $monto = $ww["monto"] != null ? "$" . number_format($ww["monto"], 0, ',', '.') : "";
 
             $onclick = "";
-            if (!isset($ww["track_id"]) || $ww["estado"] === "NOENV"){
+            if ($ww["estado"] == "NOREC" && !$ww["track_id"]) {
+                $onclick = "onclick='reenviarGuiaDespacho($ww[rowid], $ww[folio], $ww[caf])'";
+            }
+            else if (!isset($ww["track_id"]) || $ww["estado"] === "NOENV"){
                 $onclick = "onclick='getEstadoDTE(null, $ww[folio], 2, \"$ww[estado]\", $ww[rowid])'";
             }
             else if (!isset($ww["estado"]) || $ww["estado"] === "EPR" || $ww["estado"] === "RECHAZADO" || $ww["estado"] === "ACEPTADO") {
                 $onclick = "onclick='getEstadoDTE($ww[track_id], $ww[folio], 2, \"$ww[estado]\", $ww[rowid])'";
-            } else if ($ww["estado"] == "NOREC" && !$ww["track_id"]) {
-                $onclick = "onclick='reenviarGuiaDespacho($ww[rowid], $ww[folio], $ww[caf])'";
-            }
+            }  
 
             $btn_facturar_guia = ($ww["estado"] == "ACEPTADO" && $ww["id_factura"] == null ? "<button onclick='vistaPreviaGuiaDespacho($ww[id_cotizacion_directa], $ww[rowid])' class='btn btn-sm btn-success fa fa-edit ml-2'></button>" : "");
 
