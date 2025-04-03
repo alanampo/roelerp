@@ -2203,6 +2203,7 @@ function limpiarYRecortar($texto, $limite = 100)
 
 function generarBoleta($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_cotizacion = null, $con = null)
 {
+    $datita = "";
     try {
         if (isset($con) && isset($id_cotizacion)) {
             $dataCotizacion = getDataCotizacion($con, $id_cotizacion, false);
@@ -2329,6 +2330,7 @@ function generarBoleta($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_cot
         );
 
     } catch (Throwable $th) {
+        mysqli_query($con, "UPDATE boletas SET data = '$datita' WHERE folio = $folio");
         echo $th->getTraceAsString();
         return array(
             "errores" => "Error al enviar al SII {$th->getMessage()}",
