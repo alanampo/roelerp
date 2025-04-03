@@ -472,6 +472,7 @@ if ($consulta == "generar_factura") {
             }
         }
     } catch (\Throwable $th) {
+        echo $th->getMessage()."-".$th->getTraceAsString();
         throw $th;
     }
 
