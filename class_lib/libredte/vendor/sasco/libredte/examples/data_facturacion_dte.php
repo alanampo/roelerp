@@ -1902,7 +1902,7 @@ function generarPDFMail($data, $dir_logo, $id, $email, $link, $esBoleta = false)
         return true;
 
     } catch (Exception $e) {
-        echo 'Error al enviar el correo. Detalles: ' . $mail->ErrorInfo. " - ".(getenv('EMAIL_USERNAME') ?? "NULL")." pass ".(getenv('EMAIL_PASSWORD') ?? "NULL");
+        //echo 'Error al enviar el correo. Detalles: ' . $mail->ErrorInfo. " - ".(getenv('EMAIL_USERNAME') ?? "NULL")." pass ".(getenv('EMAIL_PASSWORD') ?? "NULL");
         return false;
     }
 }
