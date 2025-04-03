@@ -863,14 +863,16 @@ if ($consulta == "generar_factura") {
     $dataFolio = $tmpFolios["data"];
 
     mysqli_autocommit($con, false);
-
+    $uniqid = sha1(uniqid("cotd", true));
     $query = "INSERT INTO cotizaciones_directas (
+            uniqid,
             id_cliente,
             observaciones,
             fecha,
             condicion_pago,
             monto)
             VALUES (
+                '$uniqid',
                 $id_cliente,
                 '$observaciones',
                 NOW(),
@@ -1035,14 +1037,16 @@ if ($consulta == "generar_factura") {
     $dataFolio = $tmpFolios["data"];
 
     mysqli_autocommit($con, false);
-
+    $uniqid = sha1(uniqid("cotd", true));
     $query = "INSERT INTO cotizaciones_directas (
+        uniqid,
             id_cliente,
             observaciones,
             fecha,
             condicion_pago,
             monto)
             VALUES (
+                '$uniqid',
                 $id_cliente,
                 '$observaciones',
                 NOW(),
@@ -1208,14 +1212,16 @@ if ($consulta == "generar_factura") {
     }
     $dataFolio = $tmpFolios["data"];
     mysqli_autocommit($con, false);
-
+    $uniqid = sha1(uniqid("cotd", true));
     $query = "INSERT INTO cotizaciones_directas (
+            uniqid,
             id_cliente,
             observaciones,
             fecha,
             condicion_pago,
             monto)
             VALUES (
+                '$uniqid',
                 $id_cliente,
                 '$comentario',
                 NOW(),
@@ -1497,14 +1503,16 @@ if ($consulta == "generar_factura") {
     }
 
     mysqli_autocommit($con, false);
-
+    $uniqid = sha1(uniqid("cotd", true));
     $query = "INSERT INTO cotizaciones_directas (
+            uniqid,
             id_cliente,
             observaciones,
             fecha,
             condicion_pago,
             monto)
             VALUES (
+                '$uniqid',
                 $dataCot[id_cliente],
                 '$dataCot[observaciones]',
                 NOW(),
@@ -3134,19 +3142,18 @@ function getEstadoDte($track_id, $rowid = NULL, $folio = NULL, $tipoDTE = NULL, 
                         break;
                     }
                 }
-                if ($foundFolio === FALSE){
+                if ($foundFolio === FALSE) {
                     $query = "UPDATE $tabla SET estado = 'NOREC' WHERE rowid = $rowid;";
                     mysqli_query($con, $query);
-    
+
                     return [
                         "NOREC" => TRUE
                     ];
                 }
-            }
-            else{
+            } else {
                 throw new Exception("Error al obtener el detalle del DTE");
             }
-            
+
 
             if (isset($dhdrCodigo) && !empty((string) $dhdrCodigo)) {
                 // URL del servicio
@@ -3198,29 +3205,26 @@ function getEstadoDte($track_id, $rowid = NULL, $folio = NULL, $tipoDTE = NULL, 
                     } else {
                         throw new Exception("Error al actualizar track_id: " . mysqli_error($con));
                     }
-                }
-                else{
+                } else {
                     return [
                         "RECNOTRACKID" => TRUE
                     ];
                 }
-            }
-            else{
+            } else {
                 throw new Exception("Error al obtener el código de envío del DTE");
             }
         } catch (Exception $e) {
             echo $e->getMessage();
             return NULL;
         }
-    }
-    else{
+    } else {
         return getEstadoDteByTrackId($track_id);
     }
 
 
     return;
     if (isset($track_id) && empty($track_id)) {
-        
+
     } else {
         // $rutReceptor = "";
         // $montoTotal = "";
