@@ -2045,7 +2045,7 @@ function getCondicionPago($val)
 function generarFactura($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_cotizacion = null, $con = null)
 {
     $datita = NULL;
-    $maxIntentos = 3; // Número máximo de intentos
+    $maxIntentos = 5; // Número máximo de intentos
     $intento = 0;
 
     while ($intento < $maxIntentos) {
@@ -2181,7 +2181,7 @@ function generarFactura($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_co
                     "data" => $datita
                 );
             }
-            sleep(1); // Espera antes de reintentar
+            sleep(3); // Espera antes de reintentar
         }
     }
 }
