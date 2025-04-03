@@ -1081,6 +1081,12 @@ function getEstadoDTE(trackID, facturaID, tipoDoc, estadoActual, rowid) {
               );
               reloadData();
             }
+            else if (data.ESTADO){
+              $(".loader-container").html(
+                "<h5 class='text-danger'>ESTADO: "+data.ESTADO
+              );
+              reloadData();
+            }
             else if (data.rechazados && data.rechazados == "1") {
               $(".loader-container").html(
                 "<h5 class='text-danger'>ESTADO: RECHAZADO POR EL SII"

@@ -3201,7 +3201,7 @@ function getEstadoDte($track_id, $rowid = NULL, $folio = NULL, $tipoDTE = NULL, 
                     $track_id = $data["detalleDte"]["idEnvio"];
                     $query = "UPDATE $tabla SET track_id = '$track_id' WHERE rowid = '$rowid'";
                     if (mysqli_query($con, $query)) {
-                        return getEstadoDteByTrackId($track_id);
+                        return getEstadoDteByTrackId($track_id, $token);
                     } else {
                         throw new Exception("Error al actualizar track_id: " . mysqli_error($con));
                     }
@@ -3218,71 +3218,11 @@ function getEstadoDte($track_id, $rowid = NULL, $folio = NULL, $tipoDTE = NULL, 
             return NULL;
         }
     } else {
-        return getEstadoDteByTrackId($track_id);
-    }
-
-
-    return;
-    if (isset($track_id) && empty($track_id)) {
-
-    } else {
-        // $rutReceptor = "";
-        // $montoTotal = "";
-        // if (preg_match('/<RUTRecep>([^<]+)<\/RUTRecep>/', $data, $matches)) {
-        //     $rutReceptor = $matches[1]; // El valor dentro de <RutReceptor>
-        // }
-
-        // if (preg_match('/<MntTotal>([^<]+)<\/MntTotal>/', $data, $matches)) {
-        //     $montoTotal = $matches[1]; // El valor dentro de <RutReceptor>
-        // }
-
-        // $token = \sasco\LibreDTE\Sii\Autenticacion::getToken($GLOBALS['Firma']);
-        // if (!$token) {
-        //     return null;
-        // }
-
-        // $app = Application::getInstance();
-
-        // $siiLazyWorker = $app
-        //     ->getBillingPackage()
-        //     ->getIntegrationComponent()
-        //     ->getSiiLazyWorker();
-
-        // $certificateLoader = $app
-        //     ->getPrimePackage()
-        //     ->getCertificateComponent()
-        //     ->getLoaderWorker()
-        // ;
-
-        // $certificate = $certificateLoader->createFromData(
-        //     $GLOBALS["FirmaRaw"]["data"],
-        //     $GLOBALS["FirmaRaw"]["pass"],
-        // );
-
-        // $request = new SiiRequest(
-        //     certificate: $certificate,
-        //     options: [
-        //         'ambiente' => $GLOBALS["empresa"]["modo"] == "PROD" ? SiiAmbiente::PRODUCCION : SiiAmbiente::CERTIFICACION,
-        //     ],
-
-        // );
-
-        // $documentStatus = $siiLazyWorker->validateDocument(
-        //     $request,
-        //     $GLOBALS["empresa"]["rut"],
-        //     $tipoDTE,
-        //     $folio,
-        //     $fecha,
-        //     $montoTotal,
-        //     $rutReceptor
-        // );
-
-        // var_dump($documentStatus->getData());
-        // die;
+        return getEstadoDteByTrackId($track_id, NULL, $tabla, $rowid, $con, $tipoDTE, $folio);
     }
 }
 
-function getEstadoDteByTrackId($track_id, $token = null)
+function getEstadoDteByTrackId($track_id, $token = null, $tabla = null, $rowid = null, $con = null, $tipoDTE = NULL, $folio = NULL)
 {
     if (!$token) {
         $token = \sasco\LibreDTE\Sii\Autenticacion::getToken($GLOBALS['Firma']);
@@ -3300,11 +3240,93 @@ function getEstadoDteByTrackId($track_id, $token = null)
     if ($estado !== false) {
         $aceptados = $estado->xpath('/SII:RESPUESTA/SII:RESP_BODY/ACEPTADOS');
         $rechazados = $estado->xpath('/SII:RESPUESTA/SII:RESP_BODY/RECHAZADOS');
-        return [
+        $result = [
             "aceptados" => isset($aceptados[0]) ? (string) $aceptados[0] : null,
             "rechazados" => isset($rechazados[0]) ? (string) $rechazados[0] : null,
         ];
+
+        if (isset($rowid) && $result["aceptados"] === NULL && $result["rechazados"] === NULL) {
+            $q = "SELECT * FROM $tabla WHERE rowid = $rowid";
+            $row = mysqli_fetch_assoc(mysqli_query($con, $q));
+            $fecha = explode(" ", $row["fecha"])[0];
+            $data = base64_decode($row["data"]);
+            $rutReceptor = "";
+            $montoTotal = "";
+            if (preg_match('/<RUTRecep>([^<]+)<\/RUTRecep>/', $data, $matches)) {
+                $rutReceptor = $matches[1]; // El valor dentro de <RutReceptor>
+            }
+
+            if (preg_match('/<MntTotal>([^<]+)<\/MntTotal>/', $data, $matches)) {
+                $montoTotal = $matches[1]; // El valor dentro de <RutReceptor>
+            }
+
+            $app = Application::getInstance();
+
+            $siiLazyWorker = $app
+                ->getBillingPackage()
+                ->getIntegrationComponent()
+                ->getSiiLazyWorker();
+
+            $certificateLoader = $app
+                ->getPrimePackage()
+                ->getCertificateComponent()
+                ->getLoaderWorker()
+            ;
+
+            $certificate = $certificateLoader->createFromData(
+                $GLOBALS["FirmaRaw"]["data"],
+                $GLOBALS["FirmaRaw"]["pass"],
+            );
+
+            $request = new SiiRequest(
+                certificate: $certificate,
+                options: [
+                    'ambiente' => $GLOBALS["empresa"]["modo"] == "PROD" ? SiiAmbiente::PRODUCCION : SiiAmbiente::CERTIFICACION,
+                ],
+
+            );
+
+            $STATUSES = [
+                'DOK' => 'Documento Recibido por el SII. Datos Coinciden con los Registrados.',
+                'DNK' => 'Documento Recibido por el SII pero Datos NO Coinciden con los registrados.',
+                'FAU' => 'Documento No Recibido por el SII.',
+                'FNA' => 'Documento No Autorizado.',
+                'FAN' => 'Documento Anulado.',
+                'EMP' => 'Empresa no autorizada a Emitir Documentos Tributarios Electrónicos',
+                'TMD' => 'Existe Nota de Débito que Modifica Texto Documento.',
+                'TMC' => 'Existe Nota de Crédito que Modifica Textos Documento.',
+                'MMD' => 'Existe Nota de Débito que Modifica Montos Documento.',
+                'MMC' => 'Existe Nota de Crédito que Modifica Montos Documento.',
+                'AND' => 'Existe Nota de Débito que Anula Documento',
+                'ANC' => 'Existe Nota de Crédito que Anula Documento',
+            ];
+
+            $documentStatus = $siiLazyWorker->validateDocument(
+                $request,
+                $GLOBALS["empresa"]["rut"],
+                $tipoDTE,
+                $folio,
+                $fecha,
+                $montoTotal,
+                $rutReceptor
+            );
+
+            $estado = ($documentStatus->getStatus());
+
+            if ($estado != "DOK" && $estado != "DNK"){
+                $query = "UPDATE $tabla SET estado = 'NOREC' WHERE rowid = $rowid;";
+                mysqli_query($con, $query);
+                return [
+                    "ESTADO" => $STATUSES[$estado],
+                ];
+            }
+        }
+
+        return $result;
     }
+
+
+
     return null;
 }
 
