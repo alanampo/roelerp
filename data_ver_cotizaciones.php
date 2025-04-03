@@ -337,7 +337,8 @@ if ($consulta == "cargar_datos_cliente") {
     $id = $_POST["id"];
     $directa = $_POST["directa"] != null ? true : false;
 
-    $query = "SELECT
+    try {
+        $query = "SELECT
         cl.nombre as cliente,
         cl.rut,
         cl.id_cliente,
@@ -358,11 +359,11 @@ if ($consulta == "cargar_datos_cliente") {
         LEFT JOIN comunas com ON cl.comuna = com.id
          WHERE co.id = $id";
 
-    $val = mysqli_query($con, $query);
-    if (mysqli_num_rows($val) > 0) {
-        $ww = mysqli_fetch_assoc($val);
+        $val = mysqli_query($con, $query);
+        if (mysqli_num_rows($val) > 0) {
+            $ww = mysqli_fetch_assoc($val);
 
-        $query2 = "SELECT
+            $query2 = "SELECT
             v.nombre as nombre_variedad,
             cp.id_variedad as id_variedad_real,
             e.nombre as nombre_especie,
@@ -383,82 +384,86 @@ if ($consulta == "cargar_datos_cliente") {
             LEFT JOIN especies_provistas e ON e.id = cp.id_especie
             WHERE cp.id_cotizacion" . ($directa == true ? "_directa" : "") . " = $id
             ";
-        $val2 = mysqli_query($con, $query2);
-        if (mysqli_num_rows($val2) > 0) {
-            $productos = array();
-            while ($ww2 = mysqli_fetch_array($val2)) {
-                // Consulta para obtener los atributos visibles en factura
-                $id_variedad = $ww2['id_variedad_real'];
-                $query_atributos = "SELECT av.valor 
+            $val2 = mysqli_query($con, $query2);
+            if (mysqli_num_rows($val2) > 0) {
+                $productos = array();
+                while ($ww2 = mysqli_fetch_array($val2)) {
+                    // Consulta para obtener los atributos visibles en factura
+                    $id_variedad = $ww2['id_variedad_real'];
+                    $query_atributos = "SELECT av.valor 
                                     FROM atributos_valores av
                                     INNER JOIN atributos_valores_variedades avv ON avv.id_atributo_valor = av.id
                                     INNER JOIN atributos a ON a.id = av.id_atributo
                                     WHERE avv.id_variedad = $id_variedad
                                     AND a.visible_factura = 1
                                     ORDER BY av.id";
-                
-                $val_atributos = mysqli_query($con, $query_atributos);
-                $atributos = array();
-                
-                while ($atr = mysqli_fetch_array($val_atributos)) {
-                    $atributos[] = $atr['valor'];
-                }
-                
-                // Construir el nombre de variedad con los atributos visibles
-                $nombre_variedad_completo = $ww2['nombre_variedad'];
-                if (!empty($atributos)) {
-                    $nombre_variedad_completo .= ' ' . implode(' ', $atributos);
-                }
 
-                $subtotal = (int) $ww2["precio"] * (int) $ww2["cantidad"];
+                    $val_atributos = mysqli_query($con, $query_atributos);
+                    $atributos = array();
 
-                if ($ww2["tipo_descuento"] == 1) { //PORCENTUAL
-                    $total = $subtotal - (($subtotal * $ww2["valor_descuento"]) / 100);
-                } else if ($ww2["tipo_descuento"] == 2) { //FIJA
-                    $total = $subtotal - $ww2["valor_descuento"];
-                } else {
-                    $total = $subtotal;
+                    while ($atr = mysqli_fetch_array($val_atributos)) {
+                        $atributos[] = $atr['valor'];
+                    }
+
+                    // Construir el nombre de variedad con los atributos visibles
+                    $nombre_variedad_completo = $ww2['nombre_variedad'];
+                    if (!empty($atributos)) {
+                        $nombre_variedad_completo .= ' ' . implode(' ', $atributos);
+                    }
+
+                    $subtotal = (int) $ww2["precio"] * (int) $ww2["cantidad"];
+
+                    if ($ww2["tipo_descuento"] == 1) { //PORCENTUAL
+                        $total = $subtotal - (($subtotal * $ww2["valor_descuento"]) / 100);
+                    } else if ($ww2["tipo_descuento"] == 2) { //FIJA
+                        $total = $subtotal - $ww2["valor_descuento"];
+                    } else {
+                        $total = $subtotal;
+                    }
+
+                    array_push($productos, array(
+                        "tipo" => $ww2["nombre_tipo"],
+                        "id_tipo" => $ww2["id_tipo"],
+                        "variedad" => $nombre_variedad_completo, // Nombre con atributos visibles
+                        "id_variedad" => $ww2["id_variedad"],
+                        "id_variedad_real" => $ww2["id_variedad_real"],
+                        "cantidad" => $ww2["cantidad"],
+                        "especie" => $ww2["nombre_especie"],
+                        "id_especie" => $ww2["id_especie"],
+                        "codigo" => $ww2["codigo_tipo"] . str_pad($ww2["id_variedad"], 2, '0', STR_PAD_LEFT),
+                        "precio" => $ww2["precio"],
+                        "total" => $total,
+                        "subtotal" => $subtotal,
+                        "descuento" => $ww2["tipo_descuento"] != null && $ww2["tipo_descuento"] > 0 ?
+                            array(
+                                "tipo" => $ww2["tipo_descuento"] == 1 ? "porcentual" : "fijo",
+                                "valor" => $ww2["valor_descuento"],
+                            ) : null,
+                    ));
                 }
-                
-                array_push($productos, array(
-                    "tipo" => $ww2["nombre_tipo"],
-                    "id_tipo" => $ww2["id_tipo"],
-                    "variedad" => $nombre_variedad_completo, // Nombre con atributos visibles
-                    "id_variedad" => $ww2["id_variedad"],
-                    "id_variedad_real" => $ww2["id_variedad_real"],
-                    "cantidad" => $ww2["cantidad"],
-                    "especie" => $ww2["nombre_especie"],
-                    "id_especie" => $ww2["id_especie"],
-                    "codigo" => $ww2["codigo_tipo"] . str_pad($ww2["id_variedad"], 2, '0', STR_PAD_LEFT),
-                    "precio" => $ww2["precio"],
-                    "total" => $total,
-                    "subtotal" => $subtotal,
-                    "descuento" => $ww2["tipo_descuento"] != null && $ww2["tipo_descuento"] > 0 ?
-                        array(
-                            "tipo" => $ww2["tipo_descuento"] == 1 ? "porcentual" : "fijo",
-                            "valor" => $ww2["valor_descuento"],
-                        ) : null,
-                ));
+                $array = array(
+                    "cliente" => $ww["cliente"],
+                    "email" => $ww["mail"],
+                    "uniqid" => $ww["uniqid"],
+                    "id_cliente" => $ww["id_cliente"],
+                    "rut" => $ww["rut"],
+                    "domicilio" => $ww["domicilio"],
+                    "comuna" => $ww["comuna"],
+                    "ciudad" => $ww["ciudad"],
+                    "fecha" => $ww["fecha"],
+                    "giro" => $ww["giro"],
+                    "razon" => $ww["razon_social"],
+                    "comentario" => $ww["comentario"],
+                    "condicion_pago" => $ww["condicion_pago"],
+                    "monto" => $ww["monto"],
+                    "productos" => $productos,
+                );
+                echo json_encode($array);
             }
-            $array = array(
-                "cliente" => $ww["cliente"],
-                "email" => $ww["mail"],
-                "uniqid" => $ww["uniqid"],
-                "id_cliente" => $ww["id_cliente"],
-                "rut" => $ww["rut"],
-                "domicilio" => $ww["domicilio"],
-                "comuna" => $ww["comuna"],
-                "ciudad" => $ww["ciudad"],
-                "fecha" => $ww["fecha"],
-                "giro" => $ww["giro"],
-                "razon" => $ww["razon_social"],
-                "comentario" => $ww["comentario"],
-                "condicion_pago" => $ww["condicion_pago"],
-                "monto" => $ww["monto"],
-                "productos" => $productos,
-            );
-            echo json_encode($array);
         }
+    } catch (\Throwable $th) {
+        echo $th->getMessage()."-".$th->getTraceAsString();
+        throw $th;
     }
 } else if ($consulta == "cambiar_estado") {
     $estado = $_POST["estado"];
@@ -619,7 +624,7 @@ if ($consulta == "cargar_datos_cliente") {
     $file_name = "cotizacion_$id.pdf";
 
     $subject = "Cotizaciones";
-    $message = "Te enviamos una copia de la cotización que realizaste.". (isset($link) && !empty($link) ? " Puedes realizar el pago ingresando al siguiente link: $link" : "");
+    $message = "Te enviamos una copia de la cotización que realizaste." . (isset($link) && !empty($link) ? " Puedes realizar el pago ingresando al siguiente link: $link" : "");
 
     // Crear una nueva instancia de PHPMailer
     $mail = new PHPMailer(true);
