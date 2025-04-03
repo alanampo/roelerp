@@ -36,7 +36,7 @@ $config = [
     'firma' => [
         'file' => 'firma.p12',
         //'data' => '', // contenido del archivo certificado.p12
-        'pass' => '2270',
+        //'pass' => '',
     ],
     "verificar_ssl" => false
 ];

@@ -25,7 +25,7 @@ mysqli_query($con, "SET NAMES 'utf8'");
 $config = [
     'firma' => [
         'file' => 'new.p12',
-        'pass' => '2270',
+        'pass' => '',
     ],
 ];
 $Firma = new \sasco\LibreDTE\FirmaElectronica($config['firma']);

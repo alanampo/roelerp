@@ -14,7 +14,7 @@ mysqli_query($con, "SET NAMES 'utf8'");
 $consulta = $_POST["consulta"];
 
 if ($consulta == "cargar_historial") { //FACTURAS
-    $mostrarProductos = (int)$_POST["mostrarProductos"];
+    $mostrarProductos = (int) $_POST["mostrarProductos"];
 
     mysqli_query($con, "SET SESSION SQL_BIG_SELECTS=1");
     $query = "SELECT
@@ -84,8 +84,8 @@ if ($consulta == "cargar_historial") { //FACTURAS
         while ($ww = mysqli_fetch_array($val)) {
             $estado = boxEstadoFactura($ww["estado"], true);
             $monto = $ww["monto"] != null ? "$" . number_format($ww["monto"], 0, ',', '.') : "";
-            
-            $email = isset($ww["mail"]) ? "\"".trim($ww["mail"])."\"" : "null";
+
+            $email = isset($ww["mail"]) ? "\"" . trim($ww["mail"]) . "\"" : "null";
             $deuda = (int) $ww["monto"] - (int) $ww["sumapagos"];
             $classdeuda = ($deuda <= 0 ? "success" : "danger");
             $deuda = $ww["estado"] == "ACEPTADO" ? ("$" . number_format($deuda >= 0 ? $deuda : 0, 0, ',', '.')) : "";
@@ -103,15 +103,17 @@ if ($consulta == "cargar_historial") { //FACTURAS
             $btn_descargar_xml_cliente = ($ww["track_id"] ? "<button onclick='downloadXML(this, $ww[rowid], $ww[folio], $ww[id_cliente])' class='btn btn-primary btn-sm mr-2 px-1' style='font-size:10px;'>XML CLI</button>" : "");
 
 
-            $montoint = (int)$ww["monto"];
+            $montoint = (int) $ww["monto"];
             $btn_enviar = ($ww["track_id"] ? "<button onclick='sendMailFactura(this, $ww[rowid], $ww[folio], 0, $montoint, $email)' class='btn btn-info fa fa-envelope btn-sm'></button>" : "");
 
             $id_guia = (isset($ww["id_guia_despacho"]) ? $ww["id_guia_despacho"] : "null");
             $onclick = "";
 
-            if ($ww["estado"] === "NOENV" && !$ww["track_id"]) {
+            if (!isset($ww["track_id"]) || $ww["estado"] == "NOENV") {
+                $onclick = "onclick='getEstadoDTE(null, $ww[folio], 0, \"$ww[estado]\", $ww[rowid])'";
+            } else if ($ww["estado"] == "NOREC") {
                 $onclick = "onclick='vistaPreviaReenviarFactura(" . ($ww['id_cotizacion'] != null ? $ww['id_cotizacion'] : $ww['id_cotizacion_directa']) . ", " . ($ww['id_cotizacion_directa'] ? "true" : "false") . ", $ww[folio], $ww[rowid], $ww[caf], $id_guia)'";
-            } else if ($ww["estado"] === "NOENV" || !isset($ww["estado"]) || $ww["estado"] === "EPR" || $ww["estado"] === "RECHAZADO" || $ww["estado"] === "ACEPTADO") {
+            } else if (!isset($ww["estado"]) || $ww["estado"] === "EPR" || $ww["estado"] === "RECHAZADO" || $ww["estado"] === "ACEPTADO") {
                 $onclick = "onclick='getEstadoDTE($ww[track_id], $ww[folio], 0, \"$ww[estado]\", $ww[rowid])'";
             }
 
@@ -129,24 +131,23 @@ if ($consulta == "cargar_historial") { //FACTURAS
                 $productos = $ww["productos_cotizados"];
             }
 
-            
-            if (isset($productos) && $mostrarProductos == 1){
+
+            if (isset($productos) && $mostrarProductos == 1) {
                 $tmp = explode(",", $productos);
                 $productos = "";
                 foreach ($tmp as $producto) {
                     $tmp2 = explode("|", $producto);
-                    if (isset($tmp2[2]) && isset($tmp2[1])){
-                        $productos.="<br><small>$tmp2[2] Bandejas de $tmp2[1] 
+                    if (isset($tmp2[2]) && isset($tmp2[1])) {
+                        $productos .= "<br><small>$tmp2[2] Bandejas de $tmp2[1] 
                         <input type='checkbox' x-cantidad-band='$tmp2[2]' x-producto='$tmp2[1]' class='form-check-input' style='width:10px !important;height:10px !important; margin-top:8px; margin-left:5px'>
                         </small>";
                     }
-                }                
-            }
-            else{
+                }
+            } else {
                 $productos = "";
             }
 
-            
+
             echo "
                 <tr class='text-center' style='cursor:pointer' x-id='$ww[rowid]'>
                 <td>$ww[folio]</td>
@@ -181,9 +182,8 @@ if ($consulta == "cargar_historial") { //FACTURAS
     } else {
         echo "<div class='callout callout-danger'><b>No se encontraron facturas emitidas...</b></div>";
     }
-}
-else if ($consulta == "cargar_historial_boletas") { //BOLETAS
-    $mostrarProductos = (int)$_POST["mostrarProductos"];
+} else if ($consulta == "cargar_historial_boletas") { //BOLETAS
+    $mostrarProductos = (int) $_POST["mostrarProductos"];
 
     mysqli_query($con, "SET SESSION SQL_BIG_SELECTS=1");
     $query = "SELECT
@@ -252,8 +252,8 @@ else if ($consulta == "cargar_historial_boletas") { //BOLETAS
         while ($ww = mysqli_fetch_array($val)) {
             $estado = boxEstadoFactura($ww["estado"], true);
             $monto = $ww["monto"] != null ? "$" . number_format($ww["monto"], 0, ',', '.') : "";
-            
-            $email = isset($ww["mail"]) ? "\"".trim($ww["mail"])."\"" : "null";
+
+            $email = isset($ww["mail"]) ? "\"" . trim($ww["mail"]) . "\"" : "null";
             $deuda = (int) $ww["monto"] - (int) $ww["sumapagos"];
             $classdeuda = ($deuda <= 0 ? "success" : "danger");
             $deuda = $ww["estado"] == "ACEPTADO" ? ("$" . number_format($deuda >= 0 ? $deuda : 0, 0, ',', '.')) : "";
@@ -266,15 +266,18 @@ else if ($consulta == "cargar_historial_boletas") { //BOLETAS
             $btn_cancelar_factura = ($ww["estado"] == "ACEPTADO" ? "<button onclick='modalAnularFactura($ww[rowid], $ww[folio], $esFactDirecta, $ww[id_cliente], true)' class='btn btn-danger fa fa-ban btn-sm mr-2'></button>" : "");
             $btn_print = ($ww["track_id"] ? "<button onclick='printDTE(this, $ww[rowid], $ww[folio], 10)' class='btn btn-primary fa fa-print btn-sm mr-2'></button>" : "");
 
-            $montoint = (int)$ww["monto"];
+            $montoint = (int) $ww["monto"];
             $btn_enviar = ($ww["track_id"] ? "<button onclick='sendMailBoleta(this, $ww[rowid], $ww[folio], 10, $montoint, $email)' class='btn btn-info fa fa-envelope btn-sm'></button>" : "");
 
             $id_guia = (isset($ww["id_guia_despacho"]) ? $ww["id_guia_despacho"] : "null");
             $onclick = "";
 
-            if ($ww["estado"] === "NOENV" && !$ww["track_id"]) {
+            if (!isset($ww["track_id"]) || $ww["estado"] == "NOENV") {
+                $onclick = "onclick='getEstadoDTE(null, $ww[folio], 4, \"$ww[estado]\", $ww[rowid])'";
+            }
+            else if ($ww["estado"] === "NOREC") {
                 $onclick = "onclick='vistaPreviaReenviarFactura(" . ($ww['id_cotizacion'] != null ? $ww['id_cotizacion'] : $ww['id_cotizacion_directa']) . ", " . ($ww['id_cotizacion_directa'] ? "true" : "false") . ", $ww[folio], $ww[rowid], $ww[caf], $id_guia, true)'";
-            } else if ($ww["estado"] === "NOENV" || !isset($ww["estado"]) || $ww["estado"] === "EPR" || $ww["estado"] === "RECHAZADO" || $ww["estado"] === "ACEPTADO") {
+            } else if (!isset($ww["estado"]) || $ww["estado"] === "EPR" || $ww["estado"] === "RECHAZADO" || $ww["estado"] === "ACEPTADO") {
                 $onclick = "onclick='getEstadoDTE($ww[track_id], $ww[folio], 4, \"$ww[estado]\", $ww[rowid])'";
             }
 
@@ -292,24 +295,23 @@ else if ($consulta == "cargar_historial_boletas") { //BOLETAS
                 $productos = $ww["productos_cotizados"];
             }
 
-            
-            if (isset($productos) && $mostrarProductos == 1){
+
+            if (isset($productos) && $mostrarProductos == 1) {
                 $tmp = explode(",", $productos);
                 $productos = "";
                 foreach ($tmp as $producto) {
                     $tmp2 = explode("|", $producto);
-                    if (isset($tmp2[2]) && isset($tmp2[1])){
-                        $productos.="<br><small>$tmp2[2] Bandejas de $tmp2[1] 
+                    if (isset($tmp2[2]) && isset($tmp2[1])) {
+                        $productos .= "<br><small>$tmp2[2] Bandejas de $tmp2[1] 
                         <input type='checkbox' x-cantidad-band='$tmp2[2]' x-producto='$tmp2[1]' class='form-check-input' style='width:10px !important;height:10px !important; margin-top:8px; margin-left:5px'>
                         </small>";
                     }
-                }                
-            }
-            else{
+                }
+            } else {
                 $productos = "";
             }
 
-            
+
             echo "
                 <tr class='text-center' style='cursor:pointer' x-id='$ww[rowid]'>
                 <td>$ww[folio]</td>
@@ -342,8 +344,7 @@ else if ($consulta == "cargar_historial_boletas") { //BOLETAS
     } else {
         echo "<div class='callout callout-danger'><b>No se encontraron boletas emitidas...</b></div>";
     }
-}
-else if ($consulta == "cargar_cotizacion") {
+} else if ($consulta == "cargar_cotizacion") {
     $id = $_POST["id"];
 
     $query = "SELECT
@@ -404,11 +405,11 @@ else if ($consulta == "cargar_cotizacion") {
 
                 $val_atributos = mysqli_query($con, $query_atributos);
                 $atributos = array();
-                
+
                 while ($atr = mysqli_fetch_array($val_atributos)) {
                     $atributos[] = $atr['valor'];
                 }
-                
+
                 // Construir el nombre de variedad con los atributos
                 $nombre_variedad_completo = $ww2['nombre_variedad'];
                 if (!empty($atributos)) {
@@ -424,7 +425,7 @@ else if ($consulta == "cargar_cotizacion") {
                 } else {
                     $total = $subtotal;
                 }
-                
+
                 array_push($productos, array(
                     "tipo" => $ww2["nombre_tipo"],
                     "id_tipo" => $ww2["id_tipo"],
@@ -439,10 +440,10 @@ else if ($consulta == "cargar_cotizacion") {
                     "total" => $total,
                     "subtotal" => $subtotal,
                     "descuento" => $ww2["tipo_descuento"] != null && $ww2["tipo_descuento"] > 0 ?
-                    array(
-                        "tipo" => $ww2["tipo_descuento"] == 1 ? "porcentual" : "fijo",
-                        "valor" => $ww2["valor_descuento"],
-                    ) : null,
+                        array(
+                            "tipo" => $ww2["tipo_descuento"] == 1 ? "porcentual" : "fijo",
+                            "valor" => $ww2["valor_descuento"],
+                        ) : null,
                 ));
             }
             $array = array(
@@ -508,7 +509,7 @@ else if ($consulta == "cargar_cotizacion") {
         echo "<h3 class='box-title text-danger font-weight-bold'>Cotizaciones</h3>";
         echo "</div>";
         echo "<div class='box-body'>";
-        echo "<table id='tabla_cotizaciones".($isBoleta ? "_boletas" : "")."' class='table table-bordered table-responsive w-100 d-block d-md-table'>";
+        echo "<table id='tabla_cotizaciones" . ($isBoleta ? "_boletas" : "") . "' class='table table-bordered table-responsive w-100 d-block d-md-table'>";
         echo "<thead>";
         echo "<tr>";
         echo "<th>N°</th><th>Cliente</th><th>Fecha</th><th style='max-width:150px'>Comentario</th><th>Autor</th><th>Monto</th><th>Estado</th><th></th>";
@@ -531,7 +532,7 @@ else if ($consulta == "cargar_cotizacion") {
                 <td>$estado</td>
                 <td class='text-center'>
                         <div class='d-flex flex-row justify-content-center align-items-center'>
-                            <button onclick='printDataCotizacion($ww[id], ".($isBoleta ? "true" : "false").")' class='btn btn-success fa fa-edit mr-4'></button>
+                            <button onclick='printDataCotizacion($ww[id], " . ($isBoleta ? "true" : "false") . ")' class='btn btn-success fa fa-edit mr-4'></button>
                         </div>
                 </td>
                 </tr>";
@@ -583,7 +584,7 @@ else if ($consulta == "cargar_cotizacion") {
                     array_push($folios_anulados, (int) ($folio["num_folio"]));
                 }
             }
-            
+
             for ($i = $rango_d; $i <= $rango_h; $i++) {
                 if (!in_array($i, $folios_anulados)) {
                     //echo "<option x-caf='$ww[id]' value='$i'>$i</option>";
@@ -596,25 +597,24 @@ else if ($consulta == "cargar_cotizacion") {
         }
         $querylast = "SELECT IFNULL(folio, 0) as folio FROM $tablas[$tipo_doc] ORDER BY folio DESC LIMIT 1";
         $val3 = mysqli_query($con, $querylast);
-        
+
         if ($val3 && mysqli_num_rows($val3) > 0) {
             $proximo = (int) (mysqli_fetch_assoc($val3)["folio"]) + 1;
             for ($i = 0; $i < count($disponibles); $i++) {
-                if ((int)$disponibles[$i]["folio"] >= $proximo){
+                if ((int) $disponibles[$i]["folio"] >= $proximo) {
                     echo json_encode(
                         array(
-                            "folio" => (int)$disponibles[$i]["folio"],
+                            "folio" => (int) $disponibles[$i]["folio"],
                             "rowid_caf" => $disponibles[$i]["rowid_caf"]
                         )
                     );
                     exit();
                 }
             }
-        }
-        else if ($val3){
+        } else if ($val3) {
             $proximo = 1;
             for ($i = 0; $i < count($disponibles); $i++) {
-                if ((int)$disponibles[$i]["folio"] >= $proximo){
+                if ((int) $disponibles[$i]["folio"] >= $proximo) {
                     echo json_encode(
                         array(
                             "folio" => $disponibles[$i]["folio"],
@@ -625,8 +625,8 @@ else if ($consulta == "cargar_cotizacion") {
                 }
             }
         }
-            
-        
+
+
     }
     echo "nohay";
 
@@ -763,12 +763,16 @@ UNION
             $rowid_factura = (isset($ww["rowid_factura"]) ? $ww["rowid_factura"] : "null");
 
             $onclick = "";
-
-            if ($ww["estado"] === "NOENV" || !isset($ww["estado"]) || $ww["estado"] === "EPR" || $ww["estado"] === "RECHAZADO" || $ww["estado"] === "ACEPTADO") {
-                $onclick = "onclick='getEstadoDTE($ww[track_id], $ww[folio], 1, \"$ww[estado]\", $ww[rowid])'";
-            } else if ($ww["estado"] == "NOENV" && $ww["rowid_factura"] && !$ww["track_id"]) {
+            
+            if (!isset($ww["track_id"]) || $ww["estado"] == "NOENV") {
+                $onclick = "onclick='getEstadoDTE(null, $ww[folio], 1, \"$ww[estado]\", $ww[rowid])'";
+            }
+            else if ($ww["estado"] == "NOREC" && $ww["rowid_factura"]) {
                 $onclick = "onclick='reenviarNotaCredito($ww[folio], $ww[rowid], $ww[caf], $ww[folio_factura], $rowid_factura, $esDirecta)'";
             }
+            else if (!isset($ww["estado"]) || $ww["estado"] === "EPR" || $ww["estado"] === "RECHAZADO" || $ww["estado"] === "ACEPTADO") {
+                $onclick = "onclick='getEstadoDTE($ww[track_id], $ww[folio], 1, \"$ww[estado]\", $ww[rowid])'";
+            } 
 
             $btn_print = ($ww["track_id"] ? "<button onclick='printDTE(this, $ww[rowid], $ww[folio], 1)' class='btn btn-primary fa fa-print btn-sm'></button>" : "");
 
@@ -849,10 +853,12 @@ UNION
             $monto = $ww["monto"] != null ? "$" . number_format($ww["monto"], 0, ',', '.') : "";
 
             $onclick = "";
-
-            if ($ww["estado"] === "NOENV" || !isset($ww["estado"]) || $ww["estado"] === "EPR" || $ww["estado"] === "RECHAZADO" || $ww["estado"] === "ACEPTADO") {
+            if (!isset($ww["track_id"]) || $ww["estado"] === "NOENV"){
+                $onclick = "onclick='getEstadoDTE(null, $ww[folio], 2, \"$ww[estado]\", $ww[rowid])'";
+            }
+            else if (!isset($ww["estado"]) || $ww["estado"] === "EPR" || $ww["estado"] === "RECHAZADO" || $ww["estado"] === "ACEPTADO") {
                 $onclick = "onclick='getEstadoDTE($ww[track_id], $ww[folio], 2, \"$ww[estado]\", $ww[rowid])'";
-            } else if ($ww["estado"] == "NOENV" && !$ww["track_id"]) {
+            } else if ($ww["estado"] == "NOREC" && !$ww["track_id"]) {
                 $onclick = "onclick='reenviarGuiaDespacho($ww[rowid], $ww[folio], $ww[caf])'";
             }
 
@@ -860,7 +866,7 @@ UNION
 
             $btn_print = ($ww["track_id"] ? "<button onclick='printDTE(this, $ww[rowid], $ww[folio], 2)' class='btn btn-primary fa fa-print btn-sm'></button>" : "");
 
-            $btn_print.="<button onclick='generarGuiaTransito(this, $ww[rowid], $ww[folio], \"$ww[fecha]\", \"$ww[cliente]\", \"$ww[domicilio]\", \"$ww[comuna]\", $ww[id_cotizacion_directa], \"$ww[telefono]\")' class='btn btn-info ml-2 btn-sm d-inline-block'>SAG</button>";
+            $btn_print .= "<button onclick='generarGuiaTransito(this, $ww[rowid], $ww[folio], \"$ww[fecha]\", \"$ww[cliente]\", \"$ww[domicilio]\", \"$ww[comuna]\", $ww[id_cotizacion_directa], \"$ww[telefono]\")' class='btn btn-info ml-2 btn-sm d-inline-block'>SAG</button>";
             echo "
                 <tr class='text-center' style='cursor:pointer' x-id='$ww[rowid]'>
                 <td>$ww[folio]</td>
@@ -893,9 +899,9 @@ UNION
     $rowid_factura = $_POST["facturaID"];
     $cotEspecial = json_decode($_POST["cotEspecial"]);
 
-    $comprobante = (isset($_POST["comprobante"]) && strlen($_POST["comprobante"]) > 0 ? "'".$_POST["comprobante"]."'" : "NULL" );
+    $comprobante = (isset($_POST["comprobante"]) && strlen($_POST["comprobante"]) > 0 ? "'" . $_POST["comprobante"] . "'" : "NULL");
     $query = "INSERT INTO facturas_pagos (
-            rowid_".($cotEspecial == TRUE ? "cotizacion" : "factura").",
+            rowid_" . ($cotEspecial == TRUE ? "cotizacion" : "factura") . ",
             monto,
             fecha,
             comentario,
@@ -926,16 +932,16 @@ UNION
     }
 } else if ($consulta == "get_pagos") {
     $rowid_factura = $_POST["facturaID"];
-    
+
     $cotEspecial = json_decode($_POST["cotEspecial"]);
-    $query = "SELECT DATE_FORMAT(fecha, '%d/%m/%y %H:%i') as fecha, monto, comentario, ISNULL(comprobante) as comprobante, id, rowid_".($cotEspecial == TRUE ? "cotizacion" : "factura")." FROM facturas_pagos WHERE rowid_".($cotEspecial == TRUE ? "cotizacion" : "factura")." = $rowid_factura ORDER BY fecha DESC";
+    $query = "SELECT DATE_FORMAT(fecha, '%d/%m/%y %H:%i') as fecha, monto, comentario, ISNULL(comprobante) as comprobante, id, rowid_" . ($cotEspecial == TRUE ? "cotizacion" : "factura") . " FROM facturas_pagos WHERE rowid_" . ($cotEspecial == TRUE ? "cotizacion" : "factura") . " = $rowid_factura ORDER BY fecha DESC";
     $val = mysqli_query($con, $query);
 
     if (mysqli_num_rows($val) > 0) {
         while ($ww = mysqli_fetch_array($val)) {
             $monto = $ww["monto"] != null ? "$" . number_format($ww["monto"], 0, ',', '.') : "";
-            $btn_comprobante = ($ww["comprobante"] != 1 ? "<button onclick='verComprobante($ww[id], this)' class='btn btn-sm btn-primary fa fa-download'></button>" : "" );
-            
+            $btn_comprobante = ($ww["comprobante"] != 1 ? "<button onclick='verComprobante($ww[id], this)' class='btn btn-sm btn-primary fa fa-download'></button>" : "");
+
             $rowid = ($cotEspecial == TRUE) ? $ww["rowid_cotizacion"] : $ww["rowid_factura"];
             echo "
                 <tr class='text-center' x-monto='$ww[monto]'>
@@ -1014,8 +1020,7 @@ UNION
         if (!mysqli_query($con, $query)) {
             $errors[] = mysqli_error($con);
         }
-    }
-    else if ($tipoDTE == 4) { // ES BOLETA
+    } else if ($tipoDTE == 4) { // ES BOLETA
         $query = "SELECT * FROM guias_despacho WHERE id_boleta = $rowid";
         $guias = mysqli_query($con, $query);
         $query = "SELECT * FROM notas_credito WHERE id_boleta = $rowid";
@@ -1132,7 +1137,10 @@ UNION
 
             $onclick = "";
 
-            if ($ww["estado"] === "NOENV" || !isset($ww["estado"]) || $ww["estado"] === "EPR" || $ww["estado"] === "RECHAZADO" || $ww["estado"] === "ACEPTADO") {
+            if (!isset($ww["track_id"]) || $ww["estado"] === "NOENV"){
+                $onclick = "onclick='getEstadoDTE(null, $ww[folio], 3, \"$ww[estado]\", $ww[rowid])'";
+            }
+            else if (!isset($ww["estado"]) || $ww["estado"] === "EPR" || $ww["estado"] === "RECHAZADO" || $ww["estado"] === "ACEPTADO") {
                 $onclick = "onclick='getEstadoDTE($ww[track_id], $ww[folio], 3, \"$ww[estado]\", $ww[rowid])'";
             }
 
@@ -1171,8 +1179,7 @@ UNION
             echo "<option value='$re[rowid]' x-folio='$re[folio]'>$re[folio]</option>";
         }
     }
-}
-else if ($consulta == "get_data_comprobante") {
+} else if ($consulta == "get_data_comprobante") {
     $rowid = $_POST["id"];
 
     $query = "SELECT comprobante FROM facturas_pagos WHERE id = $rowid;";
@@ -1180,27 +1187,24 @@ else if ($consulta == "get_data_comprobante") {
 
     if (mysqli_num_rows($val) > 0) {
         $ww = mysqli_fetch_assoc($val);
-            echo $ww["comprobante"];
+        echo $ww["comprobante"];
     }
-}
-else if ($consulta == "get_last_guia_transito"){
+} else if ($consulta == "get_last_guia_transito") {
     $query = "SELECT (IFNULL(MAX(id),0)+1) as maximo FROM guias_transito";
     $val = mysqli_query($con, $query);
 
     if (mysqli_num_rows($val) > 0) {
         $maximo = mysqli_fetch_assoc($val);
-        echo "max:".$maximo["maximo"];
+        echo "max:" . $maximo["maximo"];
     }
-}
-else if ($consulta == "guardar_guia_transito"){
+} else if ($consulta == "guardar_guia_transito") {
     $codigo = $_POST["codigo"];
     $query = "INSERT INTO guias_transito (codigo) VALUES ('$codigo')";
-    if (mysqli_query($con, $query)){
+    if (mysqli_query($con, $query)) {
         echo "success";
     }
 
-}
-else if ($consulta == "get_cantidad_total_productos"){
+} else if ($consulta == "get_cantidad_total_productos") {
     $id = $_POST["id"];
     $query = "SELECT (IFNULL(SUM(cantidad),0)) as cantidad FROM cotizaciones_directas_productos WHERE id_cotizacion_directa = $id";
     $val = mysqli_query($con, $query);
@@ -1209,8 +1213,7 @@ else if ($consulta == "get_cantidad_total_productos"){
         $cantidad = mysqli_fetch_assoc($val);
         echo $cantidad["cantidad"];
     }
-}
-else if ($consulta == "get_productos"){
+} else if ($consulta == "get_productos") {
     $id = $_POST["id"];
     $query = "SELECT v.nombre as nombre_variedad, c.cantidad
      FROM cotizaciones_directas_productos c 

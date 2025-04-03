@@ -113,9 +113,12 @@ function boxEstadoFactura($estado, $fullWidth)
         return "<div class='d-inline-block cajita w-100' style='word-wrap:break-word;text-align:center;background-color:#FA5858; padding:3px; cursor:pointer;'>RECHAZADA SII</div>";
     }
     else if ($estado == "NOENV"){
-        return "<div class='d-inline-block cajita w-100' style='word-wrap:break-word;text-align:center;background-color:#FA5858; padding:3px; cursor:pointer;'>NO ENVIADA</div>";
+        return "<div class='d-inline-block cajita w-100' style='word-wrap:break-word;text-align:center;background-color:yellow; padding:3px; cursor:pointer;'>VERIFICAR ESTADO</div>";
     }
-    else{
+    else if ($estado == "NOREC"){
+        return "<div class='d-inline-block cajita w-100' style='word-wrap:break-word;text-align:center;background-color:red; padding:3px; cursor:pointer;'>NO RECIBIDO POR EL SII</div>";
+    }
+    else {
         return "<div class='d-inline-block cajita w-100' style='background-color:#D8D8D8; padding:2px;'><small>CLICK PARA VERIFICAR</small></div>";
     }
 }

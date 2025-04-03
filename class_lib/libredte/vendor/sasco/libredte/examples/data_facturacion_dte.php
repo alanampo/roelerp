@@ -475,7 +475,7 @@ if ($consulta == "generar_factura") {
     $rowid = $_POST["rowid"];
     $folio = $_POST["folio"];
     $tipoDTE = $_POST["tipoDoc"];
-    echo getEstadoDte($trackID, $rowid, $folio, $tipoDTE, $con);
+    echo json_encode(getEstadoDte($trackID, $rowid, $folio, $tipoDTE, $con));
     exit;
     $certPath = base64_decode(str_replace("data:application/x-pkcs12;base64,", "", $GLOBALS["empresa"]["certificado"])); // contenido del archivo certificado.p12
     $certPass = $GLOBALS["empresa"]["pass"];
@@ -3033,8 +3033,9 @@ function getDataCotizacion($con, $id_cotizacion, $directa)
     return null;
 }
 
-function getEstadoDte($track_id, $rowid, $folio, $tipoDTE, $con)
+function getEstadoDte($track_id, $rowid = NULL, $folio = NULL, $tipoDTE = NULL, $con = NULL)
 {
+
     $fecha = "";
     $tabla = "";
     switch ($tipoDTE) {
@@ -3057,88 +3058,248 @@ function getEstadoDte($track_id, $rowid, $folio, $tipoDTE, $con)
         default:
             break;
     }
+    $periodo = "";
+    if (!isset($track_id) || empty($track_id)) {
+        $q = "SELECT * FROM $tabla WHERE rowid = $rowid";
+        $row = mysqli_fetch_assoc(mysqli_query($con, $q));
+        $fecha = explode(" ", $row["fecha"])[0];
+        $data = base64_decode($row["data"]);
 
-    $q = "SELECT * FROM $tabla WHERE rowid = $rowid";
-    $row = mysqli_fetch_assoc(mysqli_query($con, $q));
-    $fecha = explode(" ", $row["fecha"])[0];
-    $data = base64_decode($row["data"]);
-    $rutReceptor = "";
-    $montoTotal = "";
-    if (preg_match('/<RUTRecep>([^<]+)<\/RUTRecep>/', $data, $matches)) {
-        $rutReceptor = $matches[1]; // El valor dentro de <RutReceptor>
+        $partes = explode("-", $fecha); // Divide la cadena usando el guion como delimitador
+
+        $periodo = $partes[0] . "-" . $partes[1]; // Combina el año y el mes
+
+        $token = \sasco\LibreDTE\Sii\Autenticacion::getToken($GLOBALS['Firma']);
+        if (!$token) {
+            foreach (\sasco\LibreDTE\Log::readAll() as $error)
+                echo $error, "\n";
+            exit;
+        }
+
+        $rutsplit = explode("-", $GLOBALS["empresa"]["rut"]);
+
+        $rutEmpresa = $rutsplit[0];
+        $dv = $rutsplit[1];
+        try {
+            // URL del servicio
+            $url = "https://www4.sii.cl/consemitidosinternetui/services/data/facadeService/getDetalleEmitidos3334";
+
+            // Datos para el cuerpo de la solicitud en formato JSON
+            $data = [
+                "metaData" => [
+                    "conversationId" => $token,
+                    "transactionId" => "0",
+                    "namespace" => "cl.sii.sdi.lob.diii.consemitidos.data.api.interfaces.FacadeService/getDetalleEmitidos3334"
+                ],
+                "data" => [
+                    "dv" => $dv,
+                    "rut" => $rutEmpresa,
+                    "folio" => $folio,
+                    "operacion" => 1,
+                    "refNCD" => 0,
+                    "derrCodigo" => $tipoDTE,
+                    "tipoDoc" => $tipoDTE,
+                    "periodo" => $periodo
+                ]
+            ];
+
+            // Convertir el array a JSON
+            $jsonData = json_encode($data);
+
+            // Configurar opciones de cURL
+            $ch = curl_init($url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt(
+                $ch,
+                CURLOPT_HTTPHEADER,
+                array(
+                    "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8;application/json;text/plain",
+                    "Cookie: TOKEN=" . $token,
+                    "Content-Type: application/json;charset=utf-8"
+                )
+            );
+            curl_setopt($ch, CURLOPT_POST, 1);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonData);
+
+            // Ejecutar la solicitud cURL y obtener la respuesta
+            $response = curl_exec($ch);
+            $data = json_decode($response, true);
+            $dhdrCodigo = "";
+            $foundFolio = FALSE;
+            if (isset($data) && isset($data["dataResp"]) && isset($data["dataResp"]["detalles"])) {
+                foreach ($data["dataResp"]["detalles"] as $dte) {
+                    if ($dte["folio"] == $folio) {
+                        $dhdrCodigo = $dte["dhdrCodigo"];
+                        $foundFolio = TRUE;
+                        break;
+                    }
+                }
+                if ($foundFolio === FALSE){
+                    $query = "UPDATE $tabla SET estado = 'NOREC' WHERE rowid = $rowid;";
+                    mysqli_query($con, $query);
+    
+                    return [
+                        "NOREC" => TRUE
+                    ];
+                }
+            }
+            else{
+                throw new Exception("Error al obtener el detalle del DTE");
+            }
+            
+
+            if (isset($dhdrCodigo) && !empty((string) $dhdrCodigo)) {
+                // URL del servicio
+                $url = "https://www4.sii.cl/consemitidosinternetui/services/data/facadeService/getDetalleDTE";
+
+                // Datos para el cuerpo de la solicitud en formato JSON
+                $data = [
+                    "metaData" => [
+                        "conversationId" => $token,
+                        "transactionId" => "0",
+                        "namespace" => "cl.sii.sdi.lob.diii.consemitidos.data.api.interfaces.FacadeService/getDetalleDTE"
+                    ],
+                    "data" => [
+                        "dv" => $dv,
+                        "rut" => $rutEmpresa,
+                        "folio" => $folio,
+                        "tipoDoc" => $tipoDTE,
+                        "dhdrCodigo" => $dhdrCodigo
+                    ]
+                ];
+
+                // Convertir el array a JSON
+                $jsonData = json_encode($data);
+
+                // Configurar opciones de cURL
+                $ch = curl_init($url);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt(
+                    $ch,
+                    CURLOPT_HTTPHEADER,
+                    array(
+                        "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8;application/json;text/plain",
+                        "Cookie: TOKEN=" . $token,
+                        "Content-Type: application/json;charset=utf-8"
+                    )
+                );
+                curl_setopt($ch, CURLOPT_POST, 1);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonData);
+
+                // Ejecutar la solicitud cURL y obtener la respuesta
+                $response = curl_exec($ch);
+                $data = json_decode($response, true);
+
+                if (isset($data) && isset($data["detalleDte"]) && isset($data["detalleDte"]["idEnvio"])) {
+                    $track_id = $data["detalleDte"]["idEnvio"];
+                    $query = "UPDATE $tabla SET track_id = '$track_id' WHERE rowid = '$rowid'";
+                    if (mysqli_query($con, $query)) {
+                        return getEstadoDteByTrackId($track_id);
+                    } else {
+                        throw new Exception("Error al actualizar track_id: " . mysqli_error($con));
+                    }
+                }
+                else{
+                    return [
+                        "RECNOTRACKID" => TRUE
+                    ];
+                }
+            }
+            else{
+                throw new Exception("Error al obtener el código de envío del DTE");
+            }
+        } catch (Exception $e) {
+            echo $e->getMessage();
+            return NULL;
+        }
+    }
+    else{
+        return getEstadoDteByTrackId($track_id);
     }
 
-    if (preg_match('/<MntTotal>([^<]+)<\/MntTotal>/', $data, $matches)) {
-        $montoTotal = $matches[1]; // El valor dentro de <RutReceptor>
-    }
 
-    $token = \sasco\LibreDTE\Sii\Autenticacion::getToken($GLOBALS['Firma']);
+    return;
+    if (isset($track_id) && empty($track_id)) {
+        
+    } else {
+        // $rutReceptor = "";
+        // $montoTotal = "";
+        // if (preg_match('/<RUTRecep>([^<]+)<\/RUTRecep>/', $data, $matches)) {
+        //     $rutReceptor = $matches[1]; // El valor dentro de <RutReceptor>
+        // }
+
+        // if (preg_match('/<MntTotal>([^<]+)<\/MntTotal>/', $data, $matches)) {
+        //     $montoTotal = $matches[1]; // El valor dentro de <RutReceptor>
+        // }
+
+        // $token = \sasco\LibreDTE\Sii\Autenticacion::getToken($GLOBALS['Firma']);
+        // if (!$token) {
+        //     return null;
+        // }
+
+        // $app = Application::getInstance();
+
+        // $siiLazyWorker = $app
+        //     ->getBillingPackage()
+        //     ->getIntegrationComponent()
+        //     ->getSiiLazyWorker();
+
+        // $certificateLoader = $app
+        //     ->getPrimePackage()
+        //     ->getCertificateComponent()
+        //     ->getLoaderWorker()
+        // ;
+
+        // $certificate = $certificateLoader->createFromData(
+        //     $GLOBALS["FirmaRaw"]["data"],
+        //     $GLOBALS["FirmaRaw"]["pass"],
+        // );
+
+        // $request = new SiiRequest(
+        //     certificate: $certificate,
+        //     options: [
+        //         'ambiente' => $GLOBALS["empresa"]["modo"] == "PROD" ? SiiAmbiente::PRODUCCION : SiiAmbiente::CERTIFICACION,
+        //     ],
+
+        // );
+
+        // $documentStatus = $siiLazyWorker->validateDocument(
+        //     $request,
+        //     $GLOBALS["empresa"]["rut"],
+        //     $tipoDTE,
+        //     $folio,
+        //     $fecha,
+        //     $montoTotal,
+        //     $rutReceptor
+        // );
+
+        // var_dump($documentStatus->getData());
+        // die;
+    }
+}
+
+function getEstadoDteByTrackId($track_id, $token = null)
+{
     if (!$token) {
-        return null;
+        $token = \sasco\LibreDTE\Sii\Autenticacion::getToken($GLOBALS['Firma']);
+        if (!$token) {
+            return null;
+        }
     }
 
-    $app = Application::getInstance();
+    $rutsplit = explode("-", $GLOBALS["empresa"]["rut"]);
 
-    $siiLazyWorker = $app
-        ->getBillingPackage()
-        ->getIntegrationComponent()
-        ->getSiiLazyWorker();
-
-    $certificateLoader = $app
-        ->getPrimePackage()
-        ->getCertificateComponent()
-        ->getLoaderWorker()
-    ;
-
-    $certificate = $certificateLoader->createFromData(
-        $GLOBALS["FirmaRaw"]["data"],
-        $GLOBALS["FirmaRaw"]["pass"],
-    );
-
-    $request = new SiiRequest(
-        certificate: $certificate,
-        options: [
-            'ambiente' => $GLOBALS["empresa"]["modo"] == "PROD" ? SiiAmbiente::PRODUCCION : SiiAmbiente::CERTIFICACION,
-        ],
-
-    );
-
-    $documentStatus = $siiLazyWorker->validateDocument(
-        $request,
-        $GLOBALS["empresa"]["rut"],
-        $tipoDTE,
-        $folio,
-        $fecha,
-        $montoTotal,
-        $rutReceptor
-    );
-
-    var_dump($documentStatus->getData());
-    die;
-
-    echo json_encode($data);
-    $xml = \sasco\LibreDTE\Sii::request('QueryEstDte', 'getEstDte', $data);
-
-    // si el estado se pudo recuperar se muestra
-    if ($xml !== false) {
-        print_r((array) $xml->xpath('/SII:RESPUESTA/SII:RESP_HDR')[0]);
-    }
-
-    // si hubo errores se muestran
-    foreach (\sasco\LibreDTE\Log::readAll() as $error)
-        echo $error, "\n";
-
-
-    die;
+    $rut = $rutsplit[0];
+    $dv = $rutsplit[1];
     $estado = \sasco\LibreDTE\Sii::request('QueryEstUp', 'getEstUp', [$rut, $dv, $track_id, $token]);
 
     if ($estado !== false) {
         $aceptados = $estado->xpath('/SII:RESPUESTA/SII:RESP_BODY/ACEPTADOS');
         $rechazados = $estado->xpath('/SII:RESPUESTA/SII:RESP_BODY/RECHAZADOS');
-        return json_encode(array(
+        return [
             "aceptados" => isset($aceptados[0]) ? (string) $aceptados[0] : null,
             "rechazados" => isset($rechazados[0]) ? (string) $rechazados[0] : null,
-        ));
+        ];
     }
     return null;
 }

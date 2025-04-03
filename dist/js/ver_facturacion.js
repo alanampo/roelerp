@@ -1023,8 +1023,6 @@ function printDTE(obj, rowid, folio, tipoDTE) {
 }
 
 function getEstadoDTE(trackID, facturaID, tipoDoc, estadoActual, rowid) {
-  if (!trackID || !trackID.toString().length) return;
-
   $(".num-factura").html(
     `Estado ${
       tipoDoc == 0
@@ -1038,7 +1036,7 @@ function getEstadoDTE(trackID, facturaID, tipoDoc, estadoActual, rowid) {
         : tipoDoc == 4
         ? "Boleta"
         : "DTE"
-    } N° ${facturaID} <small class='text-muted'>(${trackID})</small>`
+    } N° ${facturaID} <small class='text-muted'>(${trackID ?? "SIN TRACKID"})</small>`
   );
   $(".loader-container").html(`
       <div class="loading-wrapper2">
@@ -1071,7 +1069,19 @@ function getEstadoDTE(trackID, facturaID, tipoDoc, estadoActual, rowid) {
         } else {
           try {
             const data = JSON.parse(x);
-            if (data.rechazados && data.rechazados == "1") {
+            if (data.NOREC){
+              $(".loader-container").html(
+                "<h5 class='text-danger'>ESTADO: NO RECIBIDO POR EL SII"
+              );
+              reloadData();
+            }
+            else if (data.RECNOTRACKID){
+              $(".loader-container").html(
+                "<h5 class='text-danger'>ESTADO: RECIBIDO POR EL SII, PERO NO SE PUDO OBTENER EL TRACKID"
+              );
+              reloadData();
+            }
+            else if (data.rechazados && data.rechazados == "1") {
               $(".loader-container").html(
                 "<h5 class='text-danger'>ESTADO: RECHAZADO POR EL SII"
               );
