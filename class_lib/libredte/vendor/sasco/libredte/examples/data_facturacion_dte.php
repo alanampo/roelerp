@@ -1902,7 +1902,7 @@ function generarPDFMail($data, $dir_logo, $id, $email, $link, $esBoleta = false)
         return true;
 
     } catch (Exception $e) {
-        //echo 'Error al enviar el correo. Detalles: ' . $mail->ErrorInfo;
+        echo 'Error al enviar el correo. Detalles: ' . $mail->ErrorInfo;
         return false;
     }
 }
