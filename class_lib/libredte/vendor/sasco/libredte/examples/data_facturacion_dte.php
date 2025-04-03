@@ -1682,7 +1682,7 @@ function checkEstadoAndUpdate($id_fac, $tipoDTE, $con, $track_id)
     $tablas = ["facturas", "notas_credito", "guias_despacho", "notas_debito", "boletas"];
     $estado = getEstadoDte($track_id);
     if ($estado != null) {
-        $result = json_decode($estado, true);
+        $result = $estado;
 
         if (isset($result["aceptados"]) && (int) $result["aceptados"] == 1) {
             $query = "UPDATE $tablas[$tipoDTE] SET estado = 'ACEPTADO' WHERE rowid = $id_fac";
