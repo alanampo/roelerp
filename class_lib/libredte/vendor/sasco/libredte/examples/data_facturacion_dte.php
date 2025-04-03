@@ -322,7 +322,7 @@ if ($consulta == "generar_factura") {
     $dataFolio = getDataFolios($con, $_POST["caf"], $id_guia);
     $esBoleta = isset($_POST["esBoleta"]) && $_POST["esBoleta"] == 1 ? TRUE : FALSE;
     if (isset($dataFolio["data"])) {
-        if (!$esBoleta !== TRUE) {
+        if ($esBoleta !== TRUE) {
             $DTEGenerado = generarFactura($json, $dataFolio["data"], $_POST["folio"], $id_guia, $dataFolio["folio_guia"]);
         } else {
             $DTEGenerado = generarBoleta($json, $dataFolio["data"], $_POST["folio"], $id_guia, $dataFolio["folio_guia"]);
