@@ -2198,6 +2198,7 @@ function limpiarYRecortar($texto, $limite = 100)
 
 function generarBoleta($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_cotizacion = null, $con = null)
 {
+    exit;
     try {
         if (isset($con) && isset($id_cotizacion)) {
             $dataCotizacion = getDataCotizacion($con, $id_cotizacion, false);
