@@ -298,7 +298,7 @@ function carga_variedades(id_tipo) {
 
           $("#modal-agregar-producto").find(".btn-precio-detalle-container").html("")
           const precio_detalle = $(this).find("option:selected").attr("x-precio-detalle");
-          const precio = $(this).find("option:selected").attr("x-precio");
+          const precio = $(this).find("option:selected").attr("x-precio") ?? "";
           let formatoPrecio = precio.toLocaleString('es-ES', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,

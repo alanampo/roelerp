@@ -42,8 +42,8 @@ $(document).ready(function () {
       }
     });
 
-  
-  
+
+
 });
 
 function pone_clientes() {
@@ -66,7 +66,7 @@ function pone_clientes() {
         }
       );
     },
-    error: function (jqXHR, estado, error) {},
+    error: function (jqXHR, estado, error) { },
   });
 }
 
@@ -103,7 +103,7 @@ function ClearModal() {
 function vistaPrevia() {
   const id_cliente = $("#select_cliente").find("option:selected").val();
   const condicion = $("#select-condicion").find("option:selected").val();
-  
+
   if (!id_cliente.trim().length) {
     swal("Selecciona un cliente!", "", "error");
   } else if ($(".pedido-vacio-msg").length) {
@@ -180,7 +180,7 @@ function pone_tiposdeproducto() {
         }
       );
     },
-    error: function (jqXHR, estado, error) {},
+    error: function (jqXHR, estado, error) { },
   });
 }
 
@@ -202,8 +202,8 @@ function carga_variedades(id_tipo) {
           const codigo = $("#select_tipo")
             .find("option:selected")
             .attr("x-codigo");
-            const precio_detalle = $(this).find("option:selected").attr("x-precio-detalle");
-          const precio = $(this).find("option:selected").attr("x-precio");
+          const precio_detalle = $(this).find("option:selected").attr("x-precio-detalle");
+          const precio = $(this).find("option:selected").attr("x-precio") ?? "";
           let formatoPrecio = precio.toLocaleString('es-ES', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
@@ -227,7 +227,7 @@ function carga_variedades(id_tipo) {
         }
       );
     },
-    error: function (jqXHR, estado, error) {},
+    error: function (jqXHR, estado, error) { },
   });
 }
 
@@ -252,7 +252,7 @@ function carga_especies(id_tipo) {
         }
       );
     },
-    error: function (jqXHR, estado, error) {},
+    error: function (jqXHR, estado, error) { },
   });
 }
 
@@ -315,9 +315,9 @@ function addToPedido() {
       descuento:
         tipoDescuento && tipoDescuento.length
           ? {
-              tipo: tipoDescuento,
-              valor: valorDescuento,
-            }
+            tipo: tipoDescuento,
+            valor: valorDescuento,
+          }
           : null,
     });
   }
@@ -345,9 +345,8 @@ function funcAddToPedido(producto) {
     $("#table-pedido tbody").html("");
   }
 
-  var celda = `<tr x-id-tipo='${id_tipo}' x-id-variedad='${id_variedad}' x-id-especie='${
-    id_especie ? id_especie : ""
-  }'
+  var celda = `<tr x-id-tipo='${id_tipo}' x-id-variedad='${id_variedad}' x-id-especie='${id_especie ? id_especie : ""
+    }'
     x-cantidad='${cantidad}'
     >
       <td scope="row">${index + 1}</td>
@@ -356,16 +355,14 @@ function funcAddToPedido(producto) {
       <td>${cantidad}</td>
       <td>$${precio}</td>
       <td>$${subtotal}</td>
-      <td>${
-        descuento && descuento.tipo == "porcentual"
-          ? "-" + descuento.valor + "%"
-          : descuento && descuento.tipo == "fijo"
-          ? "-$" + descuento.valor
-          : ""
-      }</td>
-      <td class="text-center"><button class='removeme btn btn-xs fa fa-trash' style='font-size:1.7em' onclick='eliminar_art(this, ${
-        producto.index
-      })'></button></td>
+      <td>${descuento && descuento.tipo == "porcentual"
+      ? "-" + descuento.valor + "%"
+      : descuento && descuento.tipo == "fijo"
+        ? "-$" + descuento.valor
+        : ""
+    }</td>
+      <td class="text-center"><button class='removeme btn btn-xs fa fa-trash' style='font-size:1.7em' onclick='eliminar_art(this, ${producto.index
+    })'></button></td>
       </tr>`;
   $("#table-pedido tbody").append(celda);
 }
@@ -422,12 +419,12 @@ function ClearPedido() {
 
 async function printCotizacion(dataCotizacion) {
   const dataMembrete = await loadDatosEmpresaPrint();
-  if (!dataMembrete || dataMembrete.error){
+  if (!dataMembrete || dataMembrete.error) {
     swal("Ocurrió un error al obtener los datos de la Empresa", dataMembrete.error, "error")
     return;
   }
 
-  const {direccion, email, telefono, logo} = dataMembrete;
+  const { direccion, email, telefono, logo } = dataMembrete;
   const razonEmpresa = dataMembrete.razon;
   const rutEmpresa = dataMembrete.rut;
   const giroEmpresa = dataMembrete.giro;
@@ -447,19 +444,19 @@ async function printCotizacion(dataCotizacion) {
     rut,
     razon,
     giro,
-    
+
   } = dataCotizacion;
 
   const condicion =
     condicion_pago == 0
       ? "CONTADO"
       : condicion_pago == 1
-      ? "CRÉDITO 30 DÍAS"
-      : condicion_pago == 2
-      ? "CRÉDITO 60 DÍAS"
-      : condicion_pago
-      ? "CRÉDITO 90 DÍAS"
-      : "";
+        ? "CRÉDITO 30 DÍAS"
+        : condicion_pago == 2
+          ? "CRÉDITO 60 DÍAS"
+          : condicion_pago
+            ? "CRÉDITO 90 DÍAS"
+            : "";
   const now = new Date();
   const datetime =
     (now.getDate() < 10 ? "0" + now.getDate() : now.getDate()) +
@@ -514,9 +511,8 @@ async function printCotizacion(dataCotizacion) {
                   <div class="row">
                     <div class="col">
                       <h6 style="color:grey !important">Razón Social</h6>
-                      <h6 style="">${
-                        razon && razon.length ? razon.toUpperCase() : cliente
-                      }</h6>
+                      <h6 style="">${razon && razon.length ? razon.toUpperCase() : cliente
+    }</h6>
                     </div>
                   </div>
                   <div class="row">
@@ -562,11 +558,10 @@ async function printCotizacion(dataCotizacion) {
               <div class="row">
                 <div class="col">
                   <h6 style="color:grey !important">Vendedor/a</h6>
-                  <h6 style="">${
-                    nombre_real && nombre_real.length
-                      ? nombre_real
-                      : "Roelplant"
-                  }</h6>
+                  <h6 style="">${nombre_real && nombre_real.length
+      ? nombre_real
+      : "Roelplant"
+    }</h6>
                 </div>
               </div>
               <div class="row">
@@ -643,13 +638,12 @@ async function printCotizacion(dataCotizacion) {
           <td>${nombre_producto}</td>
           <td>${cantidad}</td>
           <td>$${formatearMonto(precio)}</td>
-          <td>${
-            descuento && descuento.tipo == "porcentual"
-              ? "-" + descuento.valor + "%"
-              : descuento && descuento.tipo == "fijo"
-              ? "-$" + formatearMonto(parseInt(descuento.valor))
-              : ""
-          }</td>
+          <td>${descuento && descuento.tipo == "porcentual"
+          ? "-" + descuento.valor + "%"
+          : descuento && descuento.tipo == "fijo"
+            ? "-$" + formatearMonto(parseInt(descuento.valor))
+            : ""
+        }</td>
           <td>$${formatearMonto(subtotal)}</td>
           
         </tr>                    
@@ -683,18 +677,16 @@ async function printCotizacion(dataCotizacion) {
                         </thead>
                         <tbody>
                           <tr>
-                            <td colspan="5" rowspan="8">COMENTARIO ${
-                              comentario && comentario.length
-                                ? "<br><br>" + comentario.toUpperCase()
-                                : ""
-                            }</td>
+                            <td colspan="5" rowspan="8">COMENTARIO ${comentario && comentario.length
+      ? "<br><br>" + comentario.toUpperCase()
+      : ""
+    }</td>
                             <td>Descuento</td>
-                            <td>${
-                              montodescuento && montodescuento > 0
-                                ? "-$" +
-                                  formatearMonto(montodescuento)
-                                : "$0"
-                            }</td>
+                            <td>${montodescuento && montodescuento > 0
+      ? "-$" +
+      formatearMonto(montodescuento)
+      : "$0"
+    }</td>
                           </tr>
                           <tr>
                             <td>Afecto</td>
@@ -733,7 +725,7 @@ function cargarDatosCliente(id_cliente) {
   $("#select_comuna").val("default").selectpicker("refresh");
 
   $.ajax({
-    beforeSend: function () {},
+    beforeSend: function () { },
     url: "data_ver_cotizaciones.php",
     type: "POST",
     data: {
@@ -750,17 +742,17 @@ function cargarDatosCliente(id_cliente) {
           $("#select-comuna").val(comuna).selectpicker("refresh");
           $("#input-razon").val(razon);
           $("#input-giro").val(giro);
-        } catch (error) {}
+        } catch (error) { }
       }
     },
-    error: function (jqXHR, estado, error) {},
+    error: function (jqXHR, estado, error) { },
   });
 }
 
 function calcularSubtotal() {
   const precioVal = $("#select_variedad option:selected").attr("x-precio");
   const precio_detalleVal = $("#select_variedad option:selected").attr("x-precio-detalle");
-  
+
   const precio = window.selectedPrice == "detalle" ? precio_detalleVal : precioVal;
   const cantidad = $("#input-cantidad").val().trim();
 
@@ -957,14 +949,14 @@ function generarBoleta(id_cotizacion, id_guia, folioBOL, caf) {
               "success"
             );
             setChanged(false);
-          } 
-          else if (x.includes("SII_SUCCESS_BUT")){
+          }
+          else if (x.includes("SII_SUCCESS_BUT")) {
             setLoading(false)
             ClearPedido();
             $("#modal-vistaprevia").modal("hide");
-            swal("La Boleta SE ENVIÓ AL SII, pero hubo un error al actualizar los datos en LA BD.", "POR FAVOR COMUNICATE CON SOPORTE ANTES DE CONTINUAR"+x, "error");
+            swal("La Boleta SE ENVIÓ AL SII, pero hubo un error al actualizar los datos en LA BD.", "POR FAVOR COMUNICATE CON SOPORTE ANTES DE CONTINUAR" + x, "error");
           }
-          else if (x.includes("ERROR_ENVIO_SII")){
+          else if (x.includes("ERROR_ENVIO_SII")) {
             setLoading(false)
             $("#modal-vistaprevia").modal("hide");
             ClearPedido();
@@ -989,15 +981,15 @@ function generarBoleta(id_cotizacion, id_guia, folioBOL, caf) {
   }
 }
 
-function setLoading(val){
-    if (val){
-        $(".loader-anular").css({ display: "flex" });
-        $(".modal-vistaprevia-wrapper").css({ display: "none"})
-    }
-    else {
-        $(".loader-anular").css({ display: "none" });
-        $(".modal-vistaprevia-wrapper").css({ display: "block"})
-    }
+function setLoading(val) {
+  if (val) {
+    $(".loader-anular").css({ display: "flex" });
+    $(".modal-vistaprevia-wrapper").css({ display: "none" })
+  }
+  else {
+    $(".loader-anular").css({ display: "none" });
+    $(".modal-vistaprevia-wrapper").css({ display: "block" })
+  }
 }
 
 function setRazonSocial2() {
