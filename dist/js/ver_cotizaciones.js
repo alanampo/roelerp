@@ -111,27 +111,27 @@ $(document).ready(function () {
 
 function getStarkenData() {
   $.ajax({
-    beforeSend: function () {},
+    beforeSend: function () { },
     url: "data_ver_cotizaciones.php",
     type: "POST",
     data: { consulta: "get_starken_sucursales" },
     success: function (x) {
       console.log(x)
     },
-    error: function (jqXHR, estado, error) {},
+    error: function (jqXHR, estado, error) { },
   });
 }
 
 function updateUniqid() {
   $.ajax({
-    beforeSend: function () {},
+    beforeSend: function () { },
     url: "data_ver_cotizaciones.php",
     type: "POST",
     data: { consulta: "genera_uniqid" },
     success: function (x) {
       swal(x, "", "info");
     },
-    error: function (jqXHR, estado, error) {},
+    error: function (jqXHR, estado, error) { },
   });
 }
 
@@ -155,11 +155,12 @@ function pone_clientes() {
         }
       );
     },
-    error: function (jqXHR, estado, error) {},
+    error: function (jqXHR, estado, error) { },
   });
 }
 
 function modalAgregarProducto() {
+  window.selectedPrice = null;
   if ($("#table-pedido > tbody > tr").length > 19) {
     swal("No puedes cotizar más de 20 productos!", "", "error");
     return;
@@ -272,7 +273,7 @@ function pone_tiposdeproducto() {
         }
       );
     },
-    error: function (jqXHR, estado, error) {},
+    error: function (jqXHR, estado, error) { },
   });
 }
 
@@ -294,10 +295,34 @@ function carga_variedades(id_tipo) {
           const codigo = $("#select_tipo")
             .find("option:selected")
             .attr("x-codigo");
+
+          $("#modal-agregar-producto").find(".btn-precio-detalle-container").html("")
+          const precio_detalle = $(this).find("option:selected").attr("x-precio-detalle");
+          const precio = $(this).find("option:selected").attr("x-precio");
+          let formatoPrecio = precio.toLocaleString('es-ES', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          });
+          if (precio_detalle && precio_detalle.length) {
+            let formatoDetalle = precio_detalle.toLocaleString('es-ES', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            });
+
+            $("#modal-agregar-producto").find(".btn-precio-detalle-container").html(`
+              <button type="button" class="btn btn-outline-primary btn-sm" onclick="window.selectedPrice = 'mayorista';calcularSubtotal();">Mayorista: $ ${formatoPrecio}</button>
+              <button type="button" class="btn btn-outline-primary btn-sm" onclick="window.selectedPrice = 'detalle';calcularSubtotal()">Detalle: $ ${formatoDetalle}</button>
+            `)
+          }
+          else {
+            $("#modal-agregar-producto").find(".btn-precio-detalle-container").html(`
+                <button type="button" class="btn btn-outline-primary btn-sm" onclick="window.selectedPrice = 'mayorista';calcularSubtotal();">Mayorista: $ ${formatoPrecio}</button>
+            `)
+          }
         }
       );
     },
-    error: function (jqXHR, estado, error) {},
+    error: function (jqXHR, estado, error) { },
   });
 }
 
@@ -322,7 +347,7 @@ function carga_especies(id_tipo) {
         }
       );
     },
-    error: function (jqXHR, estado, error) {},
+    error: function (jqXHR, estado, error) { },
   });
 }
 
@@ -366,7 +391,7 @@ function addToPedido() {
     $("#modal-agregar-producto").modal("hide");
     const codigo = $("#select_variedad :selected").attr("x-codigofull");
     const nombre_variedad = $("#select_variedad :selected").attr("x-nombre");
-    const precio = $("#select_variedad :selected").attr("x-precio");
+    const precio = window.selectedPrice === "detalle" ? $("#select_variedad :selected").attr("x-precio-detalle") : $("#select_variedad :selected").attr("x-precio");
     const subtotal = parseInt(precio) * parseInt(cantidad);
 
     funcAddToPedido({
@@ -386,13 +411,13 @@ function addToPedido() {
       subtotal: parseFloat(subtotal),
       descuento:
         tipoDescuento &&
-        tipoDescuento.length &&
-        valorDescuento &&
-        valorDescuento.length
+          tipoDescuento.length &&
+          valorDescuento &&
+          valorDescuento.length
           ? {
-              tipo: tipoDescuento,
-              valor: parseFloat(valorDescuento.split(".").join("")),
-            }
+            tipo: tipoDescuento,
+            valor: parseFloat(valorDescuento.split(".").join("")),
+          }
           : null,
     });
   }
@@ -420,9 +445,8 @@ function funcAddToPedido(producto) {
     $("#table-pedido tbody").html("");
   }
 
-  var celda = `<tr x-id-tipo='${id_tipo}' x-id-variedad='${id_variedad}' x-id-especie='${
-    id_especie ? id_especie : ""
-  }'
+  var celda = `<tr x-id-tipo='${id_tipo}' x-id-variedad='${id_variedad}' x-id-especie='${id_especie ? id_especie : ""
+    }'
     x-cantidad='${cantidad}'
     >
       <td scope="row">${index + 1}</td>
@@ -431,16 +455,14 @@ function funcAddToPedido(producto) {
       <td>${cantidad}</td>
       <td>$${precio}</td>
       <td>$${subtotal}</td>
-      <td>${
-        descuento && descuento.tipo == "porcentual"
-          ? "-" + descuento.valor + "%"
-          : descuento && descuento.tipo == "fijo"
-          ? "-$" + descuento.valor
-          : ""
-      }</td>
-      <td class="text-center"><button class='removeme btn btn-xs fa fa-trash' style='font-size:1.7em' onclick='eliminar_art(this, ${
-        producto.index
-      })'></button></td>
+      <td>${descuento && descuento.tipo == "porcentual"
+      ? "-" + descuento.valor + "%"
+      : descuento && descuento.tipo == "fijo"
+        ? "-$" + descuento.valor
+        : ""
+    }</td>
+      <td class="text-center"><button class='removeme btn btn-xs fa fa-trash' style='font-size:1.7em' onclick='eliminar_art(this, ${producto.index
+    })'></button></td>
       </tr>`;
   $("#table-pedido tbody").append(celda);
 }
@@ -560,12 +582,12 @@ async function printCotizacion(dataCotizacion, isPrinting) {
     condicion_pago == 0
       ? "CONTADO"
       : condicion_pago == 1
-      ? "CRÉDITO 30 DÍAS"
-      : condicion_pago == 2
-      ? "CRÉDITO 60 DÍAS"
-      : condicion_pago
-      ? "CRÉDITO 90 DÍAS"
-      : "";
+        ? "CRÉDITO 30 DÍAS"
+        : condicion_pago == 2
+          ? "CRÉDITO 60 DÍAS"
+          : condicion_pago
+            ? "CRÉDITO 90 DÍAS"
+            : "";
   const now = new Date();
   const datetime =
     (now.getDate() < 10 ? "0" + now.getDate() : now.getDate()) +
@@ -620,9 +642,8 @@ async function printCotizacion(dataCotizacion, isPrinting) {
                   <div class="row">
                     <div class="col">
                       <h6 style="color:grey !important">Razón Social</h6>
-                      <h6 style="">${
-                        razon && razon.length ? razon.toUpperCase() : cliente
-                      }</h6>
+                      <h6 style="">${razon && razon.length ? razon.toUpperCase() : cliente
+    }</h6>
                     </div>
                   </div>
                   <div class="row">
@@ -668,11 +689,10 @@ async function printCotizacion(dataCotizacion, isPrinting) {
               <div class="row">
                 <div class="col">
                   <h6 style="color:grey !important">Vendedor/a</h6>
-                  <h6 style="">${
-                    nombre_real && nombre_real.length
-                      ? nombre_real
-                      : "Roelplant"
-                  }</h6>
+                  <h6 style="">${nombre_real && nombre_real.length
+      ? nombre_real
+      : "Roelplant"
+    }</h6>
                 </div>
               </div>
               <div class="row">
@@ -750,21 +770,20 @@ async function printCotizacion(dataCotizacion, isPrinting) {
           <td>${nombre_producto}</td>
           <td>${cantidad}</td>
           <td>$${precio.toLocaleString("es-ES", {
-            minimumFractionDigits: 0,
-          })}</td>
-          <td>${
-            descuento && descuento.tipo == "porcentual"
-              ? "-" + descuento.valor + "%"
-              : descuento && descuento.tipo == "fijo"
-              ? "-$" +
-                descuento.valor.toLocaleString("es-ES", {
-                  minimumFractionDigits: 0,
-                })
-              : ""
-          }</td>
+          minimumFractionDigits: 0,
+        })}</td>
+          <td>${descuento && descuento.tipo == "porcentual"
+          ? "-" + descuento.valor + "%"
+          : descuento && descuento.tipo == "fijo"
+            ? "-$" +
+            descuento.valor.toLocaleString("es-ES", {
+              minimumFractionDigits: 0,
+            })
+            : ""
+        }</td>
           <td>$${subtotal.toLocaleString("es-ES", {
-            minimumFractionDigits: 0,
-          })}</td>
+          minimumFractionDigits: 0,
+        })}</td>
           
         </tr>                    
       `
@@ -801,20 +820,18 @@ async function printCotizacion(dataCotizacion, isPrinting) {
                         </thead>
                         <tbody>
                           <tr>
-                            <td colspan="5" rowspan="8">COMENTARIO ${
-                              comentario && comentario.length
-                                ? "<br><br>" + comentario.toUpperCase()
-                                : ""
-                            }</td>
+                            <td colspan="5" rowspan="8">COMENTARIO ${comentario && comentario.length
+      ? "<br><br>" + comentario.toUpperCase()
+      : ""
+    }</td>
                             <td>Descuento</td>
-                            <td>${
-                              montodescuento && montodescuento > 0
-                                ? "-$" +
-                                  montodescuento.toLocaleString("es-ES", {
-                                    minimumFractionDigits: 0,
-                                  })
-                                : "$0"
-                            }</td>
+                            <td>${montodescuento && montodescuento > 0
+      ? "-$" +
+      montodescuento.toLocaleString("es-ES", {
+        minimumFractionDigits: 0,
+      })
+      : "$0"
+    }</td>
                           </tr>
                           <tr>
                             <td>Afecto</td>
@@ -875,7 +892,7 @@ function cargarDatosCliente(id_cliente) {
   $("#select_comuna").val("default").selectpicker("refresh");
 
   $.ajax({
-    beforeSend: function () {},
+    beforeSend: function () { },
     url: phpFile,
     type: "POST",
     data: {
@@ -892,15 +909,19 @@ function cargarDatosCliente(id_cliente) {
           $("#select-comuna").val(comuna).selectpicker("refresh");
           $("#input-razon").val(razon);
           $("#input-giro").val(giro);
-        } catch (error) {}
+        } catch (error) { }
       }
     },
-    error: function (jqXHR, estado, error) {},
+    error: function (jqXHR, estado, error) { },
   });
 }
 
 function calcularSubtotal() {
-  const precio = $("#select_variedad option:selected").attr("x-precio");
+  const precioVal = $("#select_variedad option:selected").attr("x-precio");
+  const precio_detalleVal = $("#select_variedad option:selected").attr("x-precio-detalle");
+  
+  const precio = window.selectedPrice == "detalle" ? precio_detalleVal : precioVal;
+  
   const cantidad = $("#input-cantidad").val().trim();
 
   const tipoDescuento = $("#select_descuento option:selected").val();
@@ -1100,7 +1121,7 @@ function modalCambiarEstado(id) {
   $("#modal-estado").modal("show");
 }
 
-function crearPedido(event, btn){
+function crearPedido(event, btn) {
   event.preventDefault();
   event.stopPropagation();
   const id = $("#modal-estado").attr("x-id");
@@ -1392,7 +1413,7 @@ function sendMail(btn) {
           printRemito(2);
 
           $.ajax({
-            beforeSend: function () {},
+            beforeSend: function () { },
             url: phpFile,
             type: "POST",
             data: {
@@ -1422,7 +1443,7 @@ function sendMail(btn) {
               }, 5000);
               $("#modal-vistaprevia").modal("show");
             },
-            error: function (jqXHR, estado, error) {},
+            error: function (jqXHR, estado, error) { },
           });
         });
     };
@@ -1500,9 +1521,9 @@ function editarCotizacion() {
       subtotal: subtotal.toString().replace(/\./g, ""),
       descuento: descuento
         ? {
-            tipo: descuento.tipo,
-            valor: descuento.valor.toString().replace(/\./g, ""),
-          }
+          tipo: descuento.tipo,
+          valor: descuento.valor.toString().replace(/\./g, ""),
+        }
         : null,
     });
   });
@@ -1780,7 +1801,7 @@ function updateIndexBulto() {
 function getSucursalesSelect(id) {
   $.ajax({
     beforeSend: function () {
-      $("#select-sucursal").selectpicker({title: "Cargando..."});
+      $("#select-sucursal").selectpicker({ title: "Cargando..." });
       $("#select-sucursal").html("").selectpicker("refresh");
     },
     url: phpFile,
@@ -1791,10 +1812,10 @@ function getSucursalesSelect(id) {
     },
     success: function (x) {
       console.log(x)
-      $("#select-sucursal").selectpicker({title: "Selecciona"});
+      $("#select-sucursal").selectpicker({ title: "Selecciona" });
       $("#select-sucursal").html(x).selectpicker("refresh");
     },
-    error: function (jqXHR, estado, error) {},
+    error: function (jqXHR, estado, error) { },
   });
 }
 
@@ -1817,7 +1838,7 @@ function getTransportistasSelect() {
         }
       );
     },
-    error: function (jqXHR, estado, error) {},
+    error: function (jqXHR, estado, error) { },
   });
 }
 
@@ -1906,7 +1927,7 @@ function guardarOrdenEnvio() {
   return;
 
   $.ajax({
-    beforeSend: function () {},
+    beforeSend: function () { },
     url: phpFile,
     type: "POST",
     data: {
@@ -1926,7 +1947,7 @@ function guardarOrdenEnvio() {
       if (x.includes("success")) {
       }
     },
-    error: function (jqXHR, estado, error) {},
+    error: function (jqXHR, estado, error) { },
   });
 }
 
@@ -1997,11 +2018,10 @@ async function printOrdenEnvio(dataOrden) {
                                 <img style="width: 170px !important; height: 110px !important" src="${logo}"></img>
                                 <div class="ml-4">
                                   <h4 style="font-weight:bold;">${titulo}</h4>
-                                  ${
-                                   titulo && titulo.length && direccion_sucursal && direccion_sucursal.length
-                                      ? `<span>${direccion_sucursal}</span>`
-                                      : ""
-                                  }
+                                  ${titulo && titulo.length && direccion_sucursal && direccion_sucursal.length
+        ? `<span>${direccion_sucursal}</span>`
+        : ""
+      }
                                 </div>
                               </div>
                             </td>
@@ -2012,8 +2032,8 @@ async function printOrdenEnvio(dataOrden) {
                             </td>
                             <td class="text-center">
                                 <h5 class="font-weight-bold">${dataCotizacion.id_cotizacion
-                                  .toString()
-                                  .padStart(6, "0")}</h5>
+        .toString()
+        .padStart(6, "0")}</h5>
                             </td>
                           </tr>
                           <tr>
@@ -2098,8 +2118,8 @@ async function printOrdenEnvio(dataOrden) {
         <td class="text-center">
           <h6>BULTO N°</h6>
           <h4 class="font-weight-bold">${(i + 1)
-            .toString()
-            .padStart(3, "0")}/${bultos.length.toString().padStart(3, "0")}</h4>
+        .toString()
+        .padStart(3, "0")}/${bultos.length.toString().padStart(3, "0")}</h4>
         </td>
       </tr>
 
@@ -2214,7 +2234,7 @@ function setLoadingQR(val) {
 
 function getCotizacionQR(uniqid) {
   $.ajax({
-    beforeSend: function () {},
+    beforeSend: function () { },
     url: phpFile,
     type: "POST",
     data: {
@@ -2230,7 +2250,7 @@ function getCotizacionQR(uniqid) {
       }
       setLoadingQR(false);
     },
-    error: function (jqXHR, estado, error) {},
+    error: function (jqXHR, estado, error) { },
   });
 }
 

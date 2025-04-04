@@ -79,7 +79,7 @@
 
         <div class="form-group col-md-6">
           <label for="input-total" class="control-label text-success"
-            >Monto Total (CLP):</label
+            >Monto Total (CLP): <div class="btn-precio-detalle-container" style="display:inline;"></div></label
           >
           <input
             style="font-weight: bold; font-size: 1.2em; color: black !important"

@@ -96,6 +96,7 @@ function pone_clientes() {
 }
 
 function modalAgregarProducto() {
+  window.selectedPrice = null;
   if ($("#table-pedido > tbody > tr").length > 19) {
     swal("No puedes cotizar más de 20 productos!", "", "error");
     return;
@@ -237,6 +238,29 @@ function carga_variedades(id_tipo) {
           const codigo = $("#select_tipo")
             .find("option:selected")
             .attr("x-codigo");
+            $("#modal-agregar-producto").find(".btn-precio-detalle-container").html("")
+          const precio_detalle = $(this).find("option:selected").attr("x-precio-detalle");
+          const precio = $(this).find("option:selected").attr("x-precio");
+          let formatoPrecio = precio.toLocaleString('es-ES', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          });
+          if (precio_detalle && precio_detalle.length) {
+            let formatoDetalle = precio_detalle.toLocaleString('es-ES', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            });
+
+            $("#modal-agregar-producto").find(".btn-precio-detalle-container").html(`
+              <button type="button" class="btn btn-outline-primary btn-sm" onclick="window.selectedPrice = 'mayorista';calcularSubtotal();">Mayorista: $ ${formatoPrecio}</button>
+              <button type="button" class="btn btn-outline-primary btn-sm" onclick="window.selectedPrice = 'detalle';calcularSubtotal()">Detalle: $ ${formatoDetalle}</button>
+            `)
+          }
+          else {
+            $("#modal-agregar-producto").find(".btn-precio-detalle-container").html(`
+                <button type="button" class="btn btn-outline-primary btn-sm" onclick="window.selectedPrice = 'mayorista';calcularSubtotal();">Mayorista: $ ${formatoPrecio}</button>
+            `)
+          }
         }
       );
     },
@@ -309,7 +333,7 @@ function addToPedido() {
     $("#modal-agregar-producto").modal("hide");
     const codigo = $("#select_variedad :selected").attr("x-codigofull");
     const nombre_variedad = $("#select_variedad :selected").attr("x-nombre");
-    const precio = $("#select_variedad :selected").attr("x-precio");
+    const precio = window.selectedPrice === "detalle" ? $("#select_variedad :selected").attr("x-precio-detalle") : $("#select_variedad :selected").attr("x-precio");
     const subtotal = parseInt(precio) * parseInt(cantidad);
 
     funcAddToPedido({
@@ -799,7 +823,10 @@ function cargarDatosCliente(id_cliente) {
 }
 
 function calcularSubtotal() {
-  const precio = $("#select_variedad option:selected").attr("x-precio");
+  const precioVal = $("#select_variedad option:selected").attr("x-precio");
+  const precio_detalleVal = $("#select_variedad option:selected").attr("x-precio-detalle");
+  
+  const precio = window.selectedPrice == "detalle" ? precio_detalleVal : precioVal;
   const cantidad = $("#input-cantidad").val().trim();
 
   const tipoDescuento = $("#select_descuento option:selected").val();

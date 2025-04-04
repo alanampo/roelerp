@@ -131,7 +131,7 @@ if ($consulta == "busca_variedades") {
 } else if ($consulta == "busca_variedades_select") {
     try {
         $id_tipo = $_POST["id_tipo"];
-        $cadena = "SELECT v.id, v.id_interno, v.nombre, ROUND(v.precio) as precio, t.codigo 
+        $cadena = "SELECT v.id, v.id_interno, v.nombre, ROUND(v.precio) as precio, ROUND(v.precio_detalle) as precio_detalle, t.codigo 
                    FROM variedades_producto v 
                    INNER JOIN tipos_producto t ON t.id = v.id_tipo 
                    WHERE v.eliminada IS NULL AND v.id_tipo = $id_tipo 
@@ -166,7 +166,7 @@ if ($consulta == "busca_variedades") {
                 $precio = $re["precio"] != null ? "- $$re[precio]" : "";
                 $nombre_escaped = mysqli_real_escape_string($con, $nombre_completo);
                 
-                echo "<option x-precio='$re[precio]' x-codigo='$re[codigo]' x-nombre='$nombre_escaped' x-codigofull='$re[codigo]$id_interno' value='$re[id]'>$nombre_completo ($re[codigo]$id_interno) $precio</option>";
+                echo "<option x-precio='$re[precio]' x-precio-detalle='$re[precio_detalle]' x-codigo='$re[codigo]' x-nombre='$nombre_escaped' x-codigofull='$re[codigo]$id_interno' value='$re[id]'>$nombre_completo ($re[codigo]$id_interno) $precio</option>";
             }
         }
     } catch (\Throwable $th) {
