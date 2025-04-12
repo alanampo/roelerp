@@ -876,7 +876,7 @@ function generarBoleta(id_cotizacion, id_guia, folio, caf) {
               $("#modal-vistaprevia").modal("hide");
               swal(
                 "La Boleta se guardó en el Sistema, pero hubo un error al enviarla al SII.",
-                "Deberás buscar la Boleta en el Historial e intentar reenviarla.",
+                data.errores ? JSON.stringify(data.errores) : "Deberás buscar la Boleta en el Historial e intentar reenviarla.",
                 "error"
               );
             } else {
