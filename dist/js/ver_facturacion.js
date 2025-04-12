@@ -1101,7 +1101,13 @@ function getEstadoDTE(trackID, facturaID, tipoDoc, estadoActual, rowid) {
               if (estadoActual != "ACEPTADO") {
                 updateEstadoDTE(rowid, "ACEPTADO", tipoDoc);
               }
-            } else {
+            } 
+            else if (data.codigo && data.descripcion){
+              $(".loader-container").html(
+                `<h5 class='text-warning font-weight-bold'>CÓDIGO: ${data.codigo} - DESCRIPCIÓN: ${data.descripcion}</h5>`
+              );
+            }
+            else {
               $(".loader-container").html(
                 "<h5 class='text-warning font-weight-bold'>NO SE PUDO OBTENER EL ESTADO. VERIFICA EN LA WEB DEL SII."
               );
