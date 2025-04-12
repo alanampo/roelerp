@@ -2293,7 +2293,7 @@ function generarBoleta($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_cot
         );
 
         $datita = base64_encode((string) $dataDTE);
-
+        mysqli_query($con, "UPDATE boletas SET data = '$datita' WHERE folio = $folio");
         // Intentar hasta 5 veces antes de lanzar excepción
         $max_attempts = 5;
         $attempt = 0;
