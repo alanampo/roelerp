@@ -323,9 +323,9 @@ if ($consulta == "generar_factura") {
     $esBoleta = isset($_POST["esBoleta"]) && $_POST["esBoleta"] == 1 ? TRUE : FALSE;
     if (isset($dataFolio["data"])) {
         if ($esBoleta !== TRUE) {
-            $DTEGenerado = generarFactura($json, $dataFolio["data"], $_POST["folio"], $id_guia, $dataFolio["folio_guia"]);
+            $DTEGenerado = generarFactura($json, $dataFolio["data"], $_POST["folio"], $id_guia, $dataFolio["folio_guia"], NULL, $con);
         } else {
-            $DTEGenerado = generarBoleta($json, $dataFolio["data"], $_POST["folio"], $id_guia, $dataFolio["folio_guia"]);
+            $DTEGenerado = generarBoleta($json, $dataFolio["data"], $_POST["folio"], $id_guia, $dataFolio["folio_guia"], NULL, $con);
         }
 
         $errores = [];
@@ -1150,7 +1150,7 @@ if ($consulta == "generar_factura") {
                 "condicion_pago" => $_POST["condicion_pago"],
                 'comentario' => $observaciones && strlen($observaciones) > 0 ? $observaciones : null
             );
-            $DTEGenerado = generarBoleta($mijson, $dataFolio, $folio, null, null);
+            $DTEGenerado = generarBoleta($mijson, $dataFolio, $folio, null, null, NULL, $con);
 
             if (!isset($DTEGenerado["errores"]) && isset($DTEGenerado["trackID"])) {
                 $track_id = $DTEGenerado["trackID"];
