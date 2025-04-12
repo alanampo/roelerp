@@ -2293,9 +2293,9 @@ function generarBoleta($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_cot
         );
 
         $datita = base64_encode((string) $dataDTE);
-        var_dump($folio);die;
-        $q = mysqli_query($con, "UPDATE boletas SET data = '$datita' WHERE folio = $folio");
-        var_dump($q);
+
+        mysqli_query($con, "UPDATE boletas SET data = '$datita' WHERE folio = $folio");
+        mysqli_commit($con);
 
         die;
         
