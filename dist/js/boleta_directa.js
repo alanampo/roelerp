@@ -960,7 +960,7 @@ function generarBoleta(id_cotizacion, id_guia, folioBOL, caf) {
             setLoading(false)
             $("#modal-vistaprevia").modal("hide");
             ClearPedido();
-            swal("La Boleta se guardó en el Sistema, pero hubo un error al enviarla al SII.", "Deberás buscar la Boleta en el Historial e intentar reenviarla.", "error");
+            swal("La Boleta se guardó en el Sistema, pero hubo un error al enviarla al SII.", x, "error");
           } else {
             swal("Ocurrió un error al generar la Boleta", x, "error");
             setLoading(false)
