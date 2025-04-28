@@ -45,6 +45,8 @@ async function func_check() {
     pone_comisiones();
     pone_compras();
     pone_situacion_proveedores();
+    pone_inventario()
+    pone_viveros_sidebar()
   } else {
     if (permisos.length) {
 
@@ -68,8 +70,14 @@ async function func_check() {
         else if (array[i] == "compras") {
           pone_compras();
         }
+        else if (array[i] == "viveros") {
+          pone_viveros_sidebar();
+        }
         else if (array[i] == "situacion-proveedores") {
           pone_situacion_proveedores();
+        }
+        else if (array[i] == "inventario"){
+          pone_inventario()
         }
       }
     } else {
@@ -364,4 +372,36 @@ function calculateDV(rut) {
   if (dvEsperado === 10) return "k";
   if (dvEsperado === 11) return "0";
   return `${dvEsperado}`;
+}
+
+function pone_inventario() {
+  if (isHome()) {
+    $(".col-inventario")
+      .html(
+        `
+        <a href="ver_inventario.php">
+          <div class="small-box" style="background-color:#088A85"> 
+            <div class="inner"  style="height:7.3em;">    
+              <p style='color:white'>Inventario</p>
+            </div>
+            <div class="icon">
+              <i style="color:rgba(0, 0, 0, 0.15);" class="fa fa-stack-overflow"></i>
+            </div>
+            <span class="small-box-footer" style="background-color:rgba(0, 0, 0, 0.1);">Ver Inventario <i class="fa fa-arrow-circle-right"></i></span>
+          </div>
+        </a>
+      `
+      )
+      .removeClass("d-none");
+  }
+
+  $("#contenedor_modulos").append(
+    '<li><a href="ver_inventario.php"><i class="fa fa-arrow-circle-right"></i> Inventario</a></li>'
+  );
+}
+
+function pone_viveros_sidebar() {
+  $("#contenedor_panel .treeview-menu").append(
+    '<li><a href="ver_viveros.php"><i class="fa fa-arrow-circle-right"></i> Viveros</a></li>'
+  );
 }

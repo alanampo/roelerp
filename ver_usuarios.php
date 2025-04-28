@@ -147,6 +147,8 @@
                                     <option value="panel">Panel de Control</option>
                                     <option value="compras">Facturas de Compras</option>
                                     <option value="situacion-proveedores">Situación Proveedores</option>
+                                    <option value="inventario">Inventario</option>
+                                    <option value="viveros">Viveros</option>
                                 </select>
                             </div>
 
