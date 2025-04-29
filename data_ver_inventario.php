@@ -1320,10 +1320,10 @@ if ($consulta == "busca_tipos") {
                         ));
                     }
                 }
-                $id_pys = $ww["id"];
+                $id_pys = $id;
                 if (isset($ww["rowid_valor"])) {
                     $query = "SELECT id_atributo_tipo_valor as id FROM atributos_$table" . "_valores_seleccionados WHERE id_$table = $id_pys AND id_atributo_$table" . "_valor = $ww[rowid_valor]";
-                    die($query);
+
                     $val3 = mysqli_query($con, $query);
 
                     if (mysqli_num_rows($val3) > 0) {
