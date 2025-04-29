@@ -643,6 +643,12 @@ if ($consulta == "busca_tipos") {
 
                         }
                     }
+                    else{
+                        $query = "DELETE FROM atributos_$table" . "_valores_seleccionados WHERE id_atributo_$table" . "_valor = $id_atributo_valor AND id_$table = $id_producto";
+                        if (!mysqli_query($con, $query)) {
+                            $errors[] = mysqli_error($con) . "-" . $query;
+                        }
+                    }
                 }
 
             }
