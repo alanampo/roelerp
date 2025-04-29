@@ -1,5 +1,5 @@
 <?php
-
+require_once $_SERVER['DOCUMENT_ROOT'] . '/vendor/autoload.php';
 require "./class_lib/sesionSecurity.php";
 require 'class_lib/class_conecta_mysql.php';
 require 'class_lib/funciones.php';
