@@ -2072,18 +2072,52 @@ function generarFactura($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_co
             $i = 0;
             foreach ($dataCotizacion["productos"] as $producto) {
                 if ($i == count($dataCotizacion["productos"]) - 1 && $comentario && mb_strlen($comentario) > 0100) {
-                    array_push($arrayproductos, array(
-                        'NmbItem' => $producto["variedad"] . " (" . $producto["codigo"] . ") " . ($producto["especie"] && strlen($producto["especie"]) > 0 ? $producto["especie"] : ""),
-                        'DscItem' => $comentario,
-                        'QtyItem' => (int) $producto["cantidad"],
-                        'PrcItem' => (int) $producto["precio"]
-                    ));
+                    if ($producto["descuento"] && $producto["descuento"]["tipo"] == "porcentual") {
+                        array_push($arrayproductos, array(
+                            'NmbItem' => $producto["variedad"] . " (" . $producto["codigo"] . ") " . ($producto["especie"] && strlen($producto["especie"]) > 0 ? $producto["especie"] : ""),
+                            'DscItem' => $comentario,
+                            'QtyItem' => (int) $producto["cantidad"],
+                            'PrcItem' => (int) $producto["precio"],
+                            'DescuentoPct' => (int) $producto["descuento"]["valor"],
+                        ));
+                    } else if ($producto["descuento"] && $producto["descuento"]["tipo"] == "fijo") {
+                        array_push($arrayproductos, array(
+                            'NmbItem' => $producto["variedad"] . " (" . $producto["codigo"] . ") " . ($producto["especie"] && strlen($producto["especie"]) > 0 ? $producto["especie"] : ""),
+                            'DscItem' => $comentario,
+                            'QtyItem' => (int) $producto["cantidad"],
+                            'PrcItem' => (int) $producto["precio"],
+                            'DescuentoMonto' => (int) $producto["descuento"]["valor"],
+                        ));
+                    } else {
+                        array_push($arrayproductos, array(
+                            'NmbItem' => $producto["variedad"] . " (" . $producto["codigo"] . ") " . ($producto["especie"] && strlen($producto["especie"]) > 0 ? $producto["especie"] : ""),
+                            'DscItem' => $comentario,
+                            'QtyItem' => (int) $producto["cantidad"],
+                            'PrcItem' => (int) $producto["precio"],
+                        ));
+                    }
                 } else {
-                    array_push($arrayproductos, array(
-                        'NmbItem' => $producto["variedad"] . " (" . $producto["codigo"] . ") " . ($producto["especie"] && strlen($producto["especie"]) > 0 ? $producto["especie"] : ""),
-                        'QtyItem' => (int) $producto["cantidad"],
-                        'PrcItem' => (int) $producto["precio"]
-                    ));
+                    if ($producto["descuento"] && $producto["descuento"]["tipo"] == "porcentual") {
+                        array_push($arrayproductos, array(
+                            'NmbItem' => $producto["variedad"] . " (" . $producto["codigo"] . ") " . ($producto["especie"] && strlen($producto["especie"]) > 0 ? $producto["especie"] : ""),
+                            'QtyItem' => (int) $producto["cantidad"],
+                            'PrcItem' => (int) $producto["precio"],
+                            'DescuentoPct' => (int) $producto["descuento"]["valor"],
+                        ));
+                    } else if ($producto["descuento"] && $producto["descuento"]["tipo"] == "fijo") {
+                        array_push($arrayproductos, array(
+                            'NmbItem' => $producto["variedad"] . " (" . $producto["codigo"] . ") " . ($producto["especie"] && strlen($producto["especie"]) > 0 ? $producto["especie"] : ""),
+                            'QtyItem' => (int) $producto["cantidad"],
+                            'PrcItem' => (int) $producto["precio"],
+                            'DescuentoMonto' => (int) $producto["descuento"]["valor"],
+                        ));
+                    } else {
+                        array_push($arrayproductos, array(
+                            'NmbItem' => $producto["variedad"] . " (" . $producto["codigo"] . ") " . ($producto["especie"] && strlen($producto["especie"]) > 0 ? $producto["especie"] : ""),
+                            'QtyItem' => (int) $producto["cantidad"],
+                            'PrcItem' => (int) $producto["precio"]
+                        ));
+                    }
                 }
 
                 $i++;
@@ -2101,19 +2135,19 @@ function generarFactura($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_co
                         ],
                         'Emisor' => $GLOBALS["Emisor"],
                         'Receptor' => [
-                                'RUTRecep' => $dataCotizacion["rut"],
-                                'RznSocRecep' => $dataCotizacion["cliente"],
-                                'GiroRecep' => $dataCotizacion["giro"] ? strtoupper($dataCotizacion["giro"]) : "-",
-                                'DirRecep' => $dataCotizacion["domicilio"],
-                                'CmnaRecep' => $dataCotizacion["comuna"] ? strtoupper($dataCotizacion["comuna"]) : "-",
-                            ],
+                            'RUTRecep' => $dataCotizacion["rut"],
+                            'RznSocRecep' => $dataCotizacion["cliente"],
+                            'GiroRecep' => $dataCotizacion["giro"] ? strtoupper($dataCotizacion["giro"]) : "-",
+                            'DirRecep' => $dataCotizacion["domicilio"],
+                            'CmnaRecep' => $dataCotizacion["comuna"] ? strtoupper($dataCotizacion["comuna"]) : "-",
+                        ],
                     ],
                     'Detalle' => $arrayproductos,
                     'Referencia' => [
-                            'TpoDocRef' => ($id_guia != null && $id_guia != "null" ? 52 : 33),
-                            'FolioRef' => ($id_guia != null && $id_guia != "null" ? $folio_guia : $folio),
-                            'RazonRef' => $condicion_pago,
-                        ],
+                        'TpoDocRef' => ($id_guia != null && $id_guia != "null" ? 52 : 33),
+                        'FolioRef' => ($id_guia != null && $id_guia != "null" ? $folio_guia : $folio),
+                        'RazonRef' => $condicion_pago,
+                    ],
                 ],
             ];
 
@@ -2239,12 +2273,12 @@ function generarBoleta($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_cot
                 ],
                 'Emisor' => $emisor,
                 'Receptor' => [
-                        'RUTRecep' => $dataCotizacion["rut"],
-                        'RznSocRecep' => $dataCotizacion["cliente"],
-                        'GiroRecep' => $dataCotizacion["giro"] ? strtoupper($dataCotizacion["giro"]) : "-",
-                        'DirRecep' => $dataCotizacion["domicilio"],
-                        'CmnaRecep' => $dataCotizacion["comuna"] ? strtoupper($dataCotizacion["comuna"]) : "-",
-                    ],
+                    'RUTRecep' => $dataCotizacion["rut"],
+                    'RznSocRecep' => $dataCotizacion["cliente"],
+                    'GiroRecep' => $dataCotizacion["giro"] ? strtoupper($dataCotizacion["giro"]) : "-",
+                    'DirRecep' => $dataCotizacion["domicilio"],
+                    'CmnaRecep' => $dataCotizacion["comuna"] ? strtoupper($dataCotizacion["comuna"]) : "-",
+                ],
             ],
             'Detalle' => $arrayproductos,
         ];
@@ -2298,7 +2332,7 @@ function generarBoleta($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_cot
         mysqli_commit($con);
 
         die;
-        
+
         // Intentar hasta 5 veces antes de lanzar excepción
         $max_attempts = 5;
         $attempt = 0;
@@ -2335,7 +2369,7 @@ function generarBoleta($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_cot
         );
 
     } catch (Throwable $th) {
-        echo $th->getMessage()." - ".$th->getTraceAsString();
+        echo $th->getMessage() . " - " . $th->getTraceAsString();
         return array(
             "errores" => "Error al enviar al SII {$th->getMessage()}",
         );
@@ -2633,12 +2667,12 @@ function generarNotaCredito($dataFolio, $folio, $folio_factura, $dataFactura, $e
                 ],
                 'Emisor' => $GLOBALS["Emisor"],
                 'Receptor' => [
-                        'RUTRecep' => $dataFactura["rut"],
-                        'RznSocRecep' => $dataFactura["cliente"],
-                        'GiroRecep' => $dataFactura["giro"] ? strtoupper($dataFactura["giro"]) : "-",
-                        'DirRecep' => $dataFactura["domicilio"],
-                        'CmnaRecep' => $dataFactura["comuna"] ? strtoupper($dataFactura["comuna"]) : "-",
-                    ],
+                    'RUTRecep' => $dataFactura["rut"],
+                    'RznSocRecep' => $dataFactura["cliente"],
+                    'GiroRecep' => $dataFactura["giro"] ? strtoupper($dataFactura["giro"]) : "-",
+                    'DirRecep' => $dataFactura["domicilio"],
+                    'CmnaRecep' => $dataFactura["comuna"] ? strtoupper($dataFactura["comuna"]) : "-",
+                ],
                 'Totales' => [
                     // estos valores serán calculados automáticamente
                     'MntNeto' => 0,
@@ -2649,13 +2683,13 @@ function generarNotaCredito($dataFolio, $folio, $folio_factura, $dataFactura, $e
             ],
             'Detalle' => $dataFactura["productos"],
             'Referencia' => [
-                    [
-                        'TpoDocRef' => $esBoleta ? 39 : 33,
-                        'FolioRef' => $folio_factura,
-                        'CodRef' => 1,
-                        'RazonRef' => "ANULA " . ($esBoleta ? "BOLETA" : "FACTURA"),
-                    ],
+                [
+                    'TpoDocRef' => $esBoleta ? 39 : 33,
+                    'FolioRef' => $folio_factura,
+                    'CodRef' => 1,
+                    'RazonRef' => "ANULA " . ($esBoleta ? "BOLETA" : "FACTURA"),
                 ],
+            ],
         ],
     ];
 
@@ -2722,12 +2756,12 @@ function generarNotaDebito($dataFolio, $folio, $folio_nc, $dataFactura)
                 ],
                 'Emisor' => $GLOBALS["Emisor"],
                 'Receptor' => [
-                        'RUTRecep' => $dataFactura["rut"],
-                        'RznSocRecep' => $dataFactura["cliente"],
-                        'GiroRecep' => $dataFactura["giro"] ? strtoupper($dataFactura["giro"]) : "-",
-                        'DirRecep' => $dataFactura["domicilio"],
-                        'CmnaRecep' => $dataFactura["comuna"] ? strtoupper($dataFactura["comuna"]) : "-",
-                    ],
+                    'RUTRecep' => $dataFactura["rut"],
+                    'RznSocRecep' => $dataFactura["cliente"],
+                    'GiroRecep' => $dataFactura["giro"] ? strtoupper($dataFactura["giro"]) : "-",
+                    'DirRecep' => $dataFactura["domicilio"],
+                    'CmnaRecep' => $dataFactura["comuna"] ? strtoupper($dataFactura["comuna"]) : "-",
+                ],
                 'Totales' => [
                     // estos valores serán calculados automáticamente
                     'MntNeto' => 0,
@@ -2738,13 +2772,13 @@ function generarNotaDebito($dataFolio, $folio, $folio_nc, $dataFactura)
             ],
             'Detalle' => $dataFactura["productos"],
             'Referencia' => [
-                    [
-                        'TpoDocRef' => 61,
-                        'FolioRef' => $folio_nc,
-                        'CodRef' => 1,
-                        'RazonRef' => "ANULA NC",
-                    ],
+                [
+                    'TpoDocRef' => 61,
+                    'FolioRef' => $folio_nc,
+                    'CodRef' => 1,
+                    'RazonRef' => "ANULA NC",
                 ],
+            ],
         ],
     ];
 
@@ -2823,12 +2857,12 @@ function generarGuiaDespacho($dataFolio, $folio, $json)
                 ],
                 'Emisor' => $GLOBALS["Emisor"],
                 'Receptor' => [
-                        'RUTRecep' => $json["rut"],
-                        'RznSocRecep' => $json["razon"],
-                        'GiroRecep' => $json["giro"],
-                        'DirRecep' => $json["domicilio"],
-                        'CmnaRecep' => $json["comuna"],
-                    ],
+                    'RUTRecep' => $json["rut"],
+                    'RznSocRecep' => $json["razon"],
+                    'GiroRecep' => $json["giro"],
+                    'DirRecep' => $json["domicilio"],
+                    'CmnaRecep' => $json["comuna"],
+                ],
                 'Totales' => [
                     // estos valores serán calculados automáticamente
                     'MntNeto' => 0,
@@ -2840,9 +2874,9 @@ function generarGuiaDespacho($dataFolio, $folio, $json)
                     "Patente" => strtoupper($json["patente"]),
                     "RUTTrans" => strtoupper($json["rutTransporte"]),
                     "Chofer" => [
-                            "RUTChofer" => strtoupper($json["rutChofer"]),
-                            "NombreChofer" => strtoupper($json["nombreChofer"]),
-                        ],
+                        "RUTChofer" => strtoupper($json["rutChofer"]),
+                        "NombreChofer" => strtoupper($json["nombreChofer"]),
+                    ],
                     "DirDest" => "Dirección del Cliente",
                     "CmnaDest" => "(" . $json["comuna"] . ")",
                 ],
@@ -2975,10 +3009,10 @@ function getDataCotizacion($con, $id_cotizacion, $directa)
                     "total" => $total,
                     "subtotal" => $subtotal,
                     "descuento" => $ww2["tipo_descuento"] != null && $ww2["tipo_descuento"] > 0 ?
-                    array(
-                        "tipo" => $ww2["tipo_descuento"] == 1 ? "porcentual" : "fijo",
-                        "valor" => $ww2["valor_descuento"],
-                    ) : null,
+                        array(
+                            "tipo" => $ww2["tipo_descuento"] == 1 ? "porcentual" : "fijo",
+                            "valor" => $ww2["valor_descuento"],
+                        ) : null,
                 ));
             }
             $array = array(
