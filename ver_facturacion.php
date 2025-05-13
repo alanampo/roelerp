@@ -46,7 +46,7 @@ $fecha = $dias[date('w')] . " " . date('d') . " de " . $meses[date('n') - 1] . "
               <small>
                 <?php echo $fecha; ?>
               </small>
-              <button class="btn btn-sm btn-primary ml-3" onclick="testToken()">SOLICITUD DESPACHO</button>
+              <button class="btn btn-sm btn-primary ml-3" onclick="generarSolicitudDespacho()">SOLICITUD DESPACHO</button>
 
               
             </h1>
