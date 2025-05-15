@@ -2113,6 +2113,12 @@ async function printOrdenEnvio(dataOrden) {
             </div>
             <span>${dataCotizacion.data.rut}</span>
           </div>
+          <div class="d-flex flex-row">
+            <div style="width:130px">
+              <span>Email:</span>
+            </div>
+            <span>${dataCotizacion.data.email && dataCotizacion.data.email.length ? dataCotizacion.data.email : "-"}</span>
+          </div>
           
         </td> 
         <td class="text-center">
