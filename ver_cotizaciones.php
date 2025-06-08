@@ -70,6 +70,8 @@
                                     onclick="abrirTab(event, 'historial');">HISTORIAL</button>
                                 <button id="tabnueva" class="tablinks" onclick="abrirTab(event, 'nueva');"><span
                                         id="label-tab-cotizacion">NUEVA COTIZACIÓN</span></button>
+                                        <button id="tabordenes" class="tablinks" onclick="abrirTab(event, 'ordenes');"><span
+                                        id="label-tab-ordenes">ÓRDENES ENVÍO</span></button>
 
                             </div>
                         </div>
@@ -202,6 +204,13 @@
                                         </tr>
                                     </tbody>
                                 </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tabco tab-ordenes d-none">
+                        <div class='row mt-2 mb-5'>
+                            <div class='col'>
+                                <div id='tabla_ordenes'></div>
                             </div>
                         </div>
                     </div>

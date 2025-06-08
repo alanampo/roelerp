@@ -18,6 +18,8 @@ $(document).ready(function () {
       this.value = this.value.replace(/\D/g, "");
     }
   );
+
+  getAtributosSelect()
 });
 
 function abrirTab(evt, tabName) {
@@ -51,7 +53,7 @@ function busca_productos(tab) {
       tab == "productos" || tab == "servicios" ? "_tipo" : "-tipo-pos-filtro"
     } option:selected`
   ).val();
-
+  const filtroAtributos = $("#select_filtro_atributos").val();
   $.ajax({
     beforeSend: function () {
       $("#tabla_entradas").html("Cargando...");
@@ -60,6 +62,7 @@ function busca_productos(tab) {
     type: "POST",
     data: {
       filtro: filtro && filtro.length ? filtro : null,
+      filtroAtributos,
       consulta:
         tab == "tipos"
           ? "busca_tipos"
@@ -1388,6 +1391,26 @@ function getViverosValoresSelect() {
       $("#select-vivero-valores,#select-vivero-valores2").html(x).selectpicker("refresh");
     },
     error: function (jqXHR, estado, error) {},
+  });
+}
+
+function getAtributosSelect() {
+  let atributosSelect = "";
+  $.ajax({
+      beforeSend: function () {
+          atributosSelect = null;
+      },
+      url: "data_ver_inventario.php",
+      type: "POST",
+      data: { consulta: "get_atributos_select" },
+      success: function (x) {
+          console.log(x);
+          if (x.includes("option")) {
+              atributosSelect = x.trim();
+              $("#select_filtro_atributos").html(x).selectpicker("refresh")
+          }
+      },
+      error: function (jqXHR, estado, error) { },
   });
 }
 

@@ -530,3 +530,18 @@ ALTER TABLE `servicios`
   ADD CONSTRAINT `fk_id_tipo5` FOREIGN KEY (`id_tipo`) REFERENCES `tipos_servicio` (`id`);
 
 
+CREATE TABLE `ordenes_envio` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `codigo` MEDIUMTEXT DEFAULT NULL,
+  `fecha` DATETIME DEFAULT NULL,
+  `id_cliente` INT(11) NOT NULL,
+  `id_cotizacion` INT(11) DEFAULT NULL,
+  `id_cotizacion_directa` INT(11) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_id_cliente` (`id_cliente`),
+  KEY `idx_id_cotizacion` (`id_cotizacion`),
+  KEY `idx_id_cotizacion_directa` (`id_cotizacion_directa`),
+  CONSTRAINT `fk_ordenes_envio_cliente` FOREIGN KEY (`id_cliente`) REFERENCES `clientes` (`id_cliente`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_ordenes_envio_cotizacion` FOREIGN KEY (`id_cotizacion`) REFERENCES `cotizaciones` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_ordenes_envio_cotizacion_directa` FOREIGN KEY (`id_cotizacion_directa`) REFERENCES `cotizaciones_directas` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;

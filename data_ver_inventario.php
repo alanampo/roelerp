@@ -1709,5 +1709,15 @@ if ($consulta == "busca_tipos") {
     } else {
         print_r(mysqli_error($con));
     }
+}
+else if ($consulta == "get_atributos_select") {
+    $query = "SELECT id, nombre FROM atributos_tipos ORDER BY id DESC";
 
+    $val = mysqli_query($con, $query);
+
+    if (mysqli_num_rows($val) > 0) {
+        while ($ww = mysqli_fetch_array($val)) {
+            echo "<option x-nombre='$ww[nombre]' value='$ww[id]'>$ww[nombre] ($ww[id])</option>";
+        }
+    }
 }

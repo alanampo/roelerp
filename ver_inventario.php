@@ -91,6 +91,7 @@
                 </select>
               </div>
             </div>
+
             <div class="col text-right">
               <button class="btn btn-success fa fa-plus-square" style="font-size: 1.6em"
                 onclick="modalAgregar();"></button>

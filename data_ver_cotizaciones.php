@@ -303,7 +303,65 @@ if ($consulta == "cargar_datos_cliente") {
     } else {
         echo "<div class='callout callout-danger'><b>No se encontraron cotizaciones...</b></div>";
     }
-} else if ($consulta == "eliminar_cotizacion") {
+}
+else if ($consulta == "cargar_historial_ordenes_envio") {
+    mysqli_query($con, "SET SESSION SQL_BIG_SELECTS=1");
+    $query = "SELECT
+            o.id,
+            o.codigo,
+            cl.nombre as cliente,
+            cl.id_cliente,
+            o.id_cotizacion,
+            DATE_FORMAT(o.fecha, '%d/%m/%Y %H:%i') as fecha,
+            DATE_FORMAT(o.fecha, '%Y%m%d%H%i') as fecha_raw
+            
+            FROM ordenes_envio o
+            INNER JOIN clientes cl ON cl.id_cliente = o.id_cliente
+            ";
+
+    $val = mysqli_query($con, $query);
+
+    if (mysqli_num_rows($val) > 0) {
+
+        echo "<div class='box box-primary'>";
+        echo "<div class='box-header with-border'>";
+        echo "<h3 class='box-title'>Historial de Órdenes</h3>";
+        echo "</div>";
+        echo "<div class='box-body'>";
+        echo "<table id='tabla_ordenes_envio' class='table table-bordered table-responsive w-100 d-block d-md-table'>";
+        echo "<thead>";
+        echo "<tr>";
+        echo "<th>N°</th><th>Cliente</th><th>Fecha</th><th>Cotización Nº</th><th></th>";
+        echo "</tr>";
+        echo "</thead>";
+        echo "<tbody>";
+     
+        while ($ww = mysqli_fetch_array($val)) {
+            $data = base64_encode($ww["codigo"]);
+            $boton_eliminar = "<button class='btn btn-danger fa fa-trash btn-sm' onClick='eliminarOrdenEnvio($ww[id])'></button>";
+            echo "
+    <tr class='text-center' style='cursor:pointer' x-id='$ww[id]'>
+      <td>$ww[id]</td>
+      <td>$ww[cliente] ($ww[id_cliente])</td>
+      <td><span class='d-none'>$ww[fecha_raw]</span>$ww[fecha]</td>
+      <td>$ww[id_cotizacion]</td>
+      <td class='text-center'>
+            <div class='d-flex flex-row justify-content-center align-items-center'>
+                <button onclick='printOrdenEnvio2(\"$data\")' class='btn btn-primary fa fa-print btn-sm mr-4'></button>
+                $boton_eliminar
+            </div>
+      </td>
+    </tr>";
+        }
+        echo "</tbody>";
+        echo "</table>";
+        echo "</div>";
+        echo "</div>";
+    } else {
+        echo "<div class='callout callout-danger'><b>No se encontraron órdenes...</b></div>";
+    }
+}
+else if ($consulta == "eliminar_cotizacion") {
     $rowid = $_POST["rowid"];
     $errors = array();
     mysqli_autocommit($con, false);
@@ -333,7 +391,25 @@ if ($consulta == "cargar_datos_cliente") {
         //throw $th;
         echo "error: $th";
     }
-} else if ($consulta == "cargar_cotizacion") {
+}
+else if ($consulta == "eliminar_orden_envio") {
+    $rowid = $_POST["rowid"];
+    $errors = array();
+    try {
+        $query = "DELETE FROM ordenes_envio WHERE id = $rowid";
+        if (mysqli_query($con, $query)) {
+            echo "success";
+        }
+        else{
+            echo "error: ".mysqli_error($con);
+        }
+
+    } catch (\Throwable $th) {
+        //throw $th;
+        echo "error: $th";
+    }
+}
+else if ($consulta == "cargar_cotizacion") {
     $id = $_POST["id"];
     $directa = $_POST["directa"] != null ? true : false;
 
@@ -655,6 +731,16 @@ if ($consulta == "cargar_datos_cliente") {
         echo "success";
     } catch (Exception $e) {
         echo "Hubo un error al enviar el correo: {$mail->ErrorInfo}";
+    }
+}
+else if ($consulta == "guardar_orden_envio"){
+    $data = $_POST["data"];
+    $id_cliente = $_POST["id_cliente"];
+    $id_cotizacion = $_POST["id_cotizacion"];
+    $query = "INSERT INTO ordenes_envio (codigo, id_cliente, id_cotizacion, fecha) VALUES ('$data', $id_cliente, $id_cotizacion, NOW())";
+
+    if (mysqli_query($con, $query)){
+        echo "success";
     }
 }
 // else if ($consulta == "genera_uniqid"){

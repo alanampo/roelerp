@@ -541,6 +541,10 @@ function abrirTab(evt, tabName) {
   } else if (tabName == "nueva") {
     $(".tab-nueva").addClass("d-block");
   }
+  else if (tabName == "ordenes") {
+    $(".tab-ordenes").addClass("d-block");
+    loadOrdenes();
+  }
   //busca_entradas(tabName);
 }
 
@@ -1006,6 +1010,53 @@ function loadHistorial() {
   });
 }
 
+
+function loadOrdenes() {
+  $.ajax({
+    beforeSend: function () {
+      $("#tabla_ordenes").html("Buscando, espere...");
+    },
+    url: phpFile,
+    type: "POST",
+    data: {
+      consulta: "cargar_historial_ordenes_envio",
+    },
+    success: function (x) {
+      $("#tabla_ordenes").html(x);
+      $("#tabla_ordenes_envio").DataTable({
+        pageLength: 50,
+        order: [[0, "desc"]],
+        language: {
+          lengthMenu: "Mostrando _MENU_ órdenes por página",
+          zeroRecords: "No hay órdenes",
+          info: "Página _PAGE_ de _PAGES_",
+          infoEmpty: "No hay órdenes",
+          infoFiltered: "(filtrado de _MAX_ órdenes en total)",
+          lengthMenu: "Mostrar _MENU_ órdenes",
+          loadingRecords: "Cargando...",
+          processing: "Procesando...",
+          search: "Buscar:",
+          zeroRecords: "No se encontraron órdenes",
+          paginate: {
+            first: "Primera",
+            last: "Última",
+            next: "Siguiente",
+            previous: "Anterior",
+          },
+          aria: {
+            sortAscending: ": toca para ordenar en modo ascendente",
+            sortDescending: ": toca para ordenar en modo descendente",
+          },
+        },
+      });
+    },
+    error: function (jqXHR, estado, error) {
+      $("#tabla_ordenes").html(
+        "Ocurrió un error al cargar los datos: " + estado + " " + error
+      );
+    },
+  });
+}
 function eliminarCotizacion(rowid) {
   swal("Estás seguro/a de ELIMINAR la cotización?", "", {
     icon: "warning",
@@ -1029,6 +1080,42 @@ function eliminarCotizacion(rowid) {
               loadHistorial();
             } else {
               swal("Ocurrió un error al eliminar la Cotización", data, "error");
+            }
+          },
+        });
+
+        break;
+
+      default:
+        break;
+    }
+  });
+}
+
+
+function eliminarOrdenEnvio(rowid) {
+  swal("Estás seguro/a de ELIMINAR la Órden de Envío?", "", {
+    icon: "warning",
+    buttons: {
+      cancel: "NO",
+      catch: {
+        text: "SI, ELIMINAR",
+        value: "catch",
+      },
+    },
+  }).then((value) => {
+    switch (value) {
+      case "catch":
+        $.ajax({
+          type: "POST",
+          url: phpFile,
+          data: { consulta: "eliminar_orden_envio", rowid: rowid },
+          success: function (data) {
+            if (data.trim() == "success") {
+              swal("Eliminaste la Órden correctamente!", "", "success");
+              loadOrdenes();
+            } else {
+              swal("Ocurrió un error al eliminar la Órden", data, "error");
             }
           },
         });
@@ -1926,29 +2013,7 @@ function guardarOrdenEnvio() {
   printOrdenEnvio(dataOrden);
   return;
 
-  $.ajax({
-    beforeSend: function () { },
-    url: phpFile,
-    type: "POST",
-    data: {
-      consulta: "guardar_orden_envio",
-      bultos: JSON.stringify(bultos),
-      peso: peso,
-      alto: alto,
-      ancho: ancho,
-      largo: largo,
-      notas: notas && notas.length ? notas : null,
-      tipo_entrega: tipo,
-      id_sucursal: tipo == 0 ? id_sucursal : null,
-      direccion: tipo == 1 ? direccion.toUpperCase() : null,
-      id_cotizacion: currentCotizacion.id_cotizacion,
-    },
-    success: function (x) {
-      if (x.includes("success")) {
-      }
-    },
-    error: function (jqXHR, estado, error) { },
-  });
+  
 }
 
 async function printOrdenEnvio(dataOrden) {
@@ -2171,6 +2236,7 @@ async function printOrdenEnvio(dataOrden) {
    }
     `; //some css goes here
 
+    storeOrdenEnvio($(".print-orden-envio").html())
     window.print();
     document.getElementsByTagName("style")[0].innerHTML = ``;
     document.getElementById("ocultar").style.display = "block";
@@ -2178,7 +2244,60 @@ async function printOrdenEnvio(dataOrden) {
     $("#modal-vistaprevia").modal("show");
   }, 500);
 }
+function decodeBase64UTF8(base64String) {
+  const binaryString = atob(base64String);
+  const bytes = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+  }
+  return new TextDecoder("utf-8").decode(bytes);
+}
+function printOrdenEnvio2(data){
+  $(".print-orden-envio").html(decodeBase64UTF8(data));
 
+  $("#ocultar").css({ display: "none" });
+  $(".print-orden-envio").css({ display: "block" });
+
+  setTimeout(() => {
+    document.getElementsByTagName("style")[0].innerHTML = `
+  
+    @media print {
+      html {
+          width: 100%;
+          height:100%;
+      }
+      @page{
+          size: 600px 600px !important;
+          margin: 0 !important; 
+      }
+   }
+    `; //some css goes here
+
+    window.print();
+    document.getElementsByTagName("style")[0].innerHTML = ``;
+    document.getElementById("ocultar").style.display = "block";
+    $(".print-orden-envio").css({ display: "none" });
+  }, 500);
+}
+
+function storeOrdenEnvio(html){
+  $.ajax({
+    beforeSend: function () { },
+    url: phpFile,
+    type: "POST",
+    data: {
+      consulta: "guardar_orden_envio",
+      data: html,
+      id_cotizacion: currentCotizacion.id_cotizacion,
+      id_cliente: currentCotizacion.data.id_cliente,
+    },
+    success: function (x) {
+      if (x.includes("success")) {
+      }
+    },
+    error: function (jqXHR, estado, error) { },
+  });
+}
 function modalQR() {
   arrCameras = [];
   currentCamera = null;
