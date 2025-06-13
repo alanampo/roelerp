@@ -29,6 +29,7 @@ $(document).ready(function () {
     "changed.bs.select",
     function (e, clickedIndex, newValue, oldValue) {
       $("#select-sucursal").html("").selectpicker();
+      $(".col-direccion-envio-2").addClass("d-none");
       if (this.value == 0) {
         getTransportistasSelect();
         $(".col-select-transp,.col-select-sucursal").removeClass("d-none");
@@ -36,7 +37,12 @@ $(document).ready(function () {
       } else if (this.value == 1) {
         $(".col-select-transp,.col-select-sucursal").addClass("d-none");
         $(".col-direccion-envio").removeClass("d-none");
-      } else {
+      }
+      else if (this.value == 2) {
+        $(".col-select-transp,.col-select-sucursal,.col-direccion-envio").addClass("d-none");
+        $(".col-direccion-envio-2").removeClass("d-none");
+      }
+      else {
         $(".col-select-transp,.col-select-sucursal").addClass("d-none");
         $(".col-direccion-envio").addClass("d-none");
       }
@@ -1147,6 +1153,7 @@ function printDataCotizacion(id, btn) {
           const {
             comentario,
             domicilio,
+            domicilio2,
             ciudad,
             comuna,
             cliente,
@@ -1810,14 +1817,14 @@ function getDatosTransporte() {
 
 function modalOrdenEnvio() {
   $("#input-direccion-entrega").val(currentCotizacion.data.domicilio);
-
+  $("#input-direccion-entrega2").val(currentCotizacion.data.domicilio2);
   $("#select-tipo-envio").val("0").selectpicker("refresh");
   getTransportistasSelect();
 
   $("#select-transportista").val("default").selectpicker("refresh");
   $("#select-sucursal").html("").selectpicker("refresh");
   $(".col-select-transp,.col-select-sucursal").removeClass("d-none");
-  $(".col-direccion-envio").addClass("d-none");
+  $(".col-direccion-envio,.col-direccion-envio-2").addClass("d-none");
 
   $("#modal-orden-envio").modal("show");
 
@@ -1967,6 +1974,15 @@ function guardarOrdenEnvio() {
     return;
   }
 
+  const direccion2 = $("#input-direccion-entrega2")
+    .val()
+    .trim()
+    .replace(/[\s|.'"']/g, " ");
+  if (tipo == 2 && (!direccion2 || !direccion2.length)) {
+    swal("Ingresa la Dirección de Entrega", "", "error");
+    return;
+  }
+
   const notas = $("#input-notas-entrega")
     .val()
     .trim()
@@ -2003,6 +2019,7 @@ function guardarOrdenEnvio() {
     tipo,
     id_sucursal,
     direccion,
+    direccion2,
     notas,
     bultos,
     nombre_sucursal,
@@ -2067,6 +2084,9 @@ async function printOrdenEnvio(dataOrden) {
     direccionEntrega = `Suc. ${nombre_transp} ${nombre_sucursal} - ${direccion_sucursal}`;
   } else if (tipo == 1) {
     direccionEntrega = dataOrden.direccion;
+  }
+  else if (tipo == 2) {
+    direccionEntrega = dataOrden.direccion2;
   }
   bultos.forEach(function (b, i) {
     const { peso, alto, ancho, largo } = b;

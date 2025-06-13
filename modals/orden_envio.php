@@ -16,6 +16,7 @@
                                 data-dropup-auto="false">
                             <option value="0">SUCURSAL</option>    
                             <option value="1">DOMICILIO CLIENTE</option>    
+                            <option value="2">DOMICILIO ALTERNATIVO</option>    
                         </select>
                     </div>
                     <div class="form-group col-md-8 col-select-transp d-none">
@@ -27,6 +28,11 @@
                     <div class="form-group col-md-8 col-direccion-envio d-none">
                         <label for="input-direccion-entrega" class="control-label">Dirección:</label>
                         <input type="search" autocomplete="off" class="form-control" name="input-direccion-entrega" id="input-direccion-entrega"
+                            maxlength="120" />
+                    </div>
+                    <div class="form-group col-md-8 col-direccion-envio-2 d-none">
+                        <label for="input-direccion-entrega2" class="control-label">Dirección 2:</label>
+                        <input type="search" autocomplete="off" class="form-control" name="input-direccion-entrega2" id="input-direccion-entrega2"
                             maxlength="120" />
                     </div>
                 </div>

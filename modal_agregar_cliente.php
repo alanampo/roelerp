@@ -21,8 +21,19 @@
                         <label class="control-label">Domicilio:</label>
                     </div>
                     <div>
+                        <form action="#" onsubmit="$('#domiciliocliente2_txt').focus();return false;">
+                            <input type="search" maxlength="100" autocomplete="off" id="domiciliocliente_txt"
+                                style="text-transform:uppercase" class="form-control">
+                        </form>
+                    </div>
+                </div>
+                <div class='form-group'>
+                    <div>
+                        <label class="control-label">Domicilio Alternativo:</label>
+                    </div>
+                    <div>
                         <form action="#" onsubmit="$('#select-comuna2').focus();return false;">
-                            <input type="search" maxlength="50" autocomplete="off" id="domiciliocliente_txt"
+                            <input type="search" maxlength="100" autocomplete="off" id="domiciliocliente2_txt"
                                 style="text-transform:uppercase" class="form-control">
                         </form>
                     </div>

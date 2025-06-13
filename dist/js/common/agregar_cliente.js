@@ -27,6 +27,7 @@ function MostrarModalAgregarCliente() {
   function GuardarCliente() {
     const nombre = $("#nombrecliente_txt").val().trim();
     const domicilio = $("#domiciliocliente_txt").val().trim();
+    const domicilio2 = $("#domiciliocliente2_txt").val().trim();
     const telefono = $("#telcliente_txt").val().trim();
     const rut = $("#rutcliente_txt").val().trim();
     const razonSocial = $("#razonsocial_txt").val().trim();
@@ -56,6 +57,7 @@ function MostrarModalAgregarCliente() {
           tipo: id_cliente && id_cliente.length ? "editar" : "agregar",
           nombre: nombre,
           domicilio: domicilio,
+          domicilio2,
           telefono: telefono,
           rut: rut,
           razonSocial: razonSocial,
@@ -103,6 +105,7 @@ function MostrarModalAgregarCliente() {
     const nombre = $(tr).find(".td-nombre").text();
     const razon = $(tr).attr("x-razon");
     const domicilio = $(tr).find(".td-domicilio").text();
+    const domicilio2 = $(tr).find(".td-domicilio2").text();
     const telefono = $(tr).find(".td-telefono").text();
     const email = $(tr).find(".td-email").text();
     const rut = $(tr).find(".td-rut").text();
@@ -110,6 +113,7 @@ function MostrarModalAgregarCliente() {
 
     $("#nombrecliente_txt").val(nombre);
     $("#domiciliocliente_txt").val(domicilio);
+    $("#domiciliocliente2_txt").val(domicilio2);
     $("#telcliente_txt").val(telefono);
     $("#rutcliente_txt").val(rut);
     $("#razonsocial_txt").val(razon);
