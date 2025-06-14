@@ -1234,3 +1234,84 @@ UNION
         echo json_encode($productos);
     }
 }
+else if ($consulta == "guardar_solicitud_despacho"){
+    $data = base64_encode($_POST["data"]);
+    $observaciones = mb_strlen($_POST["observaciones"]) > 0 ? base64_encode($_POST["observaciones"]) : "";
+    $consignatarios = mb_strlen($_POST["consignatarios"]) ? base64_encode($_POST["consignatarios"]) : "";
+    $query = "INSERT INTO solicitudes_despacho (codigo, observaciones, consignatarios, fecha) VALUES ('$data', '$observaciones', '$consignatarios', NOW())";
+    if (mysqli_query($con, $query)){
+        echo "success";
+    }
+}
+else if ($consulta == "cargar_solicitudes_despacho") {
+    mysqli_query($con, "SET SESSION SQL_BIG_SELECTS=1");
+    $query = "SELECT
+            o.id,
+            o.codigo,
+            o.observaciones,
+            o.consignatarios,
+            DATE_FORMAT(o.fecha, '%d/%m/%Y %H:%i') as fecha,
+            DATE_FORMAT(o.fecha, '%Y%m%d%H%i') as fecha_raw
+            
+            FROM solicitudes_despacho o
+            ";
+
+    $val = mysqli_query($con, $query);
+
+    if (mysqli_num_rows($val) > 0) {
+
+        echo "<div class='box box-primary'>";
+        echo "<div class='box-header with-border'>";
+        echo "<h3 class='box-title'>Historial de Solicitudes</h3>";
+        echo "</div>";
+        echo "<div class='box-body'>";
+        echo "<table id='tabla_solicitudes' class='table table-bordered table-responsive w-100 d-block d-md-table'>";
+        echo "<thead>";
+        echo "<tr>";
+        echo "<th>N°</th><th>Consignatario</th><th>Fecha</th><th>Observaciones</th><th></th>";
+        echo "</tr>";
+        echo "</thead>";
+        echo "<tbody>";
+     
+        while ($ww = mysqli_fetch_array($val)) {
+            $data = base64_encode($ww["codigo"]);
+            $boton_eliminar = "<button class='btn btn-danger fa fa-trash btn-sm' onClick='eliminarSolicitudDespacho($ww[id])'></button>";
+            echo "
+    <tr class='text-center' style='cursor:pointer' x-id='$ww[id]'>
+      <td>$ww[id]</td>
+      <td>".base64_decode($ww['consignatarios'])."</td>
+      <td><span class='d-none'>$ww[fecha_raw]</span>$ww[fecha]</td>
+      <td>".base64_decode($ww['observaciones'])."</td>
+      <td class='text-center'>
+            <div class='d-flex flex-row justify-content-center align-items-center'>
+                <button onclick='printSolicitudDespacho2(1, \"$data\")' class='btn btn-primary fa fa-print btn-sm mr-4'></button>
+                $boton_eliminar
+            </div>
+      </td>
+    </tr>";
+        }
+        echo "</tbody>";
+        echo "</table>";
+        echo "</div>";
+        echo "</div>";
+    } else {
+        echo "<div class='callout callout-danger'><b>No se encontraron solicitudes...</b></div>";
+    }
+}
+else if ($consulta == "eliminar_solicitud_despacho") {
+    $rowid = $_POST["rowid"];
+    $errors = array();
+    try {
+        $query = "DELETE FROM solicitudes_despacho WHERE id = $rowid";
+        if (mysqli_query($con, $query)) {
+            echo "success";
+        }
+        else{
+            echo "error: ".mysqli_error($con);
+        }
+
+    } catch (\Throwable $th) {
+        //throw $th;
+        echo "error: $th";
+    }
+}

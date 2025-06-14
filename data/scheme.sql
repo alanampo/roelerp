@@ -545,3 +545,15 @@ CREATE TABLE `ordenes_envio` (
   CONSTRAINT `fk_ordenes_envio_cotizacion` FOREIGN KEY (`id_cotizacion`) REFERENCES `cotizaciones` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `fk_ordenes_envio_cotizacion_directa` FOREIGN KEY (`id_cotizacion_directa`) REFERENCES `cotizaciones_directas` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+
+CREATE TABLE `solicitudes_despacho` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `codigo` MEDIUMTEXT DEFAULT NULL,
+  `fecha` DATETIME DEFAULT NULL,
+  `id_cliente` INT(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idxx_id_cliente` (`id_cliente`),
+  CONSTRAINT `fk_solicitudes_despacho_cliente` FOREIGN KEY (`id_cliente`) REFERENCES `clientes` (`id_cliente`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+ALTER TABLE `solicitudes_despacho` ADD `consignatarios` TEXT NULL DEFAULT NULL AFTER `id_cliente`;

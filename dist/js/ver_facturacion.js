@@ -4,8 +4,8 @@ let hasChanged = false;
 let currentCotizacion;
 let currentTab = null;
 
-$(document).on("input", ".numeric", function() {
-  this.value = this.value.replace(/\D/g,'');
+$(document).on("input", ".numeric", function () {
+  this.value = this.value.replace(/\D/g, '');
 });
 
 $(document).ready(function () {
@@ -48,6 +48,10 @@ function abrirTab(evt, tabName) {
   else if (tabName == "cotizacionesboletas") {
     $(".tab-cotizaciones-boletas").addClass("d-block");
     loadHistorialCotizaciones(true);
+  }
+  else if (tabName == "solicitudesdespacho") {
+    $(".tab-solicitudes-despacho").addClass("d-block");
+    loadSolicitudesDespacho();
   }
 }
 
@@ -95,12 +99,12 @@ async function printCotizacion(dataCotizacion, isPrinting) {
     condicion_pago == 0
       ? "CONTADO"
       : condicion_pago == 1
-      ? "CRÉDITO 30 DÍAS"
-      : condicion_pago == 2
-      ? "CRÉDITO 60 DÍAS"
-      : condicion_pago
-      ? "CRÉDITO 90 DÍAS"
-      : "";
+        ? "CRÉDITO 30 DÍAS"
+        : condicion_pago == 2
+          ? "CRÉDITO 60 DÍAS"
+          : condicion_pago
+            ? "CRÉDITO 90 DÍAS"
+            : "";
   const now = new Date();
   const datetime =
     (now.getDate() < 10 ? "0" + now.getDate() : now.getDate()) +
@@ -144,12 +148,10 @@ async function printCotizacion(dataCotizacion, isPrinting) {
                 <div class="col-md-4">
                     <div style="border: 3px solid #FE9A2E !important;border-radius:10px; text-align: center;padding:5px;color:#F7BE81 !important;">
                         <h5 style="color:#F7BE81 !important;">R.U.T: ${rutEmpresa}</h5>
-                        <h5 style="color:#F7BE81 !important;">${
-                          esGuiaDespacho || esFactura ? "Factura" : "Cotización"
-                        }</h5>
-                        <h5 style="color:#F7BE81 !important;">N° <span id="id-cotizacion">${
-                          folio ? folio : esGuiaDespacho ? "X" : id_cotizacion
-                        }</span></h5>
+                        <h5 style="color:#F7BE81 !important;">${esGuiaDespacho || esFactura ? "Factura" : "Cotización"
+    }</h5>
+                        <h5 style="color:#F7BE81 !important;">N° <span id="id-cotizacion">${folio ? folio : esGuiaDespacho ? "X" : id_cotizacion
+    }</span></h5>
                     </div>
                 </div>
               </div>
@@ -159,9 +161,8 @@ async function printCotizacion(dataCotizacion, isPrinting) {
                   <div class="row">
                     <div class="col">
                       <h6 style="color:grey !important">Razón Social</h6>
-                      <h6 style="">${
-                        razon && razon.length ? razon.toUpperCase() : cliente
-                      }</h6>
+                      <h6 style="">${razon && razon.length ? razon.toUpperCase() : cliente
+    }</h6>
                     </div>
                   </div>
                   <div class="row">
@@ -207,11 +208,10 @@ async function printCotizacion(dataCotizacion, isPrinting) {
               <div class="row">
                 <div class="col">
                   <h6 style="color:grey !important">Vendedor/a</h6>
-                  <h6 style="">${
-                    nombre_real && nombre_real.length
-                      ? nombre_real
-                      : "Roelplant"
-                  }</h6>
+                  <h6 style="">${nombre_real && nombre_real.length
+      ? nombre_real
+      : "Roelplant"
+    }</h6>
                 </div>
               </div>
               <div class="row">
@@ -286,13 +286,12 @@ async function printCotizacion(dataCotizacion, isPrinting) {
           <td>${nombre_producto}</td>
           <td>${cantidad}</td>
           <td>$${formatearMonto(precio)}</td>
-          <td>${
-            descuento && descuento.tipo == "porcentual"
-              ? "-" + parseInt(descuento.valor) + "%"
-              : descuento && descuento.tipo == "fijo"
-              ? "-$" + formatearMonto(parseInt(descuento.valor))
-              : ""
-          }</td>
+          <td>${descuento && descuento.tipo == "porcentual"
+          ? "-" + parseInt(descuento.valor) + "%"
+          : descuento && descuento.tipo == "fijo"
+            ? "-$" + formatearMonto(parseInt(descuento.valor))
+            : ""
+        }</td>
           <td>$${formatearMonto(subtotal)}</td>
           
         </tr>                    
@@ -317,17 +316,15 @@ async function printCotizacion(dataCotizacion, isPrinting) {
                         </thead>
                         <tbody>
                           <tr>
-                            <td colspan="5" rowspan="8">COMENTARIO ${
-                              comentario && comentario.length
-                                ? "<br><br>" + comentario.toUpperCase()
-                                : ""
-                            }</td>
+                            <td colspan="5" rowspan="8">COMENTARIO ${comentario && comentario.length
+      ? "<br><br>" + comentario.toUpperCase()
+      : ""
+    }</td>
                             <td>Descuento</td>
-                            <td>${
-                              montodescuento && montodescuento > 0
-                                ? "-$" + formatearMonto(montodescuento)
-                                : "$0"
-                            }</td>
+                            <td>${montodescuento && montodescuento > 0
+      ? "-$" + formatearMonto(montodescuento)
+      : "$0"
+    }</td>
                           </tr>
                           <tr>
                             <td>Afecto</td>
@@ -697,8 +694,8 @@ function loadHistorialCotizaciones(isBoleta) {
       isBoleta: isBoleta ? 1 : 0
     },
     success: function (x) {
-      $("#tabla_cotizaciones"+(isBoleta ? "_boletas":"")+"_container").html(x);
-      $("#tabla_cotizaciones"+(isBoleta ? "_boletas":"")).DataTable({
+      $("#tabla_cotizaciones" + (isBoleta ? "_boletas" : "") + "_container").html(x);
+      $("#tabla_cotizaciones" + (isBoleta ? "_boletas" : "")).DataTable({
         pageLength: 50,
         order: [[0, "desc"]],
         language: {
@@ -726,7 +723,7 @@ function loadHistorialCotizaciones(isBoleta) {
       });
     },
     error: function (jqXHR, estado, error) {
-      $("#tabla_cotizaciones"+(isBoleta ? "_boletas":"")+"_container").html(
+      $("#tabla_cotizaciones" + (isBoleta ? "_boletas" : "") + "_container").html(
         "Ocurrió un error al cargar los datos: " + estado + " " + error
       );
     },
@@ -803,7 +800,7 @@ function generarFactura(id_cotizacion, id_guia, folio, caf) {
               $(".loading-wrapper").css({ display: "none" });
             }
           },
-          error: function (jqXHR, estado, error) {},
+          error: function (jqXHR, estado, error) { },
         });
 
         break;
@@ -884,7 +881,7 @@ function generarBoleta(id_cotizacion, id_guia, folio, caf) {
               $(".loading-wrapper").css({ display: "none" });
             }
           },
-          error: function (jqXHR, estado, error) {},
+          error: function (jqXHR, estado, error) { },
         });
 
         break;
@@ -896,7 +893,7 @@ function generarBoleta(id_cotizacion, id_guia, folio, caf) {
 }
 
 function reenviarFactura(rowid_factura, esBoleta) {
-  swal("Reenviar "+(esBoleta ? "BOLETA" : "FACTURA")+" al SII?", "", {
+  swal("Reenviar " + (esBoleta ? "BOLETA" : "FACTURA") + " al SII?", "", {
     icon: "info",
     buttons: {
       cancel: "NO",
@@ -940,26 +937,26 @@ function reenviarFactura(rowid_factura, esBoleta) {
               $(".loading-wrapper").css({ display: "none" });
               $("#modal-vistaprevia").modal("hide");
               swal(
-                "Enviaste la "+(esBoleta ? "Boleta" : "Factura")+" correctamente!",
-                "Chequea su estado clickeando sobre el TRACK ID en Historial de "+(esBoleta ? "Boleta" : "Factura")+"s",
+                "Enviaste la " + (esBoleta ? "Boleta" : "Factura") + " correctamente!",
+                "Chequea su estado clickeando sobre el TRACK ID en Historial de " + (esBoleta ? "Boleta" : "Factura") + "s",
                 "success"
               );
             } else if (x.includes("SII_SUCCESS_BUT")) {
               $(".loading-wrapper").css({ display: "none" });
               swal(
-                "La "+(esBoleta ? "Boleta" : "Factura")+" SE ENVIÓ AL SII, pero hubo un error al actualizar los datos en LA BD.",
+                "La " + (esBoleta ? "Boleta" : "Factura") + " SE ENVIÓ AL SII, pero hubo un error al actualizar los datos en LA BD.",
                 "POR FAVOR COMUNICATE CON SOPORTE ANTES DE CONTINUAR" + x,
                 "error"
               );
             } else if (x.includes("ERROR_ENVIO_SII")) {
               $(".loading-wrapper").css({ display: "none" });
-              swal("Error al Enviar la "+(esBoleta ? "Boleta" : "Factura")+" al SII", "", "error");
+              swal("Error al Enviar la " + (esBoleta ? "Boleta" : "Factura") + " al SII", "", "error");
             } else {
-              swal("Ocurrió un error al generar la "+(esBoleta ? "Boleta" : "Factura"), x, "error");
+              swal("Ocurrió un error al generar la " + (esBoleta ? "Boleta" : "Factura"), x, "error");
               $(".loading-wrapper").css({ display: "none" });
             }
           },
-          error: function (jqXHR, estado, error) {},
+          error: function (jqXHR, estado, error) { },
         });
 
         break;
@@ -973,7 +970,7 @@ function reenviarFactura(rowid_factura, esBoleta) {
 function downloadXML(obj, rowid, folio, id_cliente) {
   obj.disabled = true; // Deshabilitar el botón temporalmente
 
-  window.open('/downloadxml.php?rowid=' + rowid + '&folio='+folio+ (id_cliente ? '&id_cliente='+id_cliente : '') , '_blank');
+  window.open('/downloadxml.php?rowid=' + rowid + '&folio=' + folio + (id_cliente ? '&id_cliente=' + id_cliente : ''), '_blank');
   setTimeout(() => { obj.disabled = false; }, 2000); // Habilitar el botón después de 3s
 }
 
@@ -997,18 +994,17 @@ function printDTE(obj, rowid, folio, tipoDTE) {
 
         window
           .open(
-            `verpdf.php?tipo=${
-              tipoDTE == 1
-                ? "NC"
-                : tipoDTE == 0
+            `verpdf.php?tipo=${tipoDTE == 1
+              ? "NC"
+              : tipoDTE == 0
                 ? "FACT"
                 : tipoDTE == 2
-                
-                ? "GD"
-                : tipoDTE == 10 ? "BOL"
-                : tipoDTE == 3
-                ? "ND"
-                : "XX"
+
+                  ? "GD"
+                  : tipoDTE == 10 ? "BOL"
+                    : tipoDTE == 3
+                      ? "ND"
+                      : "XX"
             }&folio=${folio}&file=${data.path}`,
             "_blank"
           )
@@ -1018,24 +1014,23 @@ function printDTE(obj, rowid, folio, tipoDTE) {
       }
       $(obj).prop("disabled", false);
     },
-    error: function (jqXHR, estado, error) {},
+    error: function (jqXHR, estado, error) { },
   });
 }
 
 function getEstadoDTE(trackID, facturaID, tipoDoc, estadoActual, rowid) {
   $(".num-factura").html(
-    `Estado ${
-      tipoDoc == 0
-        ? "Factura"
-        : tipoDoc == 1
+    `Estado ${tipoDoc == 0
+      ? "Factura"
+      : tipoDoc == 1
         ? "Nota Crédito"
         : tipoDoc == 2
-        ? "Guía de Despacho"
-        : tipoDoc == 3
-        ? "Nota Débito"
-        : tipoDoc == 4
-        ? "Boleta"
-        : "DTE"
+          ? "Guía de Despacho"
+          : tipoDoc == 3
+            ? "Nota Débito"
+            : tipoDoc == 4
+              ? "Boleta"
+              : "DTE"
     } N° ${facturaID} <small class='text-muted'>(${trackID ?? "SIN TRACKID"})</small>`
   );
   $(".loader-container").html(`
@@ -1069,21 +1064,21 @@ function getEstadoDTE(trackID, facturaID, tipoDoc, estadoActual, rowid) {
         } else {
           try {
             const data = JSON.parse(x);
-            if (data.NOREC){
+            if (data.NOREC) {
               $(".loader-container").html(
                 "<h5 class='text-danger'>ESTADO: NO RECIBIDO POR EL SII"
               );
               reloadData();
             }
-            else if (data.RECNOTRACKID){
+            else if (data.RECNOTRACKID) {
               $(".loader-container").html(
                 "<h5 class='text-danger'>ESTADO: RECIBIDO POR EL SII, PERO NO SE PUDO OBTENER EL TRACKID"
               );
               reloadData();
             }
-            else if (data.ESTADO){
+            else if (data.ESTADO) {
               $(".loader-container").html(
-                "<h5 class='text-danger'>ESTADO: "+data.ESTADO
+                "<h5 class='text-danger'>ESTADO: " + data.ESTADO
               );
               reloadData();
             }
@@ -1101,8 +1096,8 @@ function getEstadoDTE(trackID, facturaID, tipoDoc, estadoActual, rowid) {
               if (estadoActual != "ACEPTADO") {
                 updateEstadoDTE(rowid, "ACEPTADO", tipoDoc);
               }
-            } 
-            else if (data.codigo && data.descripcion){
+            }
+            else if (data.codigo && data.descripcion) {
               $(".loader-container").html(
                 `<h5 class='text-warning font-weight-bold'>CÓDIGO: ${data.codigo} - DESCRIPCIÓN: ${data.descripcion}</h5>`
               );
@@ -1120,7 +1115,7 @@ function getEstadoDTE(trackID, facturaID, tipoDoc, estadoActual, rowid) {
         }
       }
     },
-    error: function (jqXHR, estado, error) {},
+    error: function (jqXHR, estado, error) { },
   });
 }
 
@@ -1144,10 +1139,10 @@ function getAndUpdateEstadoDTE(trackID, tipoDoc, rowid) {
           } else if (data.aceptados && data.aceptados == "1") {
             updateEstadoDTE(rowid, "ACEPTADO", tipoDoc);
           }
-        } catch (error) {}
+        } catch (error) { }
       }
     },
-    error: function (jqXHR, estado, error) {},
+    error: function (jqXHR, estado, error) { },
   });
 }
 
@@ -1166,7 +1161,7 @@ function updateEstadoDTE(rowid, newEstado, tipoDoc) {
         reloadData();
       }
     },
-    error: function (jqXHR, estado, error) {},
+    error: function (jqXHR, estado, error) { },
   });
 }
 
@@ -1181,14 +1176,16 @@ function reloadData() {
     loadNotas();
   } else if (currentTab == "notas-debito") {
     loadNotasDebito();
-  } else if (currentTab == "guias")
-   {
+  } else if (currentTab == "guias") {
     loadGuias();
   } else if (currentTab == "cotizaciones") {
     loadHistorialCotizaciones();
   }
   else if (currentTab == "cotizacionesboletas") {
     loadHistorialCotizaciones(true);
+  }
+  else if (currentTab == "solicitudesdespacho") {
+    loadSolicitudesDespacho(true);
   }
 }
 
@@ -1233,6 +1230,53 @@ function loadNotas() {
     },
     error: function (jqXHR, estado, error) {
       $("#tabla_notas").html(
+        "Ocurrió un error al cargar los datos: " + estado + " " + error
+      );
+    },
+  });
+}
+
+function loadSolicitudesDespacho() {
+  $.ajax({
+    beforeSend: function () {
+      $("#tabla_solicitudes").html("Buscando, espere...");
+    },
+    url: "data_ver_facturacion.php",
+    type: "POST",
+    data: {
+      consulta: "cargar_solicitudes_despacho",
+    },
+    success: function (x) {
+      $("#tabla_solicitudes").html(x);
+      $("#tabla-solicitudes").DataTable({
+        pageLength: 50,
+        order: [[3, "desc"]],
+        language: {
+          lengthMenu: "Mostrando _MENU_ solicitudes por página",
+          zeroRecords: "No hay solicitudes",
+          info: "Página _PAGE_ de _PAGES_",
+          infoEmpty: "No hay solicitudes",
+          infoFiltered: "(filtrado de _MAX_ solicitudes en total)",
+          lengthMenu: "Mostrar _MENU_ solicitudes",
+          loadingRecords: "Cargando...",
+          processing: "Procesando...",
+          search: "Buscar:",
+          zeroRecords: "No se encontraron solicitudes",
+          paginate: {
+            first: "Primera",
+            last: "Última",
+            next: "Siguiente",
+            previous: "Anterior",
+          },
+          aria: {
+            sortAscending: ": toca para ordenar en modo ascendente",
+            sortDescending: ": toca para ordenar en modo descendente",
+          },
+        },
+      });
+    },
+    error: function (jqXHR, estado, error) {
+      $("#tabla_solicitudes").html(
         "Ocurrió un error al cargar los datos: " + estado + " " + error
       );
     },
@@ -1311,7 +1355,7 @@ function anularFactura(rowid, folioRef, folioNC, cafNC, esBoleta) {
         $(".loading-wrapper").css({ display: "none" });
       }
     },
-    error: function (jqXHR, estado, error) {},
+    error: function (jqXHR, estado, error) { },
   });
 }
 
@@ -1442,7 +1486,7 @@ function printDataCotizacion(id, isBoleta) {
       isBoleta: isBoleta ? 1 : 0
     },
     success: function (x) {
-      
+
       console.log(x);
       if (x && x.length) {
         try {
@@ -1575,7 +1619,7 @@ function vistaPreviaReenviarFactura(
         }
       }
     },
-    error: function (jqXHR, estado, error) {},
+    error: function (jqXHR, estado, error) { },
   });
 }
 
@@ -1846,7 +1890,7 @@ function sendMailFactura(btn, rowid, folio, tipoDTE, monto, email) {
   }).then((value) => {
     const enviarMail = (resp) => {
       $.ajax({
-        beforeSend: function () {},
+        beforeSend: function () { },
         url: "class_lib/libredte/vendor/sasco/libredte/examples/data_facturacion_dte.php",
         type: "POST",
         data: {
@@ -1868,7 +1912,7 @@ function sendMailFactura(btn, rowid, folio, tipoDTE, monto, email) {
             if (btn) $(btn).prop("disabled", false);
           }, 5000);
         },
-        error: function (jqXHR, estado, error) {},
+        error: function (jqXHR, estado, error) { },
       });
     };
 
@@ -1876,11 +1920,11 @@ function sendMailFactura(btn, rowid, folio, tipoDTE, monto, email) {
       case "catch":
         $.get(
           "flow/public/flow/linkfactura/" +
-            folio +
-            "/" +
-            monto.toString() +
-            "/" +
-            email,
+          folio +
+          "/" +
+          monto.toString() +
+          "/" +
+          email,
           function (resp) {
             console.log(resp);
             if (resp.includes("http")) {
@@ -1889,7 +1933,7 @@ function sendMailFactura(btn, rowid, folio, tipoDTE, monto, email) {
             }
           }
         )
-          .done(function () {})
+          .done(function () { })
           .fail(function () {
             swal("Error al generar el Link de Pago", "", "error");
           });
@@ -1931,7 +1975,7 @@ function sendMailBoleta(btn, rowid, folio, tipoDTE, monto, email) {
   }).then((value) => {
     const enviarMail = (resp) => {
       $.ajax({
-        beforeSend: function () {},
+        beforeSend: function () { },
         url: "class_lib/libredte/vendor/sasco/libredte/examples/data_facturacion_dte.php",
         type: "POST",
         data: {
@@ -1954,7 +1998,7 @@ function sendMailBoleta(btn, rowid, folio, tipoDTE, monto, email) {
             if (btn) $(btn).prop("disabled", false);
           }, 5000);
         },
-        error: function (jqXHR, estado, error) {},
+        error: function (jqXHR, estado, error) { },
       });
     };
 
@@ -1962,11 +2006,11 @@ function sendMailBoleta(btn, rowid, folio, tipoDTE, monto, email) {
       case "catch":
         $.get(
           "flow/public/flow/linkfactura/" +
-            folio +
-            "/" +
-            monto.toString() +
-            "/" +
-            email,
+          folio +
+          "/" +
+          monto.toString() +
+          "/" +
+          email,
           function (resp) {
             console.log(resp);
             if (resp.includes("http")) {
@@ -1975,7 +2019,7 @@ function sendMailBoleta(btn, rowid, folio, tipoDTE, monto, email) {
             }
           }
         )
-          .done(function () {})
+          .done(function () { })
           .fail(function () {
             swal("Error al generar el Link de Pago", "", "error");
           });
@@ -2021,15 +2065,15 @@ function generarSolicitudDespacho() {
     </span>
     
     `
-    
+
     if (selectedMap[label] && selectedMap[label]["productos"]) {
       selectedMap[label]["productos"].push(line);
     } else {
-      selectedMap[label] = {productos: [line]};
+      selectedMap[label] = { productos: [line] };
     }
 
     selectedMap[label]["telefono"] = telefono
-    selectedMap[label]["destino"] = comuna.length && ciudad.length ? comuna+", "+ciudad : comuna
+    selectedMap[label]["destino"] = comuna.length && ciudad.length ? comuna + ", " + ciudad : comuna
   });
 
   console.log(selectedMap);
@@ -2038,10 +2082,10 @@ function generarSolicitudDespacho() {
   for (const [key, value] of Object.entries(selectedMap)) {
     let productos = ""
     value["productos"].forEach(element => {
-      productos+=`<span>${element}</span><br>`
+      productos += `<span>${element}</span><br>`
     });
 
-    rows+=`
+    rows += `
     <tr>
       <td>${productos}</td>
       <td class='text-center'>
@@ -2213,35 +2257,35 @@ function setChecked(obj) {
   $(obj).parent().find("input[type=checkbox]").prop("checked", true);
 }
 
-function setTotal(obj){
+function setTotal(obj) {
   $(obj).next().html($(obj).val())
   let total = 0;
-  $(obj).closest("tr").find(".lbl-cant").each(function(){
+  $(obj).closest("tr").find(".lbl-cant").each(function () {
     let tipoBandeja = $(this).find("input").val();
     const cantidad = $(this).attr("x-cant")
 
-    if (!isNaN(tipoBandeja)){
-      total+=(tipoBandeja*cantidad)
+    if (!isNaN(tipoBandeja)) {
+      total += (tipoBandeja * cantidad)
     }
   })
 
-  if (total > 0){
+  if (total > 0) {
     $(obj).closest("tr").find(".td-total").html(total)
   }
-  else{
+  else {
     $(obj).closest("tr").find(".td-total").html("")
   }
 
   let sumaTotal = 0;
 
   $(".td-suma-total").html("")
-  $(".td-total").each(function(){
-    if ($(this).text().length){
-      sumaTotal+=parseInt($(this).text())
+  $(".td-total").each(function () {
+    if ($(this).text().length) {
+      sumaTotal += parseInt($(this).text())
     }
   })
 
-  if (sumaTotal>0){
+  if (sumaTotal > 0) {
     $(".td-suma-total").html(sumaTotal)
   }
 }
@@ -2249,12 +2293,12 @@ function setTotal(obj){
 function printSolicitudDespacho(tipo) {
   if (tipo == 1) {
     $("#miVentana").html($(".container-solicitud-despacho").html())
-    
-    $("#miVentana").find(".tabla-descripcion").first().find("input").each(function(){
+
+    $("#miVentana").find(".tabla-descripcion").first().find("input").each(function () {
       $(this).remove()
     })
 
-    $("#miVentana").find(".tabla-descripcion").first().find("select").each(function(){
+    $("#miVentana").find(".tabla-descripcion").first().find("select").each(function () {
       $(this).html("")
       const valor = $(this).closest("td").find(".mask").first().text()
       $(this).closest("td").html(valor)
@@ -2262,14 +2306,14 @@ function printSolicitudDespacho(tipo) {
 
     const tipoDespacho = $(".select-tipo-despacho").find("option:selected").text()
 
-    if (tipoDespacho.includes("INSPECTOR")){
+    if (tipoDespacho.includes("INSPECTOR")) {
       $(".select-tipo-despacho").parent().html(`
       <label>TIPO DE DESPACHO (MARCAR UNA OPCIÓN):</label><br>
         <span>CON INSPECTOR SAG</span><span style='margin-left: 20px;border: 2px solid black;padding-left: 15px;padding-right:15px; padding-top: 5px; padding-bottom: 5px'>X</span><br><br><br>
         <span>DESPACHO DIRECTO</span>      
       `)
     }
-    else{
+    else {
       $(".select-tipo-despacho").parent().html(`
         <label>TIPO DE DESPACHO (MARCAR UNA OPCIÓN):</label><br>
         <span>CON INSPECTOR SAG</span><br><br><br>
@@ -2277,7 +2321,7 @@ function printSolicitudDespacho(tipo) {
       `)
     }
 
-    $("#miVentana").find(".mask").css({"display":"inline-block"})
+    $("#miVentana").find(".mask").css({ "display": "inline-block" })
 
     const observaciones = $("#modal-solicitud-despacho").find(".input-observaciones-solicitud").val()
     $("#miVentana").find(".input-observaciones-solicitud").replaceWith(`<span>${observaciones}</span>`)
@@ -2285,6 +2329,26 @@ function printSolicitudDespacho(tipo) {
     document.getElementById("ocultar").style.display = "none";
     document.getElementById("miVentana").style.display = "block";
     $("#modal-solicitud-despacho").modal("hide");
+
+    var celdasUltimaColumna = $('#miVentana .tabla-descripcion tbody tr:not(:last) td:last-child');
+
+    // Crear un array para almacenar los textos de cada celda
+    var textos = [];
+
+    // Iterar sobre cada celda y obtener su texto
+    let index = 0;
+    celdasUltimaColumna.each(function () {
+      if (index > 0){
+        textos.push($(this).text().trim());
+      }
+      
+      index++
+    });
+
+    // Unir los textos con <br>
+    var consignatarios = textos.join('<br>');
+
+    guardarSolicitudDespacho(observaciones, $("#miVentana").html(), consignatarios)
     setTimeout(
       "window.print();printSolicitudDespacho(2);document.title = 'Facturación';generarSolicitudDespacho()",
       500
@@ -2296,11 +2360,93 @@ function printSolicitudDespacho(tipo) {
   }
 }
 
-function updateMasksSelect(obj){
+function decodeBase64UTF8(base64String) {
+  const binaryString = atob(base64String);
+  const bytes = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+  }
+  return new TextDecoder("utf-8").decode(bytes);
+}
+
+function eliminarSolicitudDespacho(rowid) {
+  swal("Estás seguro/a de ELIMINAR la Solicitud?", "", {
+    icon: "warning",
+    buttons: {
+      cancel: "NO",
+      catch: {
+        text: "SI, ELIMINAR",
+        value: "catch",
+      },
+    },
+  }).then((value) => {
+    switch (value) {
+      case "catch":
+        $.ajax({
+          type: "POST",
+          url: "data_ver_facturacion.php",
+          data: { consulta: "eliminar_solicitud_despacho", rowid: rowid },
+          success: function (data) {
+            if (data.trim() == "success") {
+              swal("Eliminaste la Solicitud correctamente!", "", "success");
+              loadSolicitudesDespacho();
+            } else {
+              swal("Ocurrió un error al eliminar la Solicitud", data, "error");
+            }
+          },
+        });
+
+        break;
+
+      default:
+        break;
+    }
+  });
+}
+
+
+function printSolicitudDespacho2(tipo, data) {
+  if (tipo == 1) {
+    $("#miVentana").html(atob(atob(data)))
+
+    document.getElementById("ocultar").style.display = "none";
+    document.getElementById("miVentana").style.display = "block";
+
+    setTimeout(
+      "window.print();printSolicitudDespacho2(2);document.title = 'Facturación';generarSolicitudDespacho()",
+      500
+    );
+  } else {
+    document.getElementById("ocultar").style.display = "block";
+    document.getElementById("miVentana").style.display = "none";
+    document.title = "Solicitud de Despacho";
+  }
+}
+
+function guardarSolicitudDespacho(observaciones, data, consignatarios){
+  $.ajax({
+    beforeSend: function () { },
+    url: "data_ver_facturacion.php",
+    type: "POST",
+    data: {
+      consulta: "guardar_solicitud_despacho",
+      data: data,
+      consignatarios,
+      observaciones
+    },
+    success: function (x) {
+      if (x.includes("success")) {
+      }
+    },
+    error: function (jqXHR, estado, error) { },
+  });
+}
+
+function updateMasksSelect(obj) {
   $(obj).closest("td").find(".mask").html($(obj).find("option:selected").text())
 }
 
-function updateMasks(obj){
+function updateMasks(obj) {
   $(obj).closest("td").find(".mask").html($(obj).val())
 }
 
@@ -2309,7 +2455,7 @@ function updateMasks(obj){
 
 
 function generarGuiaTransito(obj, rowid, folio, fecha, cliente, domicilio, comuna, id_cotizacion_directa, telefono) {
-  
+
 
   let selectedMap = {};
   const now = new Date();
@@ -2525,8 +2671,8 @@ function generarGuiaTransito(obj, rowid, folio, fecha, cliente, domicilio, comun
       consulta: "get_last_guia_transito",
     },
     success: function (x) {
-      if (x.includes("max:")){
-        $("#num-guia").html("N° "+(x.replace("max:","")))
+      if (x.includes("max:")) {
+        $("#num-guia").html("N° " + (x.replace("max:", "")))
       }
     }
   });
@@ -2540,7 +2686,7 @@ function generarGuiaTransito(obj, rowid, folio, fecha, cliente, domicilio, comun
       id: id_cotizacion_directa
     },
     success: function (x) {
-      if (x.length){
+      if (x.length) {
         $(".input-plantines").val(x)
       }
     }
@@ -2555,16 +2701,16 @@ function generarGuiaTransito(obj, rowid, folio, fecha, cliente, domicilio, comun
       id: id_cotizacion_directa
     },
     success: function (x) {
-      if (x.length){
+      if (x.length) {
         const data = JSON.parse(x)
         let productos = "PLANTINES: ";
-        if (data && data.length){
+        if (data && data.length) {
           data.forEach((e) => {
-            productos+=`${e.variedad} ${e.cantidad}, `
+            productos += `${e.variedad} ${e.cantidad}, `
           })
-          $(".textarea-obs").val(productos + " TELEFONO: "+ telefono)
+          $(".textarea-obs").val(productos + " TELEFONO: " + telefono)
         }
-        
+
       }
     }
   });
@@ -2576,13 +2722,13 @@ function generarGuiaTransito(obj, rowid, folio, fecha, cliente, domicilio, comun
 
 
 function printGuiaTransito(tipo) {
-  
+
 
 
   if (tipo == 1) {
     $("#miVentana").html($(".container-guia-transito").clone())
-    
-    $("#miVentana").find("input").each(function(){
+
+    $("#miVentana").find("input").each(function () {
       const val = $(this).val().trim();
       // Reemplaza el input actual con el nuevo label
       $(this).replaceWith(`<span>${val}</span>`);
@@ -2602,7 +2748,7 @@ function printGuiaTransito(tipo) {
         codigo: btoa($("miVentana").html())
       },
       success: function (x) {
-        if (x.includes("success")){
+        if (x.includes("success")) {
           setTimeout(
             "window.print();printGuiaTransito(2);document.title = 'Facturación';",
             500
@@ -2610,12 +2756,12 @@ function printGuiaTransito(tipo) {
         }
       },
       error: function (jqXHR, estado, error) {
-        
+
       },
     });
-  
 
-    
+
+
   } else {
     document.getElementById("ocultar").style.display = "block";
     document.getElementById("miVentana").style.display = "none";
@@ -2624,7 +2770,7 @@ function printGuiaTransito(tipo) {
 }
 
 
-function testToken(){
+function testToken() {
   $.ajax({
     url: "class_lib/libredte/vendor/sasco/libredte/examples/data_facturacion_dte.php",
     type: "POST",

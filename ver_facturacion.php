@@ -96,6 +96,14 @@ $fecha = $dias[date('w')] . " " . date('d') . " de " . $meses[date('n') - 1] . "
                   >
                     NUEVA BOLETA
                   </button>
+
+                  <button
+                    id="tabsolicitudesdespacho"
+                    class="tablinks"
+                    onclick="abrirTab(event, 'solicitudesdespacho');"
+                  >
+                    SOLICITUDES DESPACHO
+                  </button>
                 </div>
               </div>
             </div>
@@ -203,6 +211,13 @@ $fecha = $dias[date('w')] . " " . date('d') . " de " . $meses[date('n') - 1] . "
               <div class="row mt-2 mb-5">
                 <div class="col">
                   <div id="tabla_cotizaciones_boletas_container"></div>
+                </div>
+              </div>
+            </div>
+            <div class="tabco tab-solicitudes-despacho d-none">
+              <div class="row mt-2 mb-5">
+                <div class="col">
+                  <div id="tabla_solicitudes"></div>
                 </div>
               </div>
             </div>
