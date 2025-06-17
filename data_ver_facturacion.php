@@ -97,7 +97,7 @@ if ($consulta == "cargar_historial") { //FACTURAS
 
             $btn_cancelar_factura = ($ww["estado"] == "ACEPTADO" ? "<button onclick='modalAnularFactura($ww[rowid], $ww[folio], $esFactDirecta, $ww[id_cliente])' class='btn btn-danger fa fa-ban btn-sm mr-2'></button>" : "");
             $btn_print = ($ww["track_id"] ? "<button onclick='printDTE(this, $ww[rowid], $ww[folio], 0)' class='btn btn-primary fa fa-print btn-sm mr-2'></button>" : "");
-
+            //$btn_print .= "<button onclick='generarGuiaTransito(this, $ww[rowid], $ww[folio], \"$ww[fecha]\", \"$ww[cliente]\", \"$ww[domicilio]\", \"$ww[comuna]\", $ww[id_cotizacion_directa], \"$ww[telefono]\")' style='font-size:10px;' class='btn btn-info mr-2 btn-sm'>SAG</button>";
             $btn_descargar_xml = ($ww["track_id"] ? "<button onclick='downloadXML(this, $ww[rowid], $ww[folio])' class='btn btn-primary btn-sm mr-2 px-1' style='font-size:10px;'>XML INT</button>" : "");
 
             $btn_descargar_xml_cliente = ($ww["track_id"] ? "<button onclick='downloadXML(this, $ww[rowid], $ww[folio], $ww[id_cliente])' class='btn btn-primary btn-sm mr-2 px-1' style='font-size:10px;'>XML CLI</button>" : "");
@@ -111,10 +111,9 @@ if ($consulta == "cargar_historial") { //FACTURAS
 
             if ($ww["estado"] == "NOREC") {
                 $onclick = "onclick='vistaPreviaReenviarFactura(" . ($ww['id_cotizacion'] != null ? $ww['id_cotizacion'] : $ww['id_cotizacion_directa']) . ", " . ($ww['id_cotizacion_directa'] ? "true" : "false") . ", $ww[folio], $ww[rowid], $ww[caf], $id_guia)'";
-            }
-            else if (!isset($ww["track_id"]) || $ww["estado"] == "NOENV") {
+            } else if (!isset($ww["track_id"]) || $ww["estado"] == "NOENV") {
                 $onclick = "onclick='getEstadoDTE(null, $ww[folio], 0, \"$ww[estado]\", $ww[rowid])'";
-            }  else if (!isset($ww["estado"]) || $ww["estado"] === "EPR" || $ww["estado"] === "RECHAZADO" || $ww["estado"] === "ACEPTADO") {
+            } else if (!isset($ww["estado"]) || $ww["estado"] === "EPR" || $ww["estado"] === "RECHAZADO" || $ww["estado"] === "ACEPTADO") {
                 $onclick = "onclick='getEstadoDTE($ww[track_id], $ww[folio], 0, \"$ww[estado]\", $ww[rowid])'";
             }
 
@@ -275,11 +274,9 @@ if ($consulta == "cargar_historial") { //FACTURAS
 
             if ($ww["estado"] === "NOREC") {
                 $onclick = "onclick='vistaPreviaReenviarFactura(" . ($ww['id_cotizacion'] != null ? $ww['id_cotizacion'] : $ww['id_cotizacion_directa']) . ", " . ($ww['id_cotizacion_directa'] ? "true" : "false") . ", $ww[folio], $ww[rowid], $ww[caf], $id_guia, true)'";
-            }
-            else if (!isset($ww["track_id"]) || $ww["estado"] == "NOENV") {
+            } else if (!isset($ww["track_id"]) || $ww["estado"] == "NOENV") {
                 $onclick = "onclick='getEstadoDTE(null, $ww[folio], 4, \"$ww[estado]\", $ww[rowid])'";
-            }
-            else if (!isset($ww["estado"]) || $ww["estado"] === "EPR" || $ww["estado"] === "RECHAZADO" || $ww["estado"] === "ACEPTADO") {
+            } else if (!isset($ww["estado"]) || $ww["estado"] === "EPR" || $ww["estado"] === "RECHAZADO" || $ww["estado"] === "ACEPTADO") {
                 $onclick = "onclick='getEstadoDTE($ww[track_id], $ww[folio], 4, \"$ww[estado]\", $ww[rowid])'";
             }
 
@@ -765,15 +762,14 @@ UNION
             $rowid_factura = (isset($ww["rowid_factura"]) ? $ww["rowid_factura"] : "null");
 
             $onclick = "";
-            
+
             if ($ww["estado"] == "NOREC" && $ww["rowid_factura"]) {
                 $onclick = "onclick='reenviarNotaCredito($ww[folio], $ww[rowid], $ww[caf], $ww[folio_factura], $rowid_factura, $esDirecta)'";
-            }else if (!isset($ww["track_id"]) || $ww["estado"] == "NOENV") {
+            } else if (!isset($ww["track_id"]) || $ww["estado"] == "NOENV") {
                 $onclick = "onclick='getEstadoDTE(null, $ww[folio], 1, \"$ww[estado]\", $ww[rowid])'";
-            }
-            else if (!isset($ww["estado"]) || $ww["estado"] === "EPR" || $ww["estado"] === "RECHAZADO" || $ww["estado"] === "ACEPTADO") {
+            } else if (!isset($ww["estado"]) || $ww["estado"] === "EPR" || $ww["estado"] === "RECHAZADO" || $ww["estado"] === "ACEPTADO") {
                 $onclick = "onclick='getEstadoDTE($ww[track_id], $ww[folio], 1, \"$ww[estado]\", $ww[rowid])'";
-            } 
+            }
 
             $btn_print = ($ww["track_id"] ? "<button onclick='printDTE(this, $ww[rowid], $ww[folio], 1)' class='btn btn-primary fa fa-print btn-sm'></button>" : "");
 
@@ -856,13 +852,11 @@ UNION
             $onclick = "";
             if ($ww["estado"] == "NOREC" && !$ww["track_id"]) {
                 $onclick = "onclick='reenviarGuiaDespacho($ww[rowid], $ww[folio], $ww[caf])'";
-            }
-            else if (!isset($ww["track_id"]) || $ww["estado"] === "NOENV"){
+            } else if (!isset($ww["track_id"]) || $ww["estado"] === "NOENV") {
                 $onclick = "onclick='getEstadoDTE(null, $ww[folio], 2, \"$ww[estado]\", $ww[rowid])'";
-            }
-            else if (!isset($ww["estado"]) || $ww["estado"] === "EPR" || $ww["estado"] === "RECHAZADO" || $ww["estado"] === "ACEPTADO") {
+            } else if (!isset($ww["estado"]) || $ww["estado"] === "EPR" || $ww["estado"] === "RECHAZADO" || $ww["estado"] === "ACEPTADO") {
                 $onclick = "onclick='getEstadoDTE($ww[track_id], $ww[folio], 2, \"$ww[estado]\", $ww[rowid])'";
-            }  
+            }
 
             $btn_facturar_guia = ($ww["estado"] == "ACEPTADO" && $ww["id_factura"] == null ? "<button onclick='vistaPreviaGuiaDespacho($ww[id_cotizacion_directa], $ww[rowid])' class='btn btn-sm btn-success fa fa-edit ml-2'></button>" : "");
 
@@ -1139,10 +1133,9 @@ UNION
 
             $onclick = "";
 
-            if (!isset($ww["track_id"]) || $ww["estado"] === "NOENV"){
+            if (!isset($ww["track_id"]) || $ww["estado"] === "NOENV") {
                 $onclick = "onclick='getEstadoDTE(null, $ww[folio], 3, \"$ww[estado]\", $ww[rowid])'";
-            }
-            else if (!isset($ww["estado"]) || $ww["estado"] === "EPR" || $ww["estado"] === "RECHAZADO" || $ww["estado"] === "ACEPTADO") {
+            } else if (!isset($ww["estado"]) || $ww["estado"] === "EPR" || $ww["estado"] === "RECHAZADO" || $ww["estado"] === "ACEPTADO") {
                 $onclick = "onclick='getEstadoDTE($ww[track_id], $ww[folio], 3, \"$ww[estado]\", $ww[rowid])'";
             }
 
@@ -1201,11 +1194,73 @@ UNION
     }
 } else if ($consulta == "guardar_guia_transito") {
     $codigo = $_POST["codigo"];
-    $query = "INSERT INTO guias_transito (codigo) VALUES ('$codigo')";
-    if (mysqli_query($con, $query)) {
-        echo "success";
+    $datos = $_POST["datos"]; // objeto enviado desde JS
+    $id_guia = $_POST["id_guia"];
+    // Sanitizar los valores
+    function safe($val, $con)
+    {
+        return mysqli_real_escape_string($con, trim($val));
     }
 
+    // Asignar variables sanitizadas
+    $patente_camion = safe($datos["patente_camion"], $con);
+    $patente_carro = safe($datos["patente_carro"], $con);
+    $empresa_transporte = safe($datos["empresa_transporte"], $con);
+    $fecha_despacho = safe($datos["fecha_despacho"], $con);
+
+    $sustratos_nombre = safe($datos["sustratos_nombre"], $con);
+    $sustratos_cantidad = safe($datos["sustratos_cantidad"], $con);
+
+    $material_vegetal_sin_suelo_nombre = safe($datos["vegetal_sin_suelo_nombre"], $con);
+    $material_vegetal_sin_suelo_cantidad = safe($datos["vegetal_sin_suelo_cantidad"], $con);
+
+    $material_vegetal_esterilizado_nombre = safe($datos["vegetal_esterilizado_nombre"], $con);
+    $material_vegetal_esterilizado_cantidad = safe($datos["vegetal_esterilizado_cantidad"], $con);
+
+    $plantas_sin_turba_nombre = safe($datos["plantas_sin_turba_nombre"], $con);
+    $plantas_sin_turba_cantidad = safe($datos["plantas_sin_turba_cantidad"], $con);
+
+    $otros_nombre = safe($datos["otros_nombres"], $con);
+    $otros_cantidad = safe($datos["otros_cantidad"], $con);
+
+    $region = safe($datos["region"], $con);
+    $provincia = safe($datos["provincia"], $con);
+    $comuna = safe($datos["comuna"], $con);
+    $direccion = safe($datos["direccion"], $con);
+
+    $observaciones = safe($datos["observaciones"], $con);
+    $nombre_despachador = safe($datos["nombre_despachador"], $con);
+    $rut_despachador = safe($datos["rut_despachador"], $con);
+
+    $query = "
+        INSERT INTO guias_transito (
+            id_guia_despacho,
+            codigo, patente_camion, patente_carro_acoplado, empresa_transporte, fecha_despacho,
+            sustratos_especie, sustratos_cantidad,
+            material_vegetal_especie, material_vegetal_cantidad,
+            plantas_sustrato_esterilizado_especie, plantas_sustrato_esterilizado_cantidad,
+            plantas_sin_turba_especie, plantas_sin_turba_cantidad,
+            otros_especie, otros_cantidad,
+            destino_region, destino_provincia, destino_comuna, destino_direccion,
+            observaciones, nombre_despachador, rut_despachador, fecha
+        ) VALUES (
+            $id_guia,
+            '$codigo', '$patente_camion', '$patente_carro', '$empresa_transporte', '$fecha_despacho',
+            '$sustratos_nombre', '$sustratos_cantidad',
+            '$material_vegetal_sin_suelo_nombre', '$material_vegetal_sin_suelo_cantidad',
+            '$material_vegetal_esterilizado_nombre', '$material_vegetal_esterilizado_cantidad',
+            '$plantas_sin_turba_nombre', '$plantas_sin_turba_cantidad',
+            '$otros_nombre', '$otros_cantidad',
+            '$region', '$provincia', '$comuna', '$direccion',
+            '$observaciones', '$nombre_despachador', '$rut_despachador', NOW()
+        )
+    ";
+
+    if (mysqli_query($con, $query)) {
+        echo "success";
+    } else {
+        echo "error: " . mysqli_error($con);
+    }
 } else if ($consulta == "get_cantidad_total_productos") {
     $id = $_POST["id"];
     $query = "SELECT (IFNULL(SUM(cantidad),0)) as cantidad FROM cotizaciones_directas_productos WHERE id_cotizacion_directa = $id";
@@ -1233,17 +1288,15 @@ UNION
         }
         echo json_encode($productos);
     }
-}
-else if ($consulta == "guardar_solicitud_despacho"){
+} else if ($consulta == "guardar_solicitud_despacho") {
     $data = base64_encode($_POST["data"]);
     $observaciones = mb_strlen($_POST["observaciones"]) > 0 ? base64_encode($_POST["observaciones"]) : "";
     $consignatarios = mb_strlen($_POST["consignatarios"]) ? base64_encode($_POST["consignatarios"]) : "";
     $query = "INSERT INTO solicitudes_despacho (codigo, observaciones, consignatarios, fecha) VALUES ('$data', '$observaciones', '$consignatarios', NOW())";
-    if (mysqli_query($con, $query)){
+    if (mysqli_query($con, $query)) {
         echo "success";
     }
-}
-else if ($consulta == "cargar_solicitudes_despacho") {
+} else if ($consulta == "cargar_solicitudes_despacho") {
     mysqli_query($con, "SET SESSION SQL_BIG_SELECTS=1");
     $query = "SELECT
             o.id,
@@ -1272,16 +1325,16 @@ else if ($consulta == "cargar_solicitudes_despacho") {
         echo "</tr>";
         echo "</thead>";
         echo "<tbody>";
-     
+
         while ($ww = mysqli_fetch_array($val)) {
             $data = base64_encode($ww["codigo"]);
             $boton_eliminar = "<button class='btn btn-danger fa fa-trash btn-sm' onClick='eliminarSolicitudDespacho($ww[id])'></button>";
             echo "
     <tr class='text-center' style='cursor:pointer' x-id='$ww[id]'>
       <td>$ww[id]</td>
-      <td>".base64_decode($ww['consignatarios'])."</td>
+      <td>" . base64_decode($ww['consignatarios']) . "</td>
       <td><span class='d-none'>$ww[fecha_raw]</span>$ww[fecha]</td>
-      <td>".base64_decode($ww['observaciones'])."</td>
+      <td>" . base64_decode($ww['observaciones']) . "</td>
       <td class='text-center'>
             <div class='d-flex flex-row justify-content-center align-items-center'>
                 <button onclick='printSolicitudDespacho2(1, \"$data\")' class='btn btn-primary fa fa-print btn-sm mr-4'></button>
@@ -1298,6 +1351,63 @@ else if ($consulta == "cargar_solicitudes_despacho") {
         echo "<div class='callout callout-danger'><b>No se encontraron solicitudes...</b></div>";
     }
 }
+
+else if ($consulta == "cargar_sag") {
+    mysqli_query($con, "SET SESSION SQL_BIG_SELECTS=1");
+    $query = "SELECT
+            o.id,
+            o.codigo,
+            o.observaciones,
+            g.folio,
+            DATE_FORMAT(o.fecha, '%d/%m/%Y %H:%i') as fecha,
+            DATE_FORMAT(o.fecha, '%Y%m%d%H%i') as fecha_raw
+            
+            FROM guias_transito o
+            LEFT JOIN guias_despacho g ON g.rowid = o.id_guia_despacho
+            ";
+
+    $val = mysqli_query($con, $query);
+
+    if (mysqli_num_rows($val) > 0) {
+
+        echo "<div class='box box-primary'>";
+        echo "<div class='box-header with-border'>";
+        echo "<h3 class='box-title'>Historial de Guías SAG</h3>";
+        echo "</div>";
+        echo "<div class='box-body'>";
+        echo "<table id='tabla-sag' class='table table-bordered table-responsive w-100 d-block d-md-table'>";
+        echo "<thead>";
+        echo "<tr>";
+        echo "<th>N°</th><th>Fecha</th><th>Guía Despacho</th><th>Observaciones</th><th></th>";
+        echo "</tr>";
+        echo "</thead>";
+        echo "<tbody>";
+
+        while ($ww = mysqli_fetch_array($val)) {
+            $data = base64_encode($ww["codigo"]);
+            $boton_eliminar = "<button class='btn btn-danger fa fa-trash btn-sm' onClick='eliminarSAG($ww[id])'></button>";
+            echo "
+    <tr class='text-center' style='cursor:pointer' x-id='$ww[id]'>
+      <td>$ww[id]</td>
+      <td><span class='d-none'>$ww[fecha_raw]</span>$ww[fecha]</td>
+      <td>$ww[folio]</td>
+      <td>$ww[observaciones]</td>
+      <td class='text-center'>
+            <div class='d-flex flex-row justify-content-center align-items-center'>
+                <button onclick='printSAG(1, \"$data\")' class='btn btn-primary fa fa-print btn-sm mr-4'></button>
+                $boton_eliminar
+            </div>
+      </td>
+    </tr>";
+        }
+        echo "</tbody>";
+        echo "</table>";
+        echo "</div>";
+        echo "</div>";
+    } else {
+        echo "<div class='callout callout-danger'><b>No se encontraron guías...</b></div>";
+    }
+}
 else if ($consulta == "eliminar_solicitud_despacho") {
     $rowid = $_POST["rowid"];
     $errors = array();
@@ -1305,9 +1415,24 @@ else if ($consulta == "eliminar_solicitud_despacho") {
         $query = "DELETE FROM solicitudes_despacho WHERE id = $rowid";
         if (mysqli_query($con, $query)) {
             echo "success";
+        } else {
+            echo "error: " . mysqli_error($con);
         }
-        else{
-            echo "error: ".mysqli_error($con);
+
+    } catch (\Throwable $th) {
+        //throw $th;
+        echo "error: $th";
+    }
+}
+else if ($consulta == "eliminar_sag") {
+    $rowid = $_POST["rowid"];
+    $errors = array();
+    try {
+        $query = "DELETE FROM guias_transito WHERE id = $rowid";
+        if (mysqli_query($con, $query)) {
+            echo "success";
+        } else {
+            echo "error: " . mysqli_error($con);
         }
 
     } catch (\Throwable $th) {

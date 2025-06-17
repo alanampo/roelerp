@@ -557,3 +557,64 @@ CREATE TABLE `solicitudes_despacho` (
   CONSTRAINT `fk_solicitudes_despacho_cliente` FOREIGN KEY (`id_cliente`) REFERENCES `clientes` (`id_cliente`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 ALTER TABLE `solicitudes_despacho` ADD `consignatarios` TEXT NULL DEFAULT NULL AFTER `id_cliente`;
+
+
+ALTER TABLE guias_transito 
+ADD COLUMN patente_camion VARCHAR(20),
+ADD COLUMN patente_carro_acoplado VARCHAR(20),
+ADD COLUMN empresa_transporte VARCHAR(100),
+ADD COLUMN fecha_despacho DATE,
+ADD COLUMN sustratos_especie VARCHAR(100),
+ADD COLUMN sustratos_cantidad VARCHAR(50),
+ADD COLUMN material_vegetal_especie VARCHAR(100),
+ADD COLUMN material_vegetal_cantidad VARCHAR(50),
+ADD COLUMN plantas_sustrato_esterilizado_especie VARCHAR(100),
+ADD COLUMN plantas_sustrato_esterilizado_cantidad VARCHAR(50),
+ADD COLUMN plantas_sin_turba_especie VARCHAR(100),
+ADD COLUMN plantas_sin_turba_cantidad VARCHAR(50),
+ADD COLUMN otros_especie VARCHAR(100),
+ADD COLUMN otros_cantidad VARCHAR(50),
+ADD COLUMN destino_region VARCHAR(100),
+ADD COLUMN destino_provincia VARCHAR(100),
+ADD COLUMN destino_comuna VARCHAR(100),
+ADD COLUMN destino_direccion VARCHAR(200),
+ADD COLUMN cantidad_sellos VARCHAR(50),
+ADD COLUMN ubicacion_sellos VARCHAR(200),
+ADD COLUMN observaciones TEXT,
+ADD COLUMN nombre_despachador VARCHAR(100),
+ADD COLUMN rut_despachador VARCHAR(20);
+ADD COLUMN fecha DATETIME;
+
+ALTER TABLE guias_transito 
+ADD COLUMN id_guia_despacho INT NULL,
+ADD CONSTRAINT fk_guia_despacho FOREIGN KEY (id_guia_despacho) REFERENCES guias_despacho(rowid);
+
+
+CREATE TABLE `guias_transito_facturas` (
+  `id` int(11) PRIMARY KEY NOT NULL,
+  `codigo` mediumtext DEFAULT NULL,
+  `patente_camion` varchar(20) DEFAULT NULL,
+  `patente_carro_acoplado` varchar(20) DEFAULT NULL,
+  `empresa_transporte` varchar(100) DEFAULT NULL,
+  `fecha_despacho` DATE DEFAULT NULL,
+  `sustratos_especie` varchar(100) DEFAULT NULL,
+  `sustratos_cantidad` varchar(50) DEFAULT NULL,
+  `material_vegetal_especie` varchar(100) DEFAULT NULL,
+  `material_vegetal_cantidad` varchar(50) DEFAULT NULL,
+  `plantas_sustrato_esterilizado_especie` varchar(100) DEFAULT NULL,
+  `plantas_sustrato_esterilizado_cantidad` varchar(50) DEFAULT NULL,
+  `plantas_sin_turba_especie` varchar(100) DEFAULT NULL,
+  `plantas_sin_turba_cantidad` varchar(50) DEFAULT NULL,
+  `otros_especie` varchar(100) DEFAULT NULL,
+  `otros_cantidad` varchar(50) DEFAULT NULL,
+  `destino_region` varchar(100) DEFAULT NULL,
+  `destino_provincia` varchar(100) DEFAULT NULL,
+  `destino_comuna` varchar(100) DEFAULT NULL,
+  `destino_direccion` varchar(200) DEFAULT NULL,
+  `observaciones` text DEFAULT NULL,
+  `nombre_despachador` varchar(100) DEFAULT NULL,
+  `rut_despachador` varchar(20) DEFAULT NULL,
+  `id_factura` int(11) DEFAULT NULL,
+  `fecha` datetime DEFAULT NULL,
+  FOREIGN KEY (`id_factura`) REFERENCES facturas(rowid)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;

@@ -104,6 +104,13 @@ $fecha = $dias[date('w')] . " " . date('d') . " de " . $meses[date('n') - 1] . "
                   >
                     SOLICITUDES DESPACHO
                   </button>
+                  <button
+                    id="tabsag"
+                    class="tablinks"
+                    onclick="abrirTab(event, 'sag');"
+                  >
+                    GUÍAS SAG
+                  </button>
                 </div>
               </div>
             </div>
@@ -218,6 +225,13 @@ $fecha = $dias[date('w')] . " " . date('d') . " de " . $meses[date('n') - 1] . "
               <div class="row mt-2 mb-5">
                 <div class="col">
                   <div id="tabla_solicitudes"></div>
+                </div>
+              </div>
+            </div>
+            <div class="tabco tab-sag d-none">
+              <div class="row mt-2 mb-5">
+                <div class="col">
+                  <div id="tabla_sag"></div>
                 </div>
               </div>
             </div>
