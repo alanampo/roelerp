@@ -2558,7 +2558,7 @@ function updateMasks(obj) {
 //GUIA TRANSITO
 
 
-function generarGuiaTransito(obj, rowid, folio, fecha, cliente, domicilio, comuna, id_cotizacion_directa, telefono) {
+function generarGuiaTransito(obj, rowid, folio, fecha, cliente, domicilio, comuna, id_cotizacion_directa, telefono, rut_cliente) {
   $("#modal-guia-transito").removeAttr("x-edit-id")
   $("#modal-guia-transito").attr("x-id", rowid)
   let selectedMap = {};
@@ -2578,18 +2578,41 @@ function generarGuiaTransito(obj, rowid, folio, fecha, cliente, domicilio, comun
   $(".container-guia-transito").html(`
     <div class='row'>
       <div class='col w-100'>
-      <div class='d-flex flex-row' style='justify-content: space-between;width:100%;align-items:end;'>
-        <img src='dist/img/roelprint.png' style='width: 120px'/>  
-        <span>Fecha de Emisión: ${datetime}</span>
+      <div class='d-flex flex-row' style='width:100%;align-items:end;'>
+        <img src='dist/img/roelprint.png' style='width: 120px' class="mr-2"/>  
+        
+        <table class="tableizer-table-transito w-100">
+            <thead><tr>
+            <td>Fecha 5 de septiembre de 2023
+            </td>
+          </tr></thead>
+            <tbody>
+              
+              <tr>
+                <td>Nombre de la Empresa/Vivero: Vivero Roelplant
+                </td>
+              </tr>
+              <tr>
+                <td>Número de Registro SAG Despacho Directo: EDD-05-27</td>
+              </tr>
+            </tbody></table> 
+        
+        
+
       </div>
         
+      </div>
+    </div>
+    <div class="row mt-3">
+      <div class="col text-right">
+      <span>Fecha de Emisión: ${datetime}</span>
       </div>
     </div>
   `)
 
 
   $(".container-guia-transito").append(`
-  <div class='row mt-4'>
+  <div class='row mt-2'>
     <div class='col text-center font-weight-bold'>
       <h4>GUÍA DE LIBRE TRÁNSITO <small id="num-guia"></small></h4>
     </div>
@@ -2644,7 +2667,8 @@ function generarGuiaTransito(obj, rowid, folio, fecha, cliente, domicilio, comun
   <table class="tableizer-table-transito w-100">
   <tbody>
     <tr>
-      <td colspan="3">Nombre del consignatario/a: ${cliente}</td>
+      <td>Nombre del consignatario/a: ${cliente}</td>
+      <td colspan="2">R.U.T del consignatario/a: ${rut_cliente}</td>
     </tr>
     <tr>
       <td>N° Guía de Despacho del SII: ${folio}</td>
@@ -2846,11 +2870,34 @@ function editarGuiaTransito(obj, rowid, folio, fecha, cliente, domicilio, comuna
   $(".container-guia-transito").html(`
     <div class='row'>
       <div class='col w-100'>
-      <div class='d-flex flex-row' style='justify-content: space-between;width:100%;align-items:end;'>
-        <img src='dist/img/roelprint.png' style='width: 120px'/>  
-        <span>Fecha de Emisión: ${datetime}</span>
+      <div class='d-flex flex-row' style='width:100%;align-items:end;'>
+        <img src='dist/img/roelprint.png' style='width: 120px' class="mr-2"/>  
+        
+        <table class="tableizer-table-transito w-100">
+            <thead><tr>
+            <td>Fecha 5 de septiembre de 2023
+            </td>
+          </tr></thead>
+            <tbody>
+              
+              <tr>
+                <td>Nombre de la Empresa/Vivero: Vivero Roelplant
+                </td>
+              </tr>
+              <tr>
+                <td>Número de Registro SAG Despacho Directo: EDD-05-27</td>
+              </tr>
+            </tbody></table> 
+        
+        
+
       </div>
         
+      </div>
+    </div>
+    <div class="row mt-3">
+      <div class="col text-right">
+      <span>Fecha de Emisión: ${datetime}</span>
       </div>
     </div>
   `)

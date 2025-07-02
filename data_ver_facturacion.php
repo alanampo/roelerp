@@ -810,6 +810,7 @@ UNION
             cl.id_cliente,
             cl.domicilio,
             cl.telefono,
+            cl.rut as rut_cliente,
             com.nombre as comuna,
             gd.track_id,
             DATE_FORMAT(gd.fecha, '%d/%m/%y %H:%i') as fecha,
@@ -862,7 +863,7 @@ UNION
 
             $btn_print = ($ww["track_id"] ? "<button onclick='printDTE(this, $ww[rowid], $ww[folio], 2)' class='btn btn-primary fa fa-print btn-sm'></button>" : "");
 
-            $btn_print .= "<button onclick='generarGuiaTransito(this, $ww[rowid], $ww[folio], \"$ww[fecha]\", \"$ww[cliente]\", \"$ww[domicilio]\", \"$ww[comuna]\", $ww[id_cotizacion_directa], \"$ww[telefono]\")' class='btn btn-info ml-2 btn-sm d-inline-block'>SAG</button>";
+            $btn_print .= "<button onclick='generarGuiaTransito(this, $ww[rowid], $ww[folio], \"$ww[fecha]\", \"$ww[cliente]\", \"$ww[domicilio]\", \"$ww[comuna]\", $ww[id_cotizacion_directa], \"$ww[telefono]\", \"$ww[rut_cliente]\")' class='btn btn-info ml-2 btn-sm d-inline-block'>SAG</button>";
             echo "
                 <tr class='text-center' style='cursor:pointer' x-id='$ww[rowid]'>
                 <td>$ww[folio]</td>
