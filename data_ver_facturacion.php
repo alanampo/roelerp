@@ -1299,7 +1299,7 @@ UNION
      ON v.id = c.id_variedad
      WHERE id_cotizacion = (SELECT id_cotizacion FROM facturas WHERE rowid = $rowid);";
         }
-
+        echo $query;die;
         $val = mysqli_query($con, $query);
         $productos = [];
         if (mysqli_num_rows($val) > 0) {
