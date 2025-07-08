@@ -99,7 +99,7 @@ if ($consulta == "cargar_historial") { //FACTURAS
 
             $btn_cancelar_factura = ($ww["estado"] == "ACEPTADO" ? "<button onclick='modalAnularFactura($ww[rowid], $ww[folio], $esFactDirecta, $ww[id_cliente])' class='btn btn-danger fa fa-ban btn-sm mr-2'></button>" : "");
             $btn_print = ($ww["track_id"] ? "<button onclick='printDTE(this, $ww[rowid], $ww[folio], 0)' class='btn btn-primary fa fa-print btn-sm mr-2'></button>" : "");
-            $btn_print .= "<button onclick='generarGuiaTransito(this, $ww[rowid], $ww[folio], \"$ww[fecha]\", \"$ww[cliente]\", \"$ww[domicilio]\", \"$ww[comuna]\", '$ww[id_cotizacion_directa]', \"$ww[telefono]\", \"$ww[rut_cliente]\", \"factura\", \"$ww[provincia]\", \"$ww[region]\")' class='btn btn-info btn-sm d-inline-block px-1 py-1'><small>SAG</small></button>";
+            $btn_print .= "<button onclick='generarGuiaTransito(this, $ww[rowid], $ww[folio], \"$ww[fecha]\", \"$ww[cliente]\", \"$ww[domicilio]\", \"$ww[comuna]\", \"$ww[id_cotizacion_directa]\", \"$ww[telefono]\", \"$ww[rut_cliente]\", \"factura\", \"$ww[provincia]\", \"$ww[region]\")' class='btn btn-info btn-sm d-inline-block px-1 py-1'><small>SAG</small></button>";
             $btn_descargar_xml = ($ww["track_id"] ? "<button onclick='downloadXML(this, $ww[rowid], $ww[folio])' class='btn btn-primary btn-sm ml-2 mr-2 px-1' style='font-size:10px;'>XML INT</button>" : "");
 
             $btn_descargar_xml_cliente = ($ww["track_id"] ? "<button onclick='downloadXML(this, $ww[rowid], $ww[folio], $ww[id_cliente])' class='btn btn-primary btn-sm mr-2 px-1' style='font-size:10px;'>XML CLI</button>" : "");
@@ -867,7 +867,7 @@ UNION
 
             $btn_print = ($ww["track_id"] ? "<button onclick='printDTE(this, $ww[rowid], $ww[folio], 2)' class='btn btn-primary fa fa-print btn-sm'></button>" : "");
 
-            $btn_print .= "<button onclick='generarGuiaTransito(this, $ww[rowid], $ww[folio], \"$ww[fecha]\", \"$ww[cliente]\", \"$ww[domicilio]\", \"$ww[comuna]\", '$ww[id_cotizacion_directa]', \"$ww[telefono]\", \"$ww[rut_cliente]\", \"guia_despacho\", \"$ww[provincia]\", \"$ww[region]\")' class='btn btn-info ml-2 btn-sm d-inline-block'>SAG</button>";
+            $btn_print .= "<button onclick='generarGuiaTransito(this, $ww[rowid], $ww[folio], \"$ww[fecha]\", \"$ww[cliente]\", \"$ww[domicilio]\", \"$ww[comuna]\", \"$ww[id_cotizacion_directa]\", \"$ww[telefono]\", \"$ww[rut_cliente]\", \"guia_despacho\", \"$ww[provincia]\", \"$ww[region]\")' class='btn btn-info ml-2 btn-sm d-inline-block'>SAG</button>";
             echo "
                 <tr class='text-center' style='cursor:pointer' x-id='$ww[rowid]'>
                 <td>$ww[folio]</td>
