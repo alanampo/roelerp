@@ -1271,7 +1271,7 @@ UNION
     $id = $_POST["id"];
     $rowid = $_POST["rowid"];
 
-    if (isset($id)) {
+    if (isset($id) && mb_strlen($id) > 0) {
         $query = "SELECT (IFNULL(SUM(cantidad),0)) as cantidad FROM cotizaciones_directas_productos WHERE id_cotizacion_directa = $id;";
     } else {
         $query = "SELECT (IFNULL(SUM(cantidad),0)) as cantidad FROM cotizaciones_productos WHERE id_cotizacion = (SELECT id_cotizacion FROM facturas WHERE rowid = $rowid);";
@@ -1286,7 +1286,7 @@ UNION
     try {
         $id = $_POST["id"];
         $rowid = $_POST["rowid"];
-        if (isset($id)) {
+        if (isset($id) && mb_strlen($id) > 0) {
             $query = "SELECT v.nombre as nombre_variedad, c.cantidad
      FROM cotizaciones_directas_productos c 
      INNER JOIN variedades_producto v
@@ -1299,7 +1299,7 @@ UNION
      ON v.id = c.id_variedad
      WHERE id_cotizacion = (SELECT id_cotizacion FROM facturas WHERE rowid = $rowid);";
         }
-        echo $query;die;
+
         $val = mysqli_query($con, $query);
         $productos = [];
         if (mysqli_num_rows($val) > 0) {
