@@ -28,6 +28,8 @@ if ($consulta == "cargar_historial") { //FACTURAS
             cl.mail,
             cl.telefono,
             cl.domicilio,
+            cl.provincia,
+            cl.region,
             cl.rut,
             u.nombre_real,
             com.nombre as comuna,
@@ -97,8 +99,8 @@ if ($consulta == "cargar_historial") { //FACTURAS
 
             $btn_cancelar_factura = ($ww["estado"] == "ACEPTADO" ? "<button onclick='modalAnularFactura($ww[rowid], $ww[folio], $esFactDirecta, $ww[id_cliente])' class='btn btn-danger fa fa-ban btn-sm mr-2'></button>" : "");
             $btn_print = ($ww["track_id"] ? "<button onclick='printDTE(this, $ww[rowid], $ww[folio], 0)' class='btn btn-primary fa fa-print btn-sm mr-2'></button>" : "");
-            //$btn_print .= "<button onclick='generarGuiaTransito(this, $ww[rowid], $ww[folio], \"$ww[fecha]\", \"$ww[cliente]\", \"$ww[domicilio]\", \"$ww[comuna]\", $ww[id_cotizacion_directa], \"$ww[telefono]\")' style='font-size:10px;' class='btn btn-info mr-2 btn-sm'>SAG</button>";
-            $btn_descargar_xml = ($ww["track_id"] ? "<button onclick='downloadXML(this, $ww[rowid], $ww[folio])' class='btn btn-primary btn-sm mr-2 px-1' style='font-size:10px;'>XML INT</button>" : "");
+            $btn_print .= "<button onclick='generarGuiaTransito(this, $ww[rowid], $ww[folio], \"$ww[fecha]\", \"$ww[cliente]\", \"$ww[domicilio]\", \"$ww[comuna]\", $ww[id_cotizacion_directa], \"$ww[telefono]\", \"$ww[rut_cliente]\", \"factura\", \"$ww[provincia]\", \"$ww[region]\")' class='btn btn-info btn-sm d-inline-block px-1 py-1'><small>SAG</small></button>";
+            $btn_descargar_xml = ($ww["track_id"] ? "<button onclick='downloadXML(this, $ww[rowid], $ww[folio])' class='btn btn-primary btn-sm ml-2 mr-2 px-1' style='font-size:10px;'>XML INT</button>" : "");
 
             $btn_descargar_xml_cliente = ($ww["track_id"] ? "<button onclick='downloadXML(this, $ww[rowid], $ww[folio], $ww[id_cliente])' class='btn btn-primary btn-sm mr-2 px-1' style='font-size:10px;'>XML CLI</button>" : "");
 
@@ -810,6 +812,8 @@ UNION
             cl.id_cliente,
             cl.domicilio,
             cl.telefono,
+            cl.provincia,
+            cl.region,
             cl.rut as rut_cliente,
             com.nombre as comuna,
             gd.track_id,
@@ -863,7 +867,7 @@ UNION
 
             $btn_print = ($ww["track_id"] ? "<button onclick='printDTE(this, $ww[rowid], $ww[folio], 2)' class='btn btn-primary fa fa-print btn-sm'></button>" : "");
 
-            $btn_print .= "<button onclick='generarGuiaTransito(this, $ww[rowid], $ww[folio], \"$ww[fecha]\", \"$ww[cliente]\", \"$ww[domicilio]\", \"$ww[comuna]\", $ww[id_cotizacion_directa], \"$ww[telefono]\", \"$ww[rut_cliente]\")' class='btn btn-info ml-2 btn-sm d-inline-block'>SAG</button>";
+            $btn_print .= "<button onclick='generarGuiaTransito(this, $ww[rowid], $ww[folio], \"$ww[fecha]\", \"$ww[cliente]\", \"$ww[domicilio]\", \"$ww[comuna]\", $ww[id_cotizacion_directa], \"$ww[telefono]\", \"$ww[rut_cliente]\", \"guia_despacho\", \"$ww[provincia]\", \"$ww[region]\")' class='btn btn-info ml-2 btn-sm d-inline-block'>SAG</button>";
             echo "
                 <tr class='text-center' style='cursor:pointer' x-id='$ww[rowid]'>
                 <td>$ww[folio]</td>
@@ -1197,6 +1201,7 @@ UNION
     $codigo = $_POST["codigo"];
     $datos = $_POST["datos"]; // objeto enviado desde JS
     $id_guia = $_POST["id_guia"];
+    $tipo = $_POST["tipo"];
     // Sanitizar los valores
     function safe($val, $con)
     {
@@ -1232,10 +1237,10 @@ UNION
     $observaciones = safe($datos["observaciones"], $con);
     $nombre_despachador = safe($datos["nombre_despachador"], $con);
     $rut_despachador = safe($datos["rut_despachador"], $con);
-
+    $campo = $tipo == "factura" ? "id_factura" : "id_guia_despacho";
     $query = "
         INSERT INTO guias_transito (
-            id_guia_despacho,
+            $campo,
             codigo, patente_camion, patente_carro_acoplado, empresa_transporte, fecha_despacho,
             sustratos_especie, sustratos_cantidad,
             material_vegetal_especie, material_vegetal_cantidad,
@@ -1361,10 +1366,12 @@ else if ($consulta == "cargar_sag") {
             o.observaciones,
             g.folio,
             DATE_FORMAT(o.fecha, '%d/%m/%Y %H:%i') as fecha,
-            DATE_FORMAT(o.fecha, '%Y%m%d%H%i') as fecha_raw
+            DATE_FORMAT(o.fecha, '%Y%m%d%H%i') as fecha_raw,
+            f.folio as folio_factura
             
             FROM guias_transito o
             LEFT JOIN guias_despacho g ON g.rowid = o.id_guia_despacho
+            LEFT JOIN facturas f ON f.rowid = o.id_factura
             ";
 
     $val = mysqli_query($con, $query);
@@ -1379,7 +1386,7 @@ else if ($consulta == "cargar_sag") {
         echo "<table id='tabla-sag' class='table table-bordered table-responsive w-100 d-block d-md-table'>";
         echo "<thead>";
         echo "<tr>";
-        echo "<th>N°</th><th>Fecha</th><th>Guía Despacho</th><th>Observaciones</th><th></th>";
+        echo "<th>N°</th><th>Fecha</th><th>Factura</th><th>Guía Despacho</th><th>Observaciones</th><th></th>";
         echo "</tr>";
         echo "</thead>";
         echo "<tbody>";
@@ -1391,6 +1398,7 @@ else if ($consulta == "cargar_sag") {
     <tr class='text-center' style='cursor:pointer' x-id='$ww[id]'>
       <td>$ww[id]</td>
       <td><span class='d-none'>$ww[fecha_raw]</span>$ww[fecha]</td>
+      <td>$ww[folio_factura]</td>
       <td>$ww[folio]</td>
       <td>$ww[observaciones]</td>
       <td class='text-center'>

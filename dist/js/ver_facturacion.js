@@ -2558,7 +2558,8 @@ function updateMasks(obj) {
 //GUIA TRANSITO
 
 
-function generarGuiaTransito(obj, rowid, folio, fecha, cliente, domicilio, comuna, id_cotizacion_directa, telefono, rut_cliente) {
+function generarGuiaTransito(obj, rowid, folio, fecha, cliente, domicilio, comuna, id_cotizacion_directa, telefono, rut_cliente, tipo, provincia, region) {
+  $("#modal-guia-transito").attr("x-tipo", tipo)
   $("#modal-guia-transito").removeAttr("x-edit-id")
   $("#modal-guia-transito").attr("x-id", rowid)
   let selectedMap = {};
@@ -2671,7 +2672,7 @@ function generarGuiaTransito(obj, rowid, folio, fecha, cliente, domicilio, comun
       <td colspan="2">R.U.T del consignatario/a: ${rut_cliente}</td>
     </tr>
     <tr>
-      <td>N° Guía de Despacho del SII: ${folio}</td>
+      <td>N° ${tipo == "factura" ? "Factura" : "Guía de Despacho del SII"}: ${folio}</td>
       <td colspan="2">con fecha: ${fecha}</td>
     </tr>
     <tr>
@@ -2724,21 +2725,21 @@ function generarGuiaTransito(obj, rowid, folio, fecha, cliente, domicilio, comun
   $(".container-guia-transito").append(`
    <div class='row mt-4'>
      <div class='col'>
-      <span style='font-size:12px'>El material se despacha en el medio de transporte específicado y se envía con destino declarado a:</span>
+      <span style='font-size:12px'>El material se despacha en el medio de transporte especificado y se envía con destino declarado a:</span>
     </div>
    </div>    
   `);
 
   $(".container-guia-transito").append(`
-  <div class='container-data-cliente'>
+  <div class='container-data-cliente w-100'>
    <div class='row mt-2'>
-      <div class='col-md-6'>
+      <div class='col-6'>
         Región:
-        <input type='text' class='form-control input-small d-inline-block input-region' style='min-width:200px'></input>
+        <input type='text' class='form-control input-small d-inline-block input-region' style='min-width:200px' value='${region}'></input>
       </div>
-      <div class='col-md-6'>
+      <div class='col-6'>
         Provincia:
-        <input type='text' class='form-control input-small d-inline-block input-provincia' style='min-width:200px'></input>
+        <input type='text' class='form-control input-small d-inline-block input-provincia' style='min-width:200px' value='${provincia}'></input>
       </div>
    </div>    
    <div class='row mt-2'>
@@ -2850,7 +2851,7 @@ function generarGuiaTransito(obj, rowid, folio, fecha, cliente, domicilio, comun
 
 
 
-function editarGuiaTransito(obj, rowid, folio, fecha, cliente, domicilio, comuna, id_cotizacion_directa, telefono) {
+function editarGuiaTransito(obj, rowid, folio, fecha, cliente, domicilio, comuna, id_cotizacion_directa, telefono, provincia, region) {
 
   $("#modal-guia-transito").attr("x-edit-id", rowid)
   let selectedMap = {};
@@ -3012,7 +3013,7 @@ function editarGuiaTransito(obj, rowid, folio, fecha, cliente, domicilio, comuna
   $(".container-guia-transito").append(`
    <div class='row mt-4'>
      <div class='col'>
-      <span style='font-size:12px'>El material se despacha en el medio de transporte específicado y se envía con destino declarado a:</span>
+      <span style='font-size:12px'>El material se despacha en el medio de transporte especificado y se envía con destino declarado a:</span>
     </div>
    </div>    
   `);
@@ -3177,7 +3178,8 @@ function printGuiaTransito(tipo) {
         consulta: "guardar_guia_transito",
         codigo: btoa($("#miVentana").html()),
         datos: datosGuiaTransito,
-        id_guia: $("#modal-guia-transito").attr("x-id")
+        id_guia: $("#modal-guia-transito").attr("x-id"),
+        tipo: $("#modal-guia-transito").attr("x-tipo")
       },
       success: function (x) {
         if (x.includes("success")) {

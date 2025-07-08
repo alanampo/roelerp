@@ -18,12 +18,20 @@ $global_id_cliente = $_POST['id_cliente'];
 $nombre = $_POST['nombre'];
 $domicilio = $_POST['domicilio'];
 $domicilio2 = $_POST['domicilio2'];
+$region = $_POST['region'];
+$provincia = $_POST['provincia'];
 
 if (strlen(trim($domicilio)) == 0) {
     $domicilio = null;
 }
 if (strlen(trim($domicilio2)) == 0) {
     $domicilio2 = null;
+}
+if (strlen(trim($region)) == 0) {
+    $region = null;
+}
+if (strlen(trim($provincia)) == 0) {
+    $provincia = null;
 }
 $telefono = $_POST['telefono'];
 if (strlen(trim($telefono)) == 0) {
@@ -54,7 +62,7 @@ if ($tipo == "agregar") {
         die("Ya existe un Cliente con ese RUT");
     }
     else{
-        $query = "INSERT INTO clientes (nombre, domicilio, domicilio2, telefono, mail, rut, comuna, razon_social) VALUES (UPPER('$nombre'), UPPER('$domicilio'), UPPER('$domicilio2'), '$telefono', LOWER('$mail'), UPPER('$rut'), $comuna, UPPER('$razon_social'));";
+        $query = "INSERT INTO clientes (nombre, domicilio, domicilio2, telefono, mail, rut, comuna, razon_social, region, provincia) VALUES (UPPER('$nombre'), UPPER('$domicilio'), UPPER('$domicilio2'), '$telefono', LOWER('$mail'), UPPER('$rut'), $comuna, UPPER('$razon_social'), UPPER('$region'), UPPER('$provincia'));";
     }
 } else if ($tipo == "editar") {
     $query = "SELECT * FROM clientes WHERE rut = '$rut' AND id_cliente <> $global_id_cliente LIMIT 1";
@@ -64,7 +72,7 @@ if ($tipo == "agregar") {
         die("Ya existe un Cliente con ese RUT");
     }
     else{
-        $query = "UPDATE clientes SET nombre = UPPER('$nombre'), domicilio = UPPER('$domicilio'), domicilio2 = UPPER('$domicilio2'), telefono = '$telefono', mail = LOWER('$mail'), rut = UPPER('$rut'), comuna = $comuna, razon_social = UPPER('$razon_social') WHERE id_cliente = '$global_id_cliente';";
+        $query = "UPDATE clientes SET nombre = UPPER('$nombre'), domicilio = UPPER('$domicilio'), domicilio2 = UPPER('$domicilio2'), telefono = '$telefono', mail = LOWER('$mail'), rut = UPPER('$rut'), comuna = $comuna, razon_social = UPPER('$razon_social'), region = UPPER('$region'), provincia = UPPER('$provincia') WHERE id_cliente = '$global_id_cliente';";
     }    
 }
 

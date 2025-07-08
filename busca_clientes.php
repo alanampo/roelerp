@@ -13,7 +13,7 @@ if (!$con) {
 }
 mysqli_query($con,"SET NAMES 'utf8'");
 
-$cadena="SELECT c.id_cliente as id_cliente, c.nombre as nombre, c.domicilio as domicilio, c.domicilio2, c.telefono, c.mail as mail, c.razon_social, c.rut as rut, co.ciudad as ciudad, co.nombre as comuna, co.id as id_comuna FROM clientes c LEFT JOIN comunas co ON c.comuna = co.id ORDER BY nombre ASC;";
+$cadena="SELECT c.id_cliente as id_cliente, c.provincia, c.region, c.nombre as nombre, c.domicilio as domicilio, c.domicilio2, c.telefono, c.mail as mail, c.razon_social, c.rut as rut, co.ciudad as ciudad, co.nombre as comuna, co.id as id_comuna FROM clientes c LEFT JOIN comunas co ON c.comuna = co.id ORDER BY nombre ASC;";
 
 $val = mysqli_query($con, $cadena);
 
@@ -26,7 +26,7 @@ if (mysqli_num_rows($val)>0){
  echo "<thead>";
  echo "<tr>";
  $th_eliminar = ($_SESSION["id_usuario"] == 1 ? "<th></th>" :"");
- echo "<th>ID</th><th>Nombre</th><th>Domicilio</th><th>Domicilio 2</th><th>Teléfono</th><th>E-Mail</th><th>R.U.T</th><th>Ciudad</th><th>Comuna</th>$th_eliminar";
+ echo "<th>ID</th><th>Nombre</th><th>Domicilio</th><th>Domicilio 2</th><th>Teléfono</th><th>E-Mail</th><th>R.U.T</th><th>Ciudad</th><th>Comuna</th><th>Provincia</th><th>Región</th>$th_eliminar";
  echo "</tr>";
  echo "</thead>";
  echo "<tbody>";
@@ -38,6 +38,8 @@ if (mysqli_num_rows($val)>0){
      $domicilio2=$ww['domicilio2'];
 
      $telefono = $ww['telefono'];
+     $provincia = $ww['provincia'];
+     $region = $ww['region'];
      $mail = $ww['mail'];
     
    echo "<tr class='text-center' x-razon=\"$ww[razon_social]\" style='cursor:pointer;'>";
@@ -45,11 +47,14 @@ if (mysqli_num_rows($val)>0){
    echo "<td onClick='modificarCliente(this.parentNode, $id_cliente)' class='td-nombre'>$nombre</td>";
    echo "<td onClick='modificarCliente(this.parentNode, $id_cliente)' class='td-domicilio'>$domicilio</td>";
    echo "<td onClick='modificarCliente(this.parentNode, $id_cliente)' class='td-domicilio2'>$domicilio2</td>";
+
    echo "<td onClick='modificarCliente(this.parentNode, $id_cliente)' class='td-telefono'>$telefono</td>";
    echo "<td onClick='modificarCliente(this.parentNode, $id_cliente)' class='td-email'>$mail</td>";
    echo "<td onClick='modificarCliente(this.parentNode, $id_cliente)' class='td-rut'>$ww[rut]</td>";
    echo "<td>$ww[ciudad]</td>";
    echo "<td class='td-comuna' x-id='$ww[id_comuna]'>$ww[comuna]</td>";
+   echo "<td onClick='modificarCliente(this.parentNode, $id_cliente)' class='td-provincia'>$provincia</td>";
+   echo "<td onClick='modificarCliente(this.parentNode, $id_cliente)' class='td-region'>$region</td>";
    if ($_SESSION["id_usuario"] == 1){
     echo "<td style='text-align: center;'>
     <button class='btn btn-sm btn-danger fa fa-trash' onclick='eliminarCliente($id_cliente, \"$nombre\")'></button>

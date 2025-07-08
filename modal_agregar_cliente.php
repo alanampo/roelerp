@@ -52,6 +52,28 @@
                 </div>
                 <div class='form-group'>
                     <div>
+                        <label class="control-label">Provincia:</label>
+                    </div>
+                    <div>
+                        <form action="#" onsubmit="$('#regioncliente_txt').focus();return false;">
+                            <input type="search" maxlength="100" autocomplete="off" id="provinciacliente_txt"
+                                style="text-transform:uppercase" class="form-control">
+                        </form>
+                    </div>
+                </div>
+                <div class='form-group'>
+                    <div>
+                        <label class="control-label">Región:</label>
+                    </div>
+                    <div>
+                        <form action="#" onsubmit="$('#telcliente_txt').focus();return false;">
+                            <input type="search" maxlength="100" autocomplete="off" id="regioncliente_txt"
+                                style="text-transform:uppercase" class="form-control">
+                        </form>
+                    </div>
+                </div>
+                <div class='form-group'>
+                    <div>
                         <label class="control-label">Teléfono:</label>
                     </div>
                     <div>

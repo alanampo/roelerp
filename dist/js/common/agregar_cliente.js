@@ -28,6 +28,8 @@ function MostrarModalAgregarCliente() {
     const nombre = $("#nombrecliente_txt").val().trim();
     const domicilio = $("#domiciliocliente_txt").val().trim();
     const domicilio2 = $("#domiciliocliente2_txt").val().trim();
+    const provincia = $("#provinciacliente_txt").val().trim();
+    const region = $("#regioncliente_txt").val().trim();
     const telefono = $("#telcliente_txt").val().trim();
     const rut = $("#rutcliente_txt").val().trim();
     const razonSocial = $("#razonsocial_txt").val().trim();
@@ -58,6 +60,8 @@ function MostrarModalAgregarCliente() {
           nombre: nombre,
           domicilio: domicilio,
           domicilio2,
+          provincia,
+          region,
           telefono: telefono,
           rut: rut,
           razonSocial: razonSocial,
@@ -106,6 +110,8 @@ function MostrarModalAgregarCliente() {
     const razon = $(tr).attr("x-razon");
     const domicilio = $(tr).find(".td-domicilio").text();
     const domicilio2 = $(tr).find(".td-domicilio2").text();
+    const provincia = $(tr).find(".td-provincia").text();
+    const region = $(tr).find(".td-region").text();
     const telefono = $(tr).find(".td-telefono").text();
     const email = $(tr).find(".td-email").text();
     const rut = $(tr).find(".td-rut").text();
@@ -114,6 +120,8 @@ function MostrarModalAgregarCliente() {
     $("#nombrecliente_txt").val(nombre);
     $("#domiciliocliente_txt").val(domicilio);
     $("#domiciliocliente2_txt").val(domicilio2);
+    $("#provinciacliente_txt").val(provincia);
+    $("#regioncliente_txt").val(region);
     $("#telcliente_txt").val(telefono);
     $("#rutcliente_txt").val(rut);
     $("#razonsocial_txt").val(razon);
