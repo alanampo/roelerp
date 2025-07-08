@@ -2853,278 +2853,278 @@ function generarGuiaTransito(obj, rowid, folio, fecha, cliente, domicilio, comun
 
 
 
-function editarGuiaTransito(obj, rowid, folio, fecha, cliente, domicilio, comuna, id_cotizacion_directa, telefono, provincia, region) {
+// function editarGuiaTransito(obj, rowid, folio, fecha, cliente, domicilio, comuna, id_cotizacion_directa, telefono, provincia, region) {
 
-  $("#modal-guia-transito").attr("x-edit-id", rowid)
-  let selectedMap = {};
-  const now = new Date();
-  const datetime =
-    (now.getDate() < 10 ? "0" + now.getDate() : now.getDate()) +
-    "/" +
-    (now.getMonth() + 1 < 10
-      ? "0" + (now.getMonth() + 1)
-      : now.getMonth() + 1) +
-    "/" +
-    now.getFullYear() +
-    " ";
+//   $("#modal-guia-transito").attr("x-edit-id", rowid)
+//   let selectedMap = {};
+//   const now = new Date();
+//   const datetime =
+//     (now.getDate() < 10 ? "0" + now.getDate() : now.getDate()) +
+//     "/" +
+//     (now.getMonth() + 1 < 10
+//       ? "0" + (now.getMonth() + 1)
+//       : now.getMonth() + 1) +
+//     "/" +
+//     now.getFullYear() +
+//     " ";
 
-  $("#modal-guia-transito").modal("show");
+//   $("#modal-guia-transito").modal("show");
 
-  $(".container-guia-transito").html(`
-    <div class='row'>
-      <div class='col w-100'>
-      <div class='d-flex flex-row' style='width:100%;align-items:end;'>
-        <img src='dist/img/roelprint.png' style='width: 120px' class="mr-2"/>  
+//   $(".container-guia-transito").html(`
+//     <div class='row'>
+//       <div class='col w-100'>
+//       <div class='d-flex flex-row' style='width:100%;align-items:end;'>
+//         <img src='dist/img/roelprint.png' style='width: 120px' class="mr-2"/>  
         
-        <table class="tableizer-table-transito w-100">
-            <thead><tr>
-            <td>Fecha 5 de septiembre de 2023
-            </td>
-          </tr></thead>
-            <tbody>
+//         <table class="tableizer-table-transito w-100">
+//             <thead><tr>
+//             <td>Fecha 5 de septiembre de 2023
+//             </td>
+//           </tr></thead>
+//             <tbody>
               
-              <tr>
-                <td>Nombre de la Empresa/Vivero: Vivero Roelplant
-                </td>
-              </tr>
-              <tr>
-                <td>Número de Registro SAG Despacho Directo: EDD-05-27</td>
-              </tr>
-            </tbody></table> 
+//               <tr>
+//                 <td>Nombre de la Empresa/Vivero: Vivero Roelplant
+//                 </td>
+//               </tr>
+//               <tr>
+//                 <td>Número de Registro SAG Despacho Directo: EDD-05-27</td>
+//               </tr>
+//             </tbody></table> 
         
         
 
-      </div>
+//       </div>
         
-      </div>
-    </div>
-    <div class="row mt-3">
-      <div class="col text-right">
-      <span>Fecha de Emisión: ${datetime}</span>
-      </div>
-    </div>
-  `)
+//       </div>
+//     </div>
+//     <div class="row mt-3">
+//       <div class="col text-right">
+//       <span>Fecha de Emisión: ${datetime}</span>
+//       </div>
+//     </div>
+//   `)
 
 
-  $(".container-guia-transito").append(`
-  <div class='row mt-4'>
-    <div class='col text-center font-weight-bold'>
-      <h4>GUÍA DE LIBRE TRÁNSITO <small id="num-guia"></small></h4>
-    </div>
-  </div>
-  <div class='row font-weight-bold mb-3'>
-    <div class='col text-center'>
-      <span style='font-size:14px'>(Resoluciones SAG N° 3276 / 2016)</span>
-    </div>
-  </div>
+//   $(".container-guia-transito").append(`
+//   <div class='row mt-4'>
+//     <div class='col text-center font-weight-bold'>
+//       <h4>GUÍA DE LIBRE TRÁNSITO <small id="num-guia"></small></h4>
+//     </div>
+//   </div>
+//   <div class='row font-weight-bold mb-3'>
+//     <div class='col text-center'>
+//       <span style='font-size:14px'>(Resoluciones SAG N° 3276 / 2016)</span>
+//     </div>
+//   </div>
 
-    <table class="tableizer-table-transito w-100">
-    <thead><tr>
-    <td class='w-50'>NOMBRE DEL VIVERO DEPÓSITO O EMPRESA AUTORIZADA:
-    <br>
-    <span class='font-weight-bold'>Plantinera V.V</span>
-    </td>
-    <td><br>
-    <span class='font-weight-bold'></span></td>
-  </tr></thead>
-    <tbody>
+//     <table class="tableizer-table-transito w-100">
+//     <thead><tr>
+//     <td class='w-50'>NOMBRE DEL VIVERO DEPÓSITO O EMPRESA AUTORIZADA:
+//     <br>
+//     <span class='font-weight-bold'>Plantinera V.V</span>
+//     </td>
+//     <td><br>
+//     <span class='font-weight-bold'></span></td>
+//   </tr></thead>
+//     <tbody>
       
-      <tr>
-        <td>REGIÓN:
-        <br>
-    <span class='font-weight-bold'>Valparaíso</span>
-        </td>
-        <td>COMUNA:<br>
-        <span class='font-weight-bold'>Quillota</span>
-        </td>
-      </tr>
-      <tr>
-        <td>PROVINCIA:<br>
-        <span class='font-weight-bold'>Quillota</span></td>
-        <td>LUGAR DE EMISIÓN:<br>
-        <span class='font-weight-bold'>El Carmen PC7 Lote 2</span></td>
-      </tr>
-    </tbody></table>  
-  `);
+//       <tr>
+//         <td>REGIÓN:
+//         <br>
+//     <span class='font-weight-bold'>Valparaíso</span>
+//         </td>
+//         <td>COMUNA:<br>
+//         <span class='font-weight-bold'>Quillota</span>
+//         </td>
+//       </tr>
+//       <tr>
+//         <td>PROVINCIA:<br>
+//         <span class='font-weight-bold'>Quillota</span></td>
+//         <td>LUGAR DE EMISIÓN:<br>
+//         <span class='font-weight-bold'>El Carmen PC7 Lote 2</span></td>
+//       </tr>
+//     </tbody></table>  
+//   `);
 
-  $(".container-guia-transito").append(`
-   <div class='row mt-3 mb-3'>
-     <div class='col text-center'>
-      <span style='font-size:12px'>El suscrito certifica que la presente Guía de Libre Tránsito con Despacho Directo ha sido emitida conforme a los procedimientos reglamentarios y operativos del Servicio Agrícola y Ganadero y ampara a los siguientes reglamentados:</span>
-    </div>
-   </div>    
-  `);
+//   $(".container-guia-transito").append(`
+//    <div class='row mt-3 mb-3'>
+//      <div class='col text-center'>
+//       <span style='font-size:12px'>El suscrito certifica que la presente Guía de Libre Tránsito con Despacho Directo ha sido emitida conforme a los procedimientos reglamentarios y operativos del Servicio Agrícola y Ganadero y ampara a los siguientes reglamentados:</span>
+//     </div>
+//    </div>    
+//   `);
 
-  $(".container-guia-transito").append(`
-  <table class="tableizer-table-transito w-100">
-  <tbody>
-    <tr>
-      <td colspan="3">Nombre del consignatario/a: ${cliente}</td>
-    </tr>
-    <tr>
-      <td>N° Guía de Despacho del SII: ${folio}</td>
-      <td colspan="2">con fecha: ${fecha}</td>
-    </tr>
-    <tr>
-      <td>Patente Camión: <input type='search'  autocomplete='off' class='form-control input-small d-inline-block input-patente-camion' value='N/A'></input></td>
-      <td colspan="2">Patente Carro o Acoplado: <input type='search' value='N/A'  autocomplete='off' class='form-control input-small input-patente-carro d-inline-block'></input></td>
-    </tr>
-    <tr>
-      <td>Empresa Transporte: <input type='search'  autocomplete='off' class='form-control input-small d-inline-block input-empresa-transporte' value='Starken'></input></td>
-      <td colspan="2">Fecha Despacho: <input type='date'  autocomplete='off' class='form-control input-small d-inline-block input-fecha-despacho'></input></td>
-    </tr>
-    <tr>
-      <td>Condición de los productos reglamentados:</td>
-      <td>Nombre especie/tipo</td>
-      <td>Cantidad</td>
-    </tr>
-    <tr>
-      <td>Sustratos de crecimiento</td>
-      <td><input type='search'  autocomplete='off' class='form-control input-small input-sustratos-nombres'></input></td>
-      <td><input type='number'  autocomplete='off' class='form-control input-small input-sustratos-cantidad'></input></td>
-    </tr>
-    <tr>
-      <td>Material vegetal sin suelo adherido</td>
-      <td><input type='search'  autocomplete='off' class='form-control input-small input-material-vegetal-sin-suelo-nombres'></input></td>
-      <td><input type='number'  autocomplete='off' class='form-control input-small input-material-vegetal-sin-suelo-cantidad'></input></td>
-    </tr>
-    <tr>
-      <td>Plantas o material vegetal en sustrato esterilizado</td>
-      <td><input type='search'  autocomplete='off' class='form-control input-small input-material-vegetal-esterilizado-nombres'></input></td>
-      <td><input type='number'  autocomplete='off' class='form-control input-small input-material-vegetal-esterilizado-cantidad'></input></td>
-    </tr>
-    <tr>
-      <td>Plantas o material sin turba o medio inerte</td>
-      <td>
-        <input type='search'  autocomplete='off' class='form-control input-small input-plantas-sin-turba-nombres' value='PLANTINES'></input>
-      </td>
-      <td>
-        <input type='number'  autocomplete='off' class='form-control input-small input-plantines input-plantas-sin-turba-cantidad'></input>
-      </td>
-    </tr>
-    <tr>
-      <td>Otros (especificar)</td>
-      <td><input type='search'  autocomplete='off' class='form-control input-small input-otros-nombres'></input></td>
-      <td><input type='search'  autocomplete='off' class='form-control input-small input-otros-cantidad'></input></td>
-    </tr>
+//   $(".container-guia-transito").append(`
+//   <table class="tableizer-table-transito w-100">
+//   <tbody>
+//     <tr>
+//       <td colspan="3">Nombre del consignatario/a: ${cliente}</td>
+//     </tr>
+//     <tr>
+//       <td>N° Guía de Despacho del SII: ${folio}</td>
+//       <td colspan="2">con fecha: ${fecha}</td>
+//     </tr>
+//     <tr>
+//       <td>Patente Camión: <input type='search'  autocomplete='off' class='form-control input-small d-inline-block input-patente-camion' value='N/A'></input></td>
+//       <td colspan="2">Patente Carro o Acoplado: <input type='search' value='N/A'  autocomplete='off' class='form-control input-small input-patente-carro d-inline-block'></input></td>
+//     </tr>
+//     <tr>
+//       <td>Empresa Transporte: <input type='search'  autocomplete='off' class='form-control input-small d-inline-block input-empresa-transporte' value='Starken'></input></td>
+//       <td colspan="2">Fecha Despacho: <input type='date'  autocomplete='off' class='form-control input-small d-inline-block input-fecha-despacho'></input></td>
+//     </tr>
+//     <tr>
+//       <td>Condición de los productos reglamentados:</td>
+//       <td>Nombre especie/tipo</td>
+//       <td>Cantidad</td>
+//     </tr>
+//     <tr>
+//       <td>Sustratos de crecimiento</td>
+//       <td><input type='search'  autocomplete='off' class='form-control input-small input-sustratos-nombres'></input></td>
+//       <td><input type='number'  autocomplete='off' class='form-control input-small input-sustratos-cantidad'></input></td>
+//     </tr>
+//     <tr>
+//       <td>Material vegetal sin suelo adherido</td>
+//       <td><input type='search'  autocomplete='off' class='form-control input-small input-material-vegetal-sin-suelo-nombres'></input></td>
+//       <td><input type='number'  autocomplete='off' class='form-control input-small input-material-vegetal-sin-suelo-cantidad'></input></td>
+//     </tr>
+//     <tr>
+//       <td>Plantas o material vegetal en sustrato esterilizado</td>
+//       <td><input type='search'  autocomplete='off' class='form-control input-small input-material-vegetal-esterilizado-nombres'></input></td>
+//       <td><input type='number'  autocomplete='off' class='form-control input-small input-material-vegetal-esterilizado-cantidad'></input></td>
+//     </tr>
+//     <tr>
+//       <td>Plantas o material sin turba o medio inerte</td>
+//       <td>
+//         <input type='search'  autocomplete='off' class='form-control input-small input-plantas-sin-turba-nombres' value='PLANTINES'></input>
+//       </td>
+//       <td>
+//         <input type='number'  autocomplete='off' class='form-control input-small input-plantines input-plantas-sin-turba-cantidad'></input>
+//       </td>
+//     </tr>
+//     <tr>
+//       <td>Otros (especificar)</td>
+//       <td><input type='search'  autocomplete='off' class='form-control input-small input-otros-nombres'></input></td>
+//       <td><input type='search'  autocomplete='off' class='form-control input-small input-otros-cantidad'></input></td>
+//     </tr>
 
-  </tbody></table>  
-  `)
+//   </tbody></table>  
+//   `)
 
 
-  $(".container-guia-transito").append(`
-   <div class='row mt-4'>
-     <div class='col'>
-      <span style='font-size:12px'>El material se despacha en el medio de transporte especificado y se envía con destino declarado a:</span>
-    </div>
-   </div>    
-  `);
+//   $(".container-guia-transito").append(`
+//    <div class='row mt-4'>
+//      <div class='col'>
+//       <span style='font-size:12px'>El material se despacha en el medio de transporte especificado y se envía con destino declarado a:</span>
+//     </div>
+//    </div>    
+//   `);
 
-  $(".container-guia-transito").append(`
-  <div class='container-data-cliente'>
-   <div class='row mt-2'>
-      <div class='col-md-6'>
-        Región:
-        <input type='text' class='form-control input-small d-inline-block input-region' style='min-width:200px'></input>
-      </div>
-      <div class='col-md-6'>
-        Provincia:
-        <input type='text' class='form-control input-small d-inline-block input-provincia' style='min-width:200px'></input>
-      </div>
-   </div>    
-   <div class='row mt-2'>
-      <div class='col'>
-        Comuna:
-        <input type='text' class='form-control input-small d-inline-block input-comuna' style='min-width:200px' value='${comuna}'></input>
-      </div>
-   </div>    
-   <div class='row mt-2'>
-      <div class='col'>
-        Dirección:
-        <input type='text' class='form-control input-small d-inline-block input-direccion' style='min-width:200px' value='${domicilio}'></input>
-      </div>
-   </div>    
-   <div class='row mt-2'>
-      <div class='col'>
-        Lleva 1 sello ubicado en la cinta alrededor del bulto cuyo número es EDD-05-27
-      </div>
-   </div>    
+//   $(".container-guia-transito").append(`
+//   <div class='container-data-cliente'>
+//    <div class='row mt-2'>
+//       <div class='col-md-6'>
+//         Región:
+//         <input type='text' class='form-control input-small d-inline-block input-region' style='min-width:200px'></input>
+//       </div>
+//       <div class='col-md-6'>
+//         Provincia:
+//         <input type='text' class='form-control input-small d-inline-block input-provincia' style='min-width:200px'></input>
+//       </div>
+//    </div>    
+//    <div class='row mt-2'>
+//       <div class='col'>
+//         Comuna:
+//         <input type='text' class='form-control input-small d-inline-block input-comuna' style='min-width:200px' value='${comuna}'></input>
+//       </div>
+//    </div>    
+//    <div class='row mt-2'>
+//       <div class='col'>
+//         Dirección:
+//         <input type='text' class='form-control input-small d-inline-block input-direccion' style='min-width:200px' value='${domicilio}'></input>
+//       </div>
+//    </div>    
+//    <div class='row mt-2'>
+//       <div class='col'>
+//         Lleva 1 sello ubicado en la cinta alrededor del bulto cuyo número es EDD-05-27
+//       </div>
+//    </div>    
 
-   <div class='row mt-4'>
-      <div class='col'>
-        Observaciones:
-        <textarea style='resize:none'  class='form-control w-100 textarea-obs input-observaciones'></textarea>
-      </div>
-   </div>    
+//    <div class='row mt-4'>
+//       <div class='col'>
+//         Observaciones:
+//         <textarea style='resize:none'  class='form-control w-100 textarea-obs input-observaciones'></textarea>
+//       </div>
+//    </div>    
 
-   <div class='row mt-4'>
-      <div class='col-md-6'>
-        <span>Nombre Despachador:</span>
-        <input type='text' class='form-control input-small2 w-100 input-nombre-despachador' value='Sergio Villarroel Mattar'></input>
-      </div>
-      <div class='col-md-6'>
-       <span>R.U.T Despachador:</span>
-        <input type='text' class='form-control input-small2 w-100 input-rut-despachador' value='16.182.953-6'></input>
-      </div>
-   </div>    
+//    <div class='row mt-4'>
+//       <div class='col-md-6'>
+//         <span>Nombre Despachador:</span>
+//         <input type='text' class='form-control input-small2 w-100 input-nombre-despachador' value='Sergio Villarroel Mattar'></input>
+//       </div>
+//       <div class='col-md-6'>
+//        <span>R.U.T Despachador:</span>
+//         <input type='text' class='form-control input-small2 w-100 input-rut-despachador' value='16.182.953-6'></input>
+//       </div>
+//    </div>    
 
-   </div>
-  `);
+//    </div>
+//   `);
 
-  $(".container-guia-transito").append(`
-    <div class='row' style="margin-top:100px">
-      <div class='col-md-6'>
+//   $(".container-guia-transito").append(`
+//     <div class='row' style="margin-top:100px">
+//       <div class='col-md-6'>
         
-      </div>
-      <div class='col-md-6 text-center'>
-        Firma y Timbre
-      </div>
-    </div>    
-  `)
-  $("#num-guia").html("N° " + folio)
+//       </div>
+//       <div class='col-md-6 text-center'>
+//         Firma y Timbre
+//       </div>
+//     </div>    
+//   `)
+//   $("#num-guia").html("N° " + folio)
 
-  $.ajax({
-    url: "data_ver_facturacion.php",
-    type: "POST",
-    async: false,
-    data: {
-      consulta: "get_cantidad_total_productos",
-      id: id_cotizacion_directa
-    },
-    success: function (x) {
-      if (x.length) {
-        $(".input-plantines").val(x)
-      }
-    }
-  });
+//   $.ajax({
+//     url: "data_ver_facturacion.php",
+//     type: "POST",
+//     async: false,
+//     data: {
+//       consulta: "get_cantidad_total_productos",
+//       id: id_cotizacion_directa
+//     },
+//     success: function (x) {
+//       if (x.length) {
+//         $(".input-plantines").val(x)
+//       }
+//     }
+//   });
 
-  $.ajax({
-    url: "data_ver_facturacion.php",
-    type: "POST",
-    async: false,
-    data: {
-      consulta: "get_productos",
-      id: id_cotizacion_directa
-    },
-    success: function (x) {
-      if (x.length) {
-        const data = JSON.parse(x)
-        let productos = "PLANTINES: ";
-        if (data && data.length) {
-          data.forEach((e) => {
-            productos += `${e.variedad} ${e.cantidad}, `
-          })
-          $(".textarea-obs").val(productos + " TELEFONO: " + telefono)
-        }
+//   $.ajax({
+//     url: "data_ver_facturacion.php",
+//     type: "POST",
+//     async: false,
+//     data: {
+//       consulta: "get_productos",
+//       id: id_cotizacion_directa
+//     },
+//     success: function (x) {
+//       if (x.length) {
+//         const data = JSON.parse(x)
+//         let productos = "PLANTINES: ";
+//         if (data && data.length) {
+//           data.forEach((e) => {
+//             productos += `${e.variedad} ${e.cantidad}, `
+//           })
+//           $(".textarea-obs").val(productos + " TELEFONO: " + telefono)
+//         }
 
-      }
-    }
-  });
+//       }
+//     }
+//   });
 
 
 
-  $(".selectpicker").selectpicker()
-}
+//   $(".selectpicker").selectpicker()
+// }
 
 
 function printGuiaTransito(tipo) {
