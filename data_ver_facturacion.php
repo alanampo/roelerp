@@ -1270,11 +1270,10 @@ UNION
 } else if ($consulta == "get_cantidad_total_productos") {
     $id = $_POST["id"];
     $rowid = $_POST["rowid"];
-    
-    if (isset($id)){
+
+    if (isset($id)) {
         $query = "SELECT (IFNULL(SUM(cantidad),0)) as cantidad FROM cotizaciones_directas_productos WHERE id_cotizacion_directa = $id;";
-    }
-    else{
+    } else {
         $query = "SELECT (IFNULL(SUM(cantidad),0)) as cantidad FROM cotizaciones_productos WHERE id_cotizacion = (SELECT id_cotizacion FROM facturas WHERE rowid = $rowid);";
     }
     $val = mysqli_query($con, $query);
@@ -1284,34 +1283,38 @@ UNION
         echo $cantidad["cantidad"];
     }
 } else if ($consulta == "get_productos") {
-    $id = $_POST["id"];
-    $rowid = $_POST["rowid"];
-    if (isset($id)){
-        $query = "SELECT v.nombre as nombre_variedad, c.cantidad
+    try {
+        $id = $_POST["id"];
+        $rowid = $_POST["rowid"];
+        if (isset($id)) {
+            $query = "SELECT v.nombre as nombre_variedad, c.cantidad
      FROM cotizaciones_directas_productos c 
      INNER JOIN variedades_producto v
      ON v.id = c.id_variedad
      WHERE id_cotizacion_directa = $id";
-    }
-    else{
-        $query = "SELECT v.nombre as nombre_variedad, c.cantidad
+        } else {
+            $query = "SELECT v.nombre as nombre_variedad, c.cantidad
      FROM cotizaciones_productos c 
      INNER JOIN variedades_producto v
      ON v.id = c.id_variedad
-     WHERE id_cotizacion = (SELECT id_cotizacion FROM facturas WHERE rowid = $rowid);";      
-    }
-    
-    $val = mysqli_query($con, $query);
-    $productos = [];
-    if (mysqli_num_rows($val) > 0) {
-        while ($ww = mysqli_fetch_array($val)) {
-            array_push($productos, [
-                "variedad" => $ww["nombre_variedad"],
-                "cantidad" => $ww["cantidad"]
-            ]);
+     WHERE id_cotizacion = (SELECT id_cotizacion FROM facturas WHERE rowid = $rowid);";
         }
-        echo json_encode($productos);
+
+        $val = mysqli_query($con, $query);
+        $productos = [];
+        if (mysqli_num_rows($val) > 0) {
+            while ($ww = mysqli_fetch_array($val)) {
+                array_push($productos, [
+                    "variedad" => $ww["nombre_variedad"],
+                    "cantidad" => $ww["cantidad"]
+                ]);
+            }
+            echo json_encode($productos);
+        }
+    } catch (\Throwable $th) {
+        echo $th->getMessage();
     }
+
 } else if ($consulta == "guardar_solicitud_despacho") {
     $data = base64_encode($_POST["data"]);
     $observaciones = mb_strlen($_POST["observaciones"]) > 0 ? base64_encode($_POST["observaciones"]) : "";
@@ -1374,9 +1377,7 @@ UNION
     } else {
         echo "<div class='callout callout-danger'><b>No se encontraron solicitudes...</b></div>";
     }
-}
-
-else if ($consulta == "cargar_sag") {
+} else if ($consulta == "cargar_sag") {
     mysqli_query($con, "SET SESSION SQL_BIG_SELECTS=1");
     $query = "SELECT
             o.id,
@@ -1434,8 +1435,7 @@ else if ($consulta == "cargar_sag") {
     } else {
         echo "<div class='callout callout-danger'><b>No se encontraron guías...</b></div>";
     }
-}
-else if ($consulta == "eliminar_solicitud_despacho") {
+} else if ($consulta == "eliminar_solicitud_despacho") {
     $rowid = $_POST["rowid"];
     $errors = array();
     try {
@@ -1450,8 +1450,7 @@ else if ($consulta == "eliminar_solicitud_despacho") {
         //throw $th;
         echo "error: $th";
     }
-}
-else if ($consulta == "eliminar_sag") {
+} else if ($consulta == "eliminar_sag") {
     $rowid = $_POST["rowid"];
     $errors = array();
     try {
