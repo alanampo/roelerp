@@ -2812,7 +2812,8 @@ function generarGuiaTransito(obj, rowid, folio, fecha, cliente, domicilio, comun
     async: false,
     data: {
       consulta: "get_cantidad_total_productos",
-      id: id_cotizacion_directa
+      id: id_cotizacion_directa && id_cotizacion_directa != "" ? id_cotizacion_directa : null,
+      rowid: rowid
     },
     success: function (x) {
       if (x.length) {
@@ -2827,7 +2828,8 @@ function generarGuiaTransito(obj, rowid, folio, fecha, cliente, domicilio, comun
     async: false,
     data: {
       consulta: "get_productos",
-      id: id_cotizacion_directa
+      id: id_cotizacion_directa && id_cotizacion_directa != "" ? id_cotizacion_directa : null,
+      rowid: rowid
     },
     success: function (x) {
       if (x.length) {
