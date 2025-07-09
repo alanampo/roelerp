@@ -107,7 +107,7 @@
                                 <button onClick="setEditing(false)" class="btn btn-danger p-2 font-weight-bold"> <i
                                         class="fa fa-close"></i> </button>
 
-                                <button id="btn_guardarpedido" class="btn btn-primary font-weight-bold p-2 ml-3"
+                                <button id="btn_guardarpedido" class="btn btn-primary font-weight-bold p-2 ml-3 btn-vista-previa"
                                     onclick="vistaPrevia();"><i class="fa fa-check"></i> VISTA PREVIA</button>
 
 

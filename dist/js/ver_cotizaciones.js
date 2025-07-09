@@ -196,7 +196,7 @@ function ClearModal() {
 }
 
 function vistaPrevia() {
-  const id_cliente = $("#select_cliente").find("option:selected").val();
+  const id_cliente = $("#btn_guardarpedido").attr("x-id-cliente") ?? $("#select_cliente").find("option:selected").val();
   const condicion = $("#select-condicion").find("option:selected").val();
 
   if (!id_cliente.trim().length) {
@@ -1134,7 +1134,15 @@ function eliminarOrdenEnvio(rowid) {
   });
 }
 
-function printDataCotizacion(id, btn) {
+function printDataCotizacion(id, btn, id_cliente) {
+  $("#btn-save").attr("x-id", id)
+  $("#btn-save").attr("x-id-cliente", id_cliente ?? "")
+  if (id_cliente){
+    $("#btn_guardarpedido").attr("x-id-cliente", id_cliente)
+  }
+  else{
+    $("#btn_guardarpedido").removeAttr("x-id-cliente")
+  }
   currentCotizacion = null;
   if (btn) $(btn).prop("disabled", true);
   document.title = "cotizacion_" + id;
@@ -1329,7 +1337,9 @@ function setDescuento(value) {
 //^*******************************
 
 function GuardarPedido() {
-  const id_cliente = $("#select_cliente").find("option:selected").val();
+  const edit_id_cliente = $("#btn-save").attr("x-id-cliente");
+  const id_cotizacion = $("#btn-save").attr("x-id");
+  const id_cliente = edit_id_cliente && edit_id_cliente.length ? edit_id_cliente : $("#select_cliente").find("option:selected").val();
   const comuna = $("#select-comuna").find("option:selected").val();
   const condicion = $("#select-condicion").find("option:selected").val();
 
@@ -1386,10 +1396,7 @@ function GuardarPedido() {
           observaciones: observaciones,
           condicion_pago: condicion,
           total: total,
-          id_cotizacion:
-            currentCotizacion && currentCotizacion.id_cotizacion
-              ? currentCotizacion.id_cotizacion
-              : "", //CHEQUEO SI ESTA EDITANDO O NO
+          id_cotizacion: id_cotizacion && id_cotizacion.length ? id_cotizacion : null
         },
         success: function (x) {
           console.log(x);

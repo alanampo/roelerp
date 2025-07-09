@@ -51,7 +51,7 @@ if ($consulta == "cargar_datos_cliente") {
     try {
         $errors = array();
         //NUEVA COTIZACION
-        if ($id_cotizacion == null || !isset($id_cotizacion) || strlen($id_cotizacion) == 0 || $id_cotizacion < 1) {
+        if (!isset($id_cotizacion) || strlen($id_cotizacion) == 0 || (int)$id_cotizacion < 1) {
             $valor = mysqli_query($con, "SELECT IFNULL(MAX(id)+1, 1) as maximo FROM cotizaciones");
             if (mysqli_num_rows($valor) > 0) {
                 $ww = mysqli_fetch_assoc($valor);
@@ -290,7 +290,7 @@ if ($consulta == "cargar_datos_cliente") {
       <td onclick='modalCambiarEstado($ww[id])'>$estado</td>
       <td class='text-center'>
             <div class='d-flex flex-row justify-content-center align-items-center'>
-                <button onclick='printDataCotizacion($ww[id], this)' class='btn btn-primary fa fa-print btn-sm mr-4'></button>
+                <button onclick='printDataCotizacion($ww[id], this, $ww[id_cliente])' class='btn btn-primary fa fa-print btn-sm mr-4'></button>
                 $boton_eliminar
             </div>
       </td>
@@ -745,30 +745,3 @@ else if ($consulta == "guardar_orden_envio"){
         echo "success";
     }
 }
-// else if ($consulta == "genera_uniqid"){
-//     $query = "SELECT id FROM cotizaciones";
-//     $val = mysqli_query($con, $query);
-//     if (mysqli_num_rows($val)){
-//         mysqli_autocommit($con, FALSE);
-//         $errors = [];
-//         while ($v = mysqli_fetch_array($val)){
-//             $id = $v["id"];
-//             $uniqid = sha1(uniqid("cot-", true));
-//             $q = "UPDATE cotizaciones SET uniqid = '$uniqid' WHERE id = $id";
-//             if (!mysqli_query($con, $q)) {
-//                 $errors[] = mysqli_error($con) . "-" . $q;
-//             }
-//         }
-//         if (count($errors) === 0) {
-//             if (mysqli_commit($con)) {
-//                 echo "success";
-//             } else {
-//                 mysqli_rollback($con);
-//             }
-//         } else {
-//             mysqli_rollback($con);
-//             print_r($errors);
-//         }
-//         mysqli_close($con);
-//     }
-// }
