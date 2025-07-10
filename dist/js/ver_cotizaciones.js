@@ -898,6 +898,7 @@ function printRemito(tipo, id_cotizacion) {
 }
 
 function cargarDatosCliente(id_cliente) {
+  if (!id_cliente) return;
   $("#input-rut,#input-domicilio,#input-razon,#input-giro").val("");
   $("#select_comuna").val("default").selectpicker("refresh");
 

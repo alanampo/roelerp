@@ -42,7 +42,7 @@ if ($consulta == "cargar_datos_cliente") {
     }
 } else if ($consulta == "guardar_cotizacion") {
     $id_cliente = $_POST['id_cliente'];
-    $observaciones = $_POST['observaciones'];
+    $observaciones = $_POST['observaciones'] ?? "";
     $str = json_decode($_POST['jsonarray'], true);
     $id_usuario = $_SESSION["id_usuario"];
     $condicion_pago = $_POST["condicion_pago"];
@@ -51,19 +51,12 @@ if ($consulta == "cargar_datos_cliente") {
     try {
         $errors = array();
         //NUEVA COTIZACION
-        if (!isset($id_cotizacion) || strlen($id_cotizacion) == 0 || (int)$id_cotizacion < 1) {
-            $valor = mysqli_query($con, "SELECT IFNULL(MAX(id)+1, 1) as maximo FROM cotizaciones");
-            if (mysqli_num_rows($valor) > 0) {
-                $ww = mysqli_fetch_assoc($valor);
+        if (!isset($id_cotizacion) || strlen($id_cotizacion) == 0) {
+            $uniqid = sha1(uniqid("cot", true));
+            mysqli_autocommit($con, false);
 
-                $id_pedido = $ww["maximo"];
-                if ((int) $id_pedido > 0) {
-                    $uniqid = sha1(uniqid("cot", true));
-                    mysqli_autocommit($con, false);
-                    if (strlen($observaciones) > 0) {
-                        $query = "INSERT INTO cotizaciones (
+            $query = "INSERT INTO cotizaciones (
                         uniqid,
-                        id,
                         id_cliente,
                         id_usuario,
                         observaciones,
@@ -71,7 +64,6 @@ if ($consulta == "cargar_datos_cliente") {
                         condicion_pago,
                         monto) VALUES (
                             '$uniqid',
-                            $id_pedido,
                             $id_cliente,
                             $id_usuario,
                             UPPER('$observaciones'),
@@ -79,50 +71,36 @@ if ($consulta == "cargar_datos_cliente") {
                             $condicion_pago,
                             '$_POST[total]'
                         )"; //1 contado, 2 TARJETA
-                    } else {
-                        $query = "INSERT INTO cotizaciones (
-                        uniqid,
-                        id,
-                        id_cliente,
-                        id_usuario,
-                        fecha,
-                        condicion_pago,
-                        monto) VALUES (
-                            '$uniqid',
-                            $id_pedido,
-                            $id_cliente,
-                            $id_usuario,
-                            NOW(),
-                            $condicion_pago,
-                            '$_POST[total]'
-                        )";
+
+            if (!mysqli_query($con, $query)) {
+                $errors[] = mysqli_error($con) . "-" . $query;
+                
+            }
+            else{
+                $id_pedido = mysqli_insert_id($con);
+            }
+            for ($i = 0; $i < count($str); $i++) {
+                $id_variedad = $str[$i]["id_variedad"];
+                $cantidad = $str[$i]["cantidad"];
+                $id_especie = $str[$i]["id_especie"];
+                $precio = $str[$i]["precio"];
+
+                $descuento = $str[$i]["descuento"];
+
+                $tipo_descuento = "NULL";
+                $valor_descuento = "NULL";
+                if ($descuento != null && isset($descuento) && isset($descuento["tipo"]) && $descuento["tipo"] != null) {
+                    if ($descuento["tipo"] == "porcentual") {
+                        $tipo_descuento = 1;
+                        $valor_descuento = $descuento["valor"];
+                    } else if ($descuento["tipo"] == "fijo") {
+                        $tipo_descuento = 2;
+                        $valor_descuento = $descuento["valor"];
                     }
-                    if (!mysqli_query($con, $query)) {
-                        $errors[] = mysqli_error($con) . "-" . $query;
-                    }
+                }
 
-                    for ($i = 0; $i < count($str); $i++) {
-                        $id_variedad = $str[$i]["id_variedad"];
-                        $cantidad = $str[$i]["cantidad"];
-                        $id_especie = $str[$i]["id_especie"];
-                        $precio = $str[$i]["precio"];
-
-                        $descuento = $str[$i]["descuento"];
-
-                        $tipo_descuento = "NULL";
-                        $valor_descuento = "NULL";
-                        if ($descuento != null && isset($descuento) && isset($descuento["tipo"]) && $descuento["tipo"] != null) {
-                            if ($descuento["tipo"] == "porcentual") {
-                                $tipo_descuento = 1;
-                                $valor_descuento = $descuento["valor"];
-                            } else if ($descuento["tipo"] == "fijo") {
-                                $tipo_descuento = 2;
-                                $valor_descuento = $descuento["valor"];
-                            }
-                        }
-
-                        $id_especie = strlen($id_especie) > 0 ? $id_especie : "NULL";
-                        $query = "INSERT INTO cotizaciones_productos (
+                $id_especie = strlen($id_especie) > 0 ? $id_especie : "NULL";
+                $query = "INSERT INTO cotizaciones_productos (
                         id_variedad,
                         cantidad,
                         id_cotizacion,
@@ -140,25 +118,21 @@ if ($consulta == "cargar_datos_cliente") {
                             $tipo_descuento,
                             $valor_descuento
                         );";
-                        if (!mysqli_query($con, $query)) {
-                            $errors[] = mysqli_error($con) . "-" . $query;
-                        }
-                    }
-                    if (count($errors) === 0) {
-                        if (mysqli_commit($con)) {
-                            echo "pedidonum:" . $id_pedido;
-                        } else {
-                            mysqli_rollback($con);
-                        }
-                    } else {
-                        mysqli_rollback($con);
-                        print_r($errors);
-                    }
-                    mysqli_close($con);
-                } else {
-                    echo "Error al guardar el pedido. Intentalo de nuevo";
+                if (!mysqli_query($con, $query)) {
+                    $errors[] = mysqli_error($con) . "-" . $query;
                 }
             }
+            if (count($errors) === 0) {
+                if (mysqli_commit($con)) {
+                    echo "pedidonum:" . $id_pedido;
+                } else {
+                    mysqli_rollback($con);
+                }
+            } else {
+                mysqli_rollback($con);
+                print_r($errors);
+            }
+            mysqli_close($con);
         } else { //ESTOY EDITANDO LA COTIZACION
             $observaciones = $observaciones != null && strlen($observaciones) > 0 ? "UPPER('$observaciones')" : "NULL";
             mysqli_autocommit($con, false);
@@ -239,7 +213,7 @@ if ($consulta == "cargar_datos_cliente") {
         }
 
     } catch (\Throwable $th) {
-        echo "error";
+        echo "error: ".$th->getMessage()."-".$th->getTraceAsString();
     }
 } else if ($consulta == "cargar_historial") {
     mysqli_query($con, "SET SESSION SQL_BIG_SELECTS=1");
@@ -303,8 +277,7 @@ if ($consulta == "cargar_datos_cliente") {
     } else {
         echo "<div class='callout callout-danger'><b>No se encontraron cotizaciones...</b></div>";
     }
-}
-else if ($consulta == "cargar_historial_ordenes_envio") {
+} else if ($consulta == "cargar_historial_ordenes_envio") {
     mysqli_query($con, "SET SESSION SQL_BIG_SELECTS=1");
     $query = "SELECT
             o.id,
@@ -335,7 +308,7 @@ else if ($consulta == "cargar_historial_ordenes_envio") {
         echo "</tr>";
         echo "</thead>";
         echo "<tbody>";
-     
+
         while ($ww = mysqli_fetch_array($val)) {
             $data = base64_encode($ww["codigo"]);
             $boton_eliminar = "<button class='btn btn-danger fa fa-trash btn-sm' onClick='eliminarOrdenEnvio($ww[id])'></button>";
@@ -360,8 +333,7 @@ else if ($consulta == "cargar_historial_ordenes_envio") {
     } else {
         echo "<div class='callout callout-danger'><b>No se encontraron órdenes...</b></div>";
     }
-}
-else if ($consulta == "eliminar_cotizacion") {
+} else if ($consulta == "eliminar_cotizacion") {
     $rowid = $_POST["rowid"];
     $errors = array();
     mysqli_autocommit($con, false);
@@ -391,25 +363,22 @@ else if ($consulta == "eliminar_cotizacion") {
         //throw $th;
         echo "error: $th";
     }
-}
-else if ($consulta == "eliminar_orden_envio") {
+} else if ($consulta == "eliminar_orden_envio") {
     $rowid = $_POST["rowid"];
     $errors = array();
     try {
         $query = "DELETE FROM ordenes_envio WHERE id = $rowid";
         if (mysqli_query($con, $query)) {
             echo "success";
-        }
-        else{
-            echo "error: ".mysqli_error($con);
+        } else {
+            echo "error: " . mysqli_error($con);
         }
 
     } catch (\Throwable $th) {
         //throw $th;
         echo "error: $th";
     }
-}
-else if ($consulta == "cargar_cotizacion") {
+} else if ($consulta == "cargar_cotizacion") {
     $id = $_POST["id"];
     $directa = $_POST["directa"] != null ? true : false;
 
@@ -540,7 +509,7 @@ else if ($consulta == "cargar_cotizacion") {
             }
         }
     } catch (\Throwable $th) {
-        echo $th->getMessage()."-".$th->getTraceAsString();
+        echo $th->getMessage() . "-" . $th->getTraceAsString();
         throw $th;
     }
 } else if ($consulta == "cambiar_estado") {
@@ -734,14 +703,13 @@ else if ($consulta == "cargar_cotizacion") {
     } catch (Exception $e) {
         echo "Hubo un error al enviar el correo: {$mail->ErrorInfo}";
     }
-}
-else if ($consulta == "guardar_orden_envio"){
+} else if ($consulta == "guardar_orden_envio") {
     $data = $_POST["data"];
     $id_cliente = $_POST["id_cliente"];
     $id_cotizacion = $_POST["id_cotizacion"];
     $query = "INSERT INTO ordenes_envio (codigo, id_cliente, id_cotizacion, fecha) VALUES ('$data', $id_cliente, $id_cotizacion, NOW())";
 
-    if (mysqli_query($con, $query)){
+    if (mysqli_query($con, $query)) {
         echo "success";
     }
 }
