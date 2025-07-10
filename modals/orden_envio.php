@@ -16,7 +16,7 @@
                                 data-dropup-auto="false">
                             <option value="0">SUCURSAL</option>    
                             <option value="1">DOMICILIO CLIENTE</option>    
-                            <option value="2">DOMICILIO ALTERNATIVO</option>    
+                            <option value="2">DOMICILIO ENVIO</option>    
                         </select>
                     </div>
                     <div class="form-group col-md-8 col-select-transp d-none">
