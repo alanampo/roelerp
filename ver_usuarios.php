@@ -149,6 +149,7 @@
                                     <option value="situacion-proveedores">Situación Proveedores</option>
                                     <option value="inventario">Inventario</option>
                                     <option value="viveros">Viveros</option>
+                                    <option value="reservas">Reservas y Stock</option>
                                 </select>
                             </div>
 
