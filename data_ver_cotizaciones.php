@@ -71,7 +71,7 @@ if ($consulta == "cargar_datos_cliente") {
                             $condicion_pago,
                             '$_POST[total]'
                         )"; //1 contado, 2 TARJETA
-
+            $id_pedido = NULL;
             if (!mysqli_query($con, $query)) {
                 $errors[] = mysqli_error($con) . "-" . $query;
                 
