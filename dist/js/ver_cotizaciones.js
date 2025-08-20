@@ -1166,6 +1166,7 @@ function printDataCotizacion(id, btn, id_cliente) {
             ciudad,
             comuna,
             cliente,
+            region,
             email,
             rut,
             giro,
@@ -1196,6 +1197,7 @@ function printDataCotizacion(id, btn, id_cliente) {
               cliente: cliente,
               email: email,
               condicion_pago: condicion_pago,
+              region
             },
             false
           );
@@ -2199,6 +2201,14 @@ async function printOrdenEnvio(dataOrden) {
           <div class="d-flex flex-row" style="justify-content:start;">
             <span>Dirección:</span>
             <span class="ml-5">${direccionEntrega}</span>
+          </div>
+          <div class="d-flex flex-row" style="justify-content:start;">
+            <span class="mr-2">Comuna:</span>
+            <span class="ml-5">${dataCotizacion.data.comuna ?? '-'}</span>
+          </div>
+          <div class="d-flex flex-row" style="justify-content:start;">
+            <span class="mr-4">Región:</span>
+            <span class="ml-5">${dataCotizacion.data.region ?? '-'}</span>
           </div>
           <div class="d-flex flex-row">
             <div style="width:130px">
