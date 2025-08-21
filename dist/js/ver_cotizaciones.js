@@ -936,9 +936,9 @@ function cargarDatosCliente(id_cliente) {
 function calcularSubtotal() {
   const precioVal = $("#select_variedad option:selected").attr("x-precio");
   const precio_detalleVal = $("#select_variedad option:selected").attr("x-precio-detalle");
-  
+
   const precio = window.selectedPrice == "detalle" ? precio_detalleVal : precioVal;
-  
+
   const cantidad = $("#input-cantidad").val().trim();
 
   const tipoDescuento = $("#select_descuento option:selected").val();
@@ -1144,10 +1144,10 @@ function eliminarOrdenEnvio(rowid) {
 function printDataCotizacion(id, btn, id_cliente) {
   $("#btn-save").attr("x-id", id)
   $("#btn-save").attr("x-id-cliente", id_cliente ?? "")
-  if (id_cliente){
+  if (id_cliente) {
     $("#btn_guardarpedido").attr("x-id-cliente", id_cliente)
   }
-  else{
+  else {
     $("#btn_guardarpedido").removeAttr("x-id-cliente")
   }
   currentCotizacion = null;
@@ -2046,7 +2046,7 @@ function guardarOrdenEnvio() {
   printOrdenEnvio(dataOrden);
   return;
 
-  
+
 }
 
 async function printOrdenEnvio(dataOrden) {
@@ -2292,11 +2292,11 @@ function decodeBase64UTF8(base64String) {
   const binaryString = atob(base64String);
   const bytes = new Uint8Array(binaryString.length);
   for (let i = 0; i < binaryString.length; i++) {
-      bytes[i] = binaryString.charCodeAt(i);
+    bytes[i] = binaryString.charCodeAt(i);
   }
   return new TextDecoder("utf-8").decode(bytes);
 }
-function printOrdenEnvio2(data){
+function printOrdenEnvio2(data) {
   $(".print-orden-envio").html(decodeBase64UTF8(data));
 
   $("#ocultar").css({ display: "none" });
@@ -2324,7 +2324,7 @@ function printOrdenEnvio2(data){
   }, 500);
 }
 
-function storeOrdenEnvio(html){
+function storeOrdenEnvio(html) {
   $.ajax({
     beforeSend: function () { },
     url: phpFile,
