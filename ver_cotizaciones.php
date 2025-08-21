@@ -404,15 +404,24 @@
                             </div>
                         </div>
                         <div class="row wrapper">
-                            <div class="col">
+                            <div class="col-md-8">
                                 <div style="min-height: 180px;"
                                     class="d-flex flex-row justify-content-center align-items-center w-100">
                                     <div id="qr-reader" style="width:180px"></div>
-                                    <div class="btn-switch">
-                                        <button onclick="switchCam()" class="d-block btn btn-primary btn-sm ml-2"><i
-                                                class="fas fa-camera"></i></button>
-                                    </div>
                                 </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="camera-selector">Seleccionar cámara:</label>
+                                    <select id="camera-selector" class="form-control">
+                                        <option value="">Cargando cámaras...</option>
+                                    </select>
+                                </div>
+                                <button id="reactivar-qr-btn" class="btn btn-primary btn-sm"><i class="fas fa-camera"></i>
+                                    Escanear</button>
+                                <button id="detener-qr-btn" class="btn btn-danger btn-sm" style="display: none;">
+                                    <i class="fas fa-stop"></i> Detener Cámara
+                                </button>
                             </div>
                         </div>
                     </div>
