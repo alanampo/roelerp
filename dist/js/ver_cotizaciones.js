@@ -7,7 +7,12 @@ let currentCotizacion;
 const phpFile = "data_ver_cotizaciones.php";
 
 let html5QrCode = null;
-const config = { fps: 10, qrbox: { width: 200, height: 200 } };
+const config = { fps: 8, qrbox: { width: 200, height: 200 }, rememberLastUsedCamera: true, disableFlip: true,
+                    aspectRatio: 1, facingMode: { exact: "environment" }, focusMode: "continuous",
+                    supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA, Html5QrcodeScanType.SCAN_TYPE_FILE],
+                    formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
+                    showTorchButtonIfSupported: true, useBarCodeDetectorIfSupported: true, showZoomSliderIfSupported: true,
+                    defaultZoomValueIfSupported: 2 };
 $(document).ready(function () {
   pone_clientes();
   pone_comunas();
