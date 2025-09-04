@@ -12,7 +12,7 @@
     <script src="plugins/moment/moment.min.js"></script>
     <script src="js/numeroAlertas.js"></script>
     <script src="js/html2pdf.bundle.min.js"></script>
-    <script src="plugins/html5-qrcode/html5-qrcode.min.js"></script>
+    <script src="dist/js/jsQR.js"></script>
     <script src="dist/js/common/agregar_cliente.js?v=<?php echo $version ?>"></script>
     <script src="dist/js/ver_cotizaciones.js?v=<?php echo $version ?>"></script>
 
@@ -404,24 +404,10 @@
                             </div>
                         </div>
                         <div class="row wrapper">
-                            <div class="col-md-8">
-                                <div style="min-height: 180px;"
-                                    class="d-flex flex-row justify-content-center align-items-center w-100">
-                                    <div id="qr-reader" style="width:180px"></div>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label for="camera-selector">Seleccionar cámara:</label>
-                                    <select id="camera-selector" class="form-control">
-                                        <option value="">Cargando cámaras...</option>
-                                    </select>
-                                </div>
-                                <button id="reactivar-qr-btn" class="btn btn-primary btn-sm"><i class="fas fa-camera"></i>
-                                    Escanear</button>
-                                <button id="detener-qr-btn" class="btn btn-danger btn-sm" style="display: none;">
-                                    <i class="fas fa-stop"></i> Detener Cámara
-                                </button>
+                            <div class="col-md-12 text-center">
+                                <div id="loadingMessage">🎥 Iniciando cámara...</div>
+                                <canvas id="qr-reader" style="width:100%; max-width:400px; height:auto;" hidden></canvas>
+                                <div id="outputMessage" style="margin-top: 10px; font-weight: bold;">Apunta la cámara hacia el código QR</div>
                             </div>
                         </div>
                     </div>

@@ -6,9 +6,10 @@ let currentCotizacion;
 
 const phpFile = "data_ver_cotizaciones.php";
 
-let html5QrCode = null;
-let availableCameras = [];
-let currentCameraId = null;
+let qrVideo = null;
+let qrCanvas = null;
+let qrCanvasContext = null;
+let qrScanningActive = false;
 $(document).ready(function () {
   pone_clientes();
   pone_comunas();
@@ -19,12 +20,7 @@ $(document).ready(function () {
   });
 
   $("#modal-qr").on("hidden.bs.modal", function () {
-    if (html5QrCode) {
-      var state = html5QrCode.getState();
-      if (state == 2) {
-        html5QrCode.stop();
-      }
-    }
+    stopQRScanner();
   });
 
   // getSucursalesSelect();
@@ -2359,123 +2355,92 @@ function storeOrdenEnvio(html) {
   });
 }
 function initializeQRScanner() {
-  const cameraSelector = document.getElementById("camera-selector");
-  const reactivarBtn = document.getElementById("reactivar-qr-btn");
-  const detenerBtn = document.getElementById("detener-qr-btn");
+  qrVideo = document.createElement("video");
+  qrCanvas = document.getElementById("qr-reader");
+  qrCanvasContext = qrCanvas.getContext("2d");
+  
+  const loadingMessage = document.getElementById("loadingMessage");
+  const outputMessage = document.getElementById("outputMessage");
+  
+  if (loadingMessage) {
+    loadingMessage.innerText = "🎥 Iniciando cámara...";
+    loadingMessage.hidden = false;
+  }
+  
+  if (outputMessage) {
+    outputMessage.innerText = "Apunta la cámara hacia el código QR";
+  }
 
-  function populateCameraSelect(devices) {
-    cameraSelector.innerHTML = '';
-    availableCameras = devices;
+  function drawLine(begin, end, color) {
+    qrCanvasContext.beginPath();
+    qrCanvasContext.moveTo(begin.x, begin.y);
+    qrCanvasContext.lineTo(end.x, end.y);
+    qrCanvasContext.lineWidth = 4;
+    qrCanvasContext.strokeStyle = color;
+    qrCanvasContext.stroke();
+  }
 
-    if (devices.length === 0) {
-      cameraSelector.innerHTML = '<option value="">No se encontraron cámaras</option>';
-      return;
-    }
-
-    devices.forEach((device, index) => {
-      const option = document.createElement('option');
-      option.value = device.id;
-      option.text = device.label || `Cámara ${index + 1}`;
-
-      if (!device.label.toLowerCase().includes("front")) {
-        cameraSelector.appendChild(option);
-        // Seleccionar por defecto la cámara trasera si está disponible
-        if (device.label && (device.label.toLowerCase().includes('back') ||
-          device.label.toLowerCase().includes('rear') ||
-          device.label.toLowerCase().includes('environment'))) {
-          cameraSelector.value = device.id;
-        }
+  // Use facingMode: environment to get the back camera on phones
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+    .then(function(stream) {
+      qrVideo.srcObject = stream;
+      qrVideo.setAttribute("playsinline", true);
+      qrVideo.play();
+      qrScanningActive = true;
+      requestAnimationFrame(tick);
+      
+      if (loadingMessage) {
+        loadingMessage.hidden = true;
+      }
+      qrCanvas.hidden = false;
+    })
+    .catch(function(err) {
+      console.error("Error accessing camera:", err);
+      if (loadingMessage) {
+        loadingMessage.innerText = "❌ No se pudo acceder a la cámara";
       }
     });
 
-    // Si no se ha seleccionado ninguna, usar la primera
-    if (!cameraSelector.value && devices.length > 0) {
-      cameraSelector.value = devices[0].id;
-    }
-  }
-
-  function startScanner(cameraId = null) {
-    if (!cameraId && availableCameras.length > 0) {
-      cameraId = availableCameras[0].id;
-      for (const device of availableCameras) {
-        const label = device.label.toLowerCase();
-        if (label.includes('back') || label.includes('rear') || label.includes('environment')) {
-          cameraId = device.id;
-          break;
-        }
-      }
-    }
-
-    if (!cameraId) {
-      console.log("No hay cámaras disponibles seleccionadas.");
+  function tick() {
+    if (!qrScanningActive || !qrVideo) {
       return;
     }
-
-    currentCameraId = cameraId;
-    html5QrCode = new Html5Qrcode("qr-reader");
-    const isMobile = window.innerWidth <= 768;
-    const qrboxSize = isMobile ? 350 : 180;
-
-    html5QrCode.start(
-      cameraId,
-      {
-        fps: 8, qrbox: { width: qrboxSize, height: qrboxSize }, rememberLastUsedCamera: true, disableFlip: true,
-        aspectRatio: 1, facingMode: { exact: "environment" }, focusMode: "continuous",
-        supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA, Html5QrcodeScanType.SCAN_TYPE_FILE],
-        formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
-        showTorchButtonIfSupported: true, useBarCodeDetectorIfSupported: true, showZoomSliderIfSupported: true,
-        defaultZoomValueIfSupported: 2
-      },
-      onScanSuccess,
-      errorMessage => { /* Silenciar errores */ }
-    ).then(() => {
-      detenerBtn.style.display = "inline-block";
-      reactivarBtn.style.display = "none";
-    }).catch(err => {
-      console.log("Error al iniciar la cámara: " + err);
-      reactivarBtn.style.display = "inline-block";
-    });
-  }
-
-  function onScanSuccess(decodedText, decodedResult) {
-    console.log(`Scan result ${decodedText}`, decodedResult);
-    getCotizacionQR(decodedText);
-  }
-
-  reactivarBtn.addEventListener("click", function () {
-    reactivarBtn.style.display = "none";
-    startScanner(cameraSelector.value);
-  });
-
-  detenerBtn.addEventListener("click", function () {
-    if (html5QrCode) {
-      html5QrCode.stop().then(() => {
-        detenerBtn.style.display = "none";
-        reactivarBtn.style.display = "inline-block";
-      }).catch(err => {
-        console.error("Error al detener la cámara", err);
-        reactivarBtn.style.display = "inline-block";
+    
+    if (qrVideo.readyState === qrVideo.HAVE_ENOUGH_DATA) {
+      qrCanvas.height = qrVideo.videoHeight;
+      qrCanvas.width = qrVideo.videoWidth;
+      qrCanvasContext.drawImage(qrVideo, 0, 0, qrCanvas.width, qrCanvas.height);
+      
+      var imageData = qrCanvasContext.getImageData(0, 0, qrCanvas.width, qrCanvas.height);
+      var code = jsQR(imageData.data, imageData.width, imageData.height, {
+        inversionAttempts: "dontInvert",
       });
+      
+      if (code) {
+        drawLine(code.location.topLeftCorner, code.location.topRightCorner, "#FF3B58");
+        drawLine(code.location.topRightCorner, code.location.bottomRightCorner, "#FF3B58");
+        drawLine(code.location.bottomRightCorner, code.location.bottomLeftCorner, "#FF3B58");
+        drawLine(code.location.bottomLeftCorner, code.location.topLeftCorner, "#FF3B58");
+        
+        console.log(`Scan result: ${code.data}`);
+        getCotizacionQR(code.data);
+        return; // Stop scanning after successful read
+      }
     }
-  });
+    requestAnimationFrame(tick);
+  }
+}
 
-  cameraSelector.addEventListener("change", function () {
-    if (html5QrCode && html5QrCode.isScanning) {
-      html5QrCode.stop().then(() => {
-        startScanner(this.value);
-      }).catch(err => {
-        console.error("Error al cambiar de cámara", err);
-      });
-    }
-  });
-
-  // Cargar cámaras disponibles al inicio
-  Html5Qrcode.getCameras().then(devices => {
-    populateCameraSelect(devices);
-  }).catch(err => {
-    console.error("Error al obtener cámaras:", err);
-    cameraSelector.innerHTML = '<option value="">No se pudo acceder a las cámaras</option>';
-  });
+function stopQRScanner() {
+  qrScanningActive = false;
+  if (qrVideo && qrVideo.srcObject) {
+    const tracks = qrVideo.srcObject.getTracks();
+    tracks.forEach(track => track.stop());
+    qrVideo.srcObject = null;
+  }
+  qrVideo = null;
+  qrCanvas = null;
+  qrCanvasContext = null;
 }
 
 function modalQR() {
