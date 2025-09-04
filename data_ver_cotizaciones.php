@@ -400,6 +400,7 @@ if ($consulta == "cargar_datos_cliente") {
         co.uniqid,
         cl.giro,
         cl.razon_social,
+        cl.telefono as telcliente,
         ROUND(co.monto) as monto
         FROM clientes cl
         INNER JOIN cotizaciones" . ($directa == true ? "_directas" : "") . " co ON co.id_cliente = cl.id_cliente
@@ -506,6 +507,7 @@ if ($consulta == "cargar_datos_cliente") {
                     "condicion_pago" => $ww["condicion_pago"],
                     "monto" => $ww["monto"],
                     "productos" => $productos,
+                    "telcliente" => $ww["telcliente"]
                 );
                 echo json_encode($array);
             }

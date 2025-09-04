@@ -592,6 +592,7 @@ async function printCotizacion(dataCotizacion, isPrinting) {
     rut,
     razon,
     giro,
+    telcliente
   } = dataCotizacion;
 
   const condicion =
@@ -1179,6 +1180,7 @@ function printDataCotizacion(id, btn, id_cliente) {
             razon,
             productos,
             condicion_pago,
+            telcliente
           } = data;
 
           currentCotizacion = {
@@ -2193,6 +2195,8 @@ async function printOrdenEnvio(dataOrden) {
     const dt = qrcode._oDrawing._elCanvas.toDataURL("image/png");
 
     //$("#qr-code2-"+index).html(`<img class='qrcode2' src='${dt}'/>`);
+    let montoCotizacion = Math.floor(dataCotizacion.data.monto).toLocaleString('de-DE');
+
 
     const tabladest = `<table style='width: 100%' class='table table-bordered w-100' role='grid'>
     <tbody>
@@ -2224,9 +2228,21 @@ async function printOrdenEnvio(dataOrden) {
           </div>
           <div class="d-flex flex-row">
             <div style="width:130px">
+              <span>Teléfono:</span>
+            </div>
+            <span>${dataCotizacion.data.telcliente}</span>
+          </div>
+          <div class="d-flex flex-row">
+            <div style="width:130px">
               <span>Email:</span>
             </div>
             <span>${dataCotizacion.data.email && dataCotizacion.data.email.length ? dataCotizacion.data.email : "-"}</span>
+          </div>
+          <div class="d-flex flex-row">
+            <div style="width:130px">
+              <span>Cotización Nº:</span>
+            </div>
+            <span>${dataCotizacion.id_cotizacion} (\$${montoCotizacion})</span>
           </div>
           
         </td> 
