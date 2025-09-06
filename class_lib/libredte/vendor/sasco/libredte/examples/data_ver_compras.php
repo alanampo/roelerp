@@ -34,12 +34,12 @@ $Firma = new \sasco\LibreDTE\FirmaElectronica($config['firma']);
 $consulta = $_POST["consulta"];
 error_reporting(E_ERROR | E_PARSE); // Ignorar advertencias de desuso
 if ($consulta == "get_compras") {
-    $token = \sasco\LibreDTE\Sii\Autenticacion::getToken($config['firma']);
-    if (!$token) {
-        foreach (\sasco\LibreDTE\Log::readAll() as $error)
-            echo $error, "\n";
-        exit;
-    }
+    $token = \sasco\LibreDTE\Sii\Autenticacion::getToken($GLOBALS['Firma']);
+        if (!$token) {
+            foreach (\sasco\LibreDTE\Log::readAll() as $error)
+                echo $error, "\n";
+            exit;
+        }
 
     $rutEmpresa = '77436423';
     $dv = '4';
@@ -149,12 +149,12 @@ if ($consulta == "get_compras") {
         print($th->getMessage());
     }
 } else if ($consulta == "exportar_compras") {
-    $token = \sasco\LibreDTE\Sii\Autenticacion::getToken($config['firma']);
-    if (!$token) {
-        foreach (\sasco\LibreDTE\Log::readAll() as $error)
-            echo $error, "\n";
-        exit;
-    }
+    $token = \sasco\LibreDTE\Sii\Autenticacion::getToken($GLOBALS['Firma']);
+        if (!$token) {
+            foreach (\sasco\LibreDTE\Log::readAll() as $error)
+                echo $error, "\n";
+            exit;
+        }
 
     $rutEmpresa = '77436423';
     $dv = '4';
@@ -425,7 +425,7 @@ function updateFacturas($config, $con)
     set_time_limit(360);
     $errors = array();
     try {
-        $token = \sasco\LibreDTE\Sii\Autenticacion::getToken($config['firma']);
+        $token = \sasco\LibreDTE\Sii\Autenticacion::getToken($GLOBALS['Firma']);
         if (!$token) {
             foreach (\sasco\LibreDTE\Log::readAll() as $error)
                 echo $error, "\n";
