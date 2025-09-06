@@ -74,7 +74,9 @@ try {
                 "ptributario" => $anio_actual . str_pad($mes_actual, 2, '0', STR_PAD_LEFT),
                 "estadoContab" => "REGISTRO",
                 "codTipoDoc" => 33,
-                "operacion" => "COMPRA"
+                "operacion" => "COMPRA",
+                 "tokenRecaptcha" => "t-o-k-e-n-web",
+                "accionRecaptcha" => "RCV_DETC"
             ]
         ];
         $jsonData = json_encode($data);
