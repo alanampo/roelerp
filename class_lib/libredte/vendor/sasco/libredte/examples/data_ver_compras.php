@@ -22,6 +22,44 @@ if (!$con) {
     die("Connection failed: " . mysqli_connect_error());
 }
 mysqli_query($con, "SET NAMES 'utf8'");
+
+$query = "SELECT
+            d.rut,
+            d.razon_social as razon,
+            d.direccion,
+            d.telefono,
+            d.email,
+            d.giro,
+            d.numRes,
+            DATE_FORMAT(d.fechaRes, '%Y-%m-%d') as fechaRes,
+            d.act_eco as actEco,
+            com.nombre as comuna,
+            d.certificado,
+            d.logo,
+            d.pass,
+            d.modo,
+            d.footer1,
+            d.footer2
+            FROM datos_empresa d
+            INNER JOIN comunas com
+            ON com.id = d.comuna
+             LIMIT 1;";
+$val = mysqli_query($con, $query);
+
+if (mysqli_num_rows($val) === 0) {
+    exit("Debes completar los Datos de la Empresa en el módulo Integración");
+}
+
+$GLOBALS["empresa"] = mysqli_fetch_assoc($val);
+
+if (!$GLOBALS["empresa"]["certificado"] || strlen($GLOBALS["empresa"]["certificado"]) < 10) {
+    exit("Debes cargar el Certificado de Autenticación del SII. Dentro del módulo Integración");
+}
+if (!$GLOBALS["empresa"]["logo"] || strlen($GLOBALS["empresa"]["logo"]) < 10) {
+    exit("Debes cargar el Logo de la Empresa, el cual se usará para imprimir las Facturas. Dentro del módulo Integración");
+}
+
+
 $config = [
     'firma' => [
         'data' => base64_decode(str_replace("data:application/x-pkcs12;base64,", "", $GLOBALS["empresa"]["certificado"])), // contenido del archivo certificado.p12
