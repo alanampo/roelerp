@@ -9,6 +9,7 @@ if (strpos($_SERVER['HTTP_HOST'], 'roelplant') !== false) {
     require $_SERVER['DOCUMENT_ROOT'] . '/class_lib/class_conecta_mysql.php';
     require $_SERVER['DOCUMENT_ROOT'] . '/class_lib/funciones.php';
 }
+require_once $_SERVER['DOCUMENT_ROOT'] . '/vendor/autoload.php';
 
 set_time_limit(0);
 
