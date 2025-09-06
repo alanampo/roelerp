@@ -22,28 +22,28 @@ if (!$con) {
     die("Connection failed: " . mysqli_connect_error());
 }
 mysqli_query($con, "SET NAMES 'utf8'");
-
 $config = [
     'firma' => [
-        'file' => 'new.p12',
-        'pass' => '',
+        'data' => base64_decode(str_replace("data:application/x-pkcs12;base64,", "", $GLOBALS["empresa"]["certificado"])), // contenido del archivo certificado.p12
+        'pass' => $GLOBALS["empresa"]["pass"],
     ],
 ];
+
 $Firma = new \sasco\LibreDTE\FirmaElectronica($config['firma']);
 
 $consulta = $_POST["consulta"];
 error_reporting(E_ERROR | E_PARSE); // Ignorar advertencias de desuso
 if ($consulta == "get_compras") {
     $token = \sasco\LibreDTE\Sii\Autenticacion::getToken($GLOBALS['Firma']);
-        if (!$token) {
-            foreach (\sasco\LibreDTE\Log::readAll() as $error)
-                echo $error, "\n";
-            exit;
-        }
+    if (!$token) {
+        foreach (\sasco\LibreDTE\Log::readAll() as $error)
+            echo $error, "\n";
+        exit;
+    }
 
     $rutEmpresa = '77436423';
     $dv = '4';
-    
+
     try {
         // URL del servicio
         $url = "https://www4.sii.cl/consdcvinternetui/services/data/facadeService/getDetalleCompra";
@@ -146,15 +146,15 @@ if ($consulta == "get_compras") {
         // Cerrar cURL
         curl_close($ch);
     } catch (\Throwable $th) {
-        print($th->getMessage());
+        print ($th->getMessage());
     }
 } else if ($consulta == "exportar_compras") {
     $token = \sasco\LibreDTE\Sii\Autenticacion::getToken($GLOBALS['Firma']);
-        if (!$token) {
-            foreach (\sasco\LibreDTE\Log::readAll() as $error)
-                echo $error, "\n";
-            exit;
-        }
+    if (!$token) {
+        foreach (\sasco\LibreDTE\Log::readAll() as $error)
+            echo $error, "\n";
+        exit;
+    }
 
     $rutEmpresa = '77436423';
     $dv = '4';
@@ -177,7 +177,7 @@ if ($consulta == "get_compras") {
                 "estadoContab" => "REGISTRO",
                 "codTipoDoc" => 33,
                 "operacion" => "COMPRA",
-                 "tokenRecaptcha" => "t-o-k-e-n-web",
+                "tokenRecaptcha" => "t-o-k-e-n-web",
                 "accionRecaptcha" => "RCV_DETC"
             ]
         ];
@@ -260,7 +260,7 @@ if ($consulta == "get_compras") {
         // Cerrar cURL
         curl_close($ch);
     } catch (\Throwable $th) {
-        print($th->getMessage());
+        print ($th->getMessage());
     }
 } else if ($consulta == "get_historico_compras") {
     $query = "SELECT valor FROM config WHERE id = 'LAST_UPDATE_FACTURAS_COMPRA'";
@@ -297,7 +297,7 @@ if ($consulta == "get_compras") {
                     echo "<h4 class='text-danger'>Ocurrió un error al actualizar las facturas: $success</h4>";
                     exit;
                 }
-            } 
+            }
         }
     }
 
@@ -479,8 +479,8 @@ function updateFacturas($config, $con)
                     "estadoContab" => "REGISTRO",
                     "codTipoDoc" => 33,
                     "operacion" => "COMPRA",
-                     "tokenRecaptcha" => "t-o-k-e-n-web",
-                "accionRecaptcha" => "RCV_DETC"
+                    "tokenRecaptcha" => "t-o-k-e-n-web",
+                    "accionRecaptcha" => "RCV_DETC"
                 ]
             ];
             $jsonData = json_encode($data);
