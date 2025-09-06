@@ -837,8 +837,8 @@ async function printCotizacion(dataCotizacion, isPrinting) {
       ? "<br><br>" + comentario.toUpperCase()
       : ""
     }<br><br>
-    
-    <p><b>NOTA:</b> Cotización válida por 24 horas. Producto vivo: puede variar en tamaño/color. Abrir e hidratar el día de llegada. Envío por cuenta y riesgo del cliente; el riesgo se transfiere al entregar al transportista. Reclamos solo dentro de 24 h con fotos del embalaje y contenido. Precios no incluyen flete ni seguro; seguro opcional a solicitud. Al aceptar/pagar, declaras conocer y aceptar los Términos y Condiciones: https://roelplant.cl/terminos.</p>
+    <br><br>
+    <p style='text-wrap: balance;'><b>NOTA:</b> Cotización válida por 24 horas. Producto vivo: puede variar en tamaño/color. Abrir e hidratar el día de llegada. Envío por cuenta y riesgo del cliente; el riesgo se transfiere al entregar al transportista. Reclamos solo dentro de 24 h con fotos del embalaje y contenido. Precios no incluyen flete ni seguro; seguro opcional a solicitud. Al aceptar/pagar, declaras conocer y aceptar los Términos y Condiciones: https://roelplant.cl/terminos.</p>
     </td>
                             <td>Descuento</td>
                             <td>${montodescuento && montodescuento > 0
