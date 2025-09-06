@@ -125,7 +125,7 @@ if ($consulta == "get_compras") {
 
         // Ejecutar la solicitud cURL y obtener la respuesta
         $response = curl_exec($ch);
-        die(json_encode($response));
+        
         // Verificar errores
         if (curl_errno($ch)) {
             echo "Error al realizar la solicitud: " . curl_error($ch);
