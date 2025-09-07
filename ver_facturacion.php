@@ -19,6 +19,8 @@
       input {
         text-transform: uppercase;
       }
+
+  
     </style>
   </head>
 
@@ -245,6 +247,13 @@ $fecha = $dias[date('w')] . " " . date('d') . " de " . $meses[date('n') - 1] . "
               </div>
             </div>
             <div class="tabco tab-ordenes d-none">
+              <div class="row mt-2">
+                <div class="col text-right">
+                  <button onclick="imprimirSemanaActual()" class="btn btn-primary btn-sm">
+                    <i class="fa fa-print"></i> IMPRIMIR SEMANA
+                  </button>
+                </div>
+              </div>
               <div class="row mt-2 mb-5">
                 <div class="col">
                   <div id="tabla_ordenes"></div>

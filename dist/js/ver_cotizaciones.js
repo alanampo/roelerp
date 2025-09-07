@@ -2136,7 +2136,7 @@ async function printOrdenEnvio(dataOrden) {
               <div><strong>Email:</strong> ${email}</div>
             </td>
             <td class="text-center">
-              <div class="p-2" id="qr-code-${i}"></div>
+              <div class="p-2 qr-code-cotizacion" id="qr-code-${i}"></div>
             </td>
           </tr>
         </tbody>
@@ -2191,15 +2191,15 @@ async function printOrdenEnvio(dataOrden) {
     // Generar QR más grande
     var qrcode = new QRCode(document.getElementById("qr-code-" + i), {
       text: dataCotizacion.data.uniqid,
-      width: 200,  // más grande
-      height: 200,
+      width: 150,  // más grande
+      height: 150,
       colorDark: "#000000",
       colorLight: "#ffffff",
       correctLevel: QRCode.CorrectLevel.H,
     });
   });
 
-  // Inyectar CSS de impresión
+  // Crear CSS específico para orden de envío con ID único
   const css = `
     @media print {
       @page {
@@ -2214,9 +2214,10 @@ async function printOrdenEnvio(dataOrden) {
         width: 106mm;
         height: 164mm;
       }
-        .tablin {
-          width: 100vw !important;
-        }
+      .print-orden-envio .tablin {
+        width: 100vw !important;
+        page-break-inside: avoid;
+      }
       .bulto-print {
         width: 100vw;
         height: 164mm;
@@ -2238,15 +2239,27 @@ async function printOrdenEnvio(dataOrden) {
         vertical-align: top;
         font-size: 12px;
       }
-      #qr-code {
+      .qr-code-cotizacion {
         text-align: center;
+        width: 150px !important;
+        height: 150px !important;
+        padding-bottom: 10px !important;
+        margin-bottom: 10px !important;
       }
-      #qr-code img {
-        width: 200px !important;
-        height: 200px !important;
+      .qr-code-cotizacion img {
+        width: 150px !important;
+        height: 150px !important;
       }
     }`;
+  
+  // Remover estilos anteriores si existen
+  const oldStyleTag = document.getElementById('orden-envio-print-styles');
+  if (oldStyleTag) {
+    document.head.removeChild(oldStyleTag);
+  }
+  
   let styleTag = document.createElement("style");
+  styleTag.id = 'orden-envio-print-styles';
   styleTag.innerHTML = css;
   document.head.appendChild(styleTag);
 
@@ -2257,7 +2270,11 @@ async function printOrdenEnvio(dataOrden) {
   setTimeout(() => {
     storeOrdenEnvio($(".print-orden-envio").html());
     window.print();
-    document.head.removeChild(styleTag);
+    // Limpiar estilos después de imprimir
+    const printStyleTag = document.getElementById('orden-envio-print-styles');
+    if (printStyleTag) {
+      document.head.removeChild(printStyleTag);
+    }
     document.getElementById("ocultar").style.display = "block";
     $(".print-orden-envio").css({ display: "none" });
     $("#modal-vistaprevia").modal("show");
@@ -2280,7 +2297,7 @@ function printOrdenEnvio2(data) {
   let htmlContent = decodeBase64UTF8(data);
   $(".print-orden-envio").html(htmlContent);
 
-  // Inyectar CSS de impresión (igual que en printOrdenEnvio)
+  // Crear CSS específico para orden de envío con ID único (igual que printOrdenEnvio)
   const css = `
     @media print {
       @page {
@@ -2295,10 +2312,12 @@ function printOrdenEnvio2(data) {
         width: 106mm;
         height: 164mm;
       }
-        .tablin {
-        width: 100vw !important;}
+      .print-orden-envio .tablin {
+        width: 100vw !important;
+        page-break-inside: avoid;
+      }
       .bulto-print {
-        width: 106mm !important;
+        width: 100vw;
         height: 164mm;
         page-break-after: always;
         box-sizing: border-box;
@@ -2318,16 +2337,27 @@ function printOrdenEnvio2(data) {
         vertical-align: top;
         font-size: 12px;
       }
-      #qr-code {
+      .qr-code-cotizacion {
         text-align: center;
+        width: 150px !important;
+        height: 150px !important;
+        padding-bottom: 10px !important;
+        margin-bottom: 10px !important;
       }
-      #qr-code img {
-        width: 200px !important;
-        height: 200px !important;
+      .qr-code-cotizacion img {
+        width: 150px !important;
+        height: 150px !important;
       }
     }`;
   
+  // Remover estilos anteriores si existen
+  const oldStyleTag = document.getElementById('orden-envio-print-styles');
+  if (oldStyleTag) {
+    document.head.removeChild(oldStyleTag);
+  }
+  
   let styleTag = document.createElement("style");
+  styleTag.id = 'orden-envio-print-styles';
   styleTag.innerHTML = css;
   document.head.appendChild(styleTag);
 
@@ -2336,7 +2366,11 @@ function printOrdenEnvio2(data) {
 
   setTimeout(() => {
     window.print();
-    document.head.removeChild(styleTag);
+    // Limpiar estilos después de imprimir
+    const printStyleTag = document.getElementById('orden-envio-print-styles');
+    if (printStyleTag) {
+      document.head.removeChild(printStyleTag);
+    }
     document.getElementById("ocultar").style.display = "block";
     $(".print-orden-envio").css({ display: "none" });
   }, 500);

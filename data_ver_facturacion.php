@@ -1547,4 +1547,64 @@ UNION
         //throw $th;
         echo "error: $th";
     }
+} else if ($consulta == "cargar_ordenes_semana_actual") {
+    $fecha_inicio = $_POST["fecha_inicio"];
+    $fecha_fin = $_POST["fecha_fin"];
+    
+    // Validar fechas
+    if (empty($fecha_inicio) || empty($fecha_fin)) {
+        echo json_encode(['error' => 'Fechas no proporcionadas']);
+        exit;
+    }
+    
+    try {
+        // Consulta para obtener órdenes de envío de la semana actual que corresponden a facturas emitidas
+        $query = "SELECT o.id, o.codigo, o.fecha, cl.nombre as cliente, 
+                        COALESCE(f.folio, cd.folio) as folio_factura,
+                        o.id_cotizacion, o.id_cotizacion_directa
+                  FROM ordenes_envio o
+                  INNER JOIN clientes cl ON cl.id_cliente = o.id_cliente
+                  LEFT JOIN facturas f ON f.id_cotizacion = o.id_cotizacion
+                  LEFT JOIN facturas cd ON cd.id_cotizacion_directa = o.id_cotizacion_directa
+                  WHERE o.fecha BETWEEN ? AND ?
+                    AND ((o.id_cotizacion IS NOT NULL AND f.folio IS NOT NULL) 
+                         OR (o.id_cotizacion_directa IS NOT NULL AND cd.folio IS NOT NULL))
+                  ORDER BY o.fecha ASC, o.id ASC";
+        
+        $stmt = mysqli_prepare($con, $query);
+        if (!$stmt) {
+            echo json_encode(['error' => 'Error preparando consulta: ' . mysqli_error($con)]);
+            exit;
+        }
+        
+        mysqli_stmt_bind_param($stmt, 'ss', $fecha_inicio, $fecha_fin);
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt);
+        
+        $ordenes = [];
+        if ($result && mysqli_num_rows($result) > 0) {
+            while ($row = mysqli_fetch_assoc($result)) {
+                $ordenes[] = [
+                    'id' => $row['id'],
+                    'codigo' => $row['codigo'],
+                    'fecha' => $row['fecha'],
+                    'cliente' => $row['cliente'],
+                    'folio_factura' => $row['folio_factura'],
+                    'id_cotizacion' => $row['id_cotizacion'],
+                    'id_cotizacion_directa' => $row['id_cotizacion_directa']
+                ];
+            }
+        }
+        
+        mysqli_stmt_close($stmt);
+        
+        if (empty($ordenes)) {
+            echo json_encode(['error' => 'No hay órdenes de envío para la semana actual (del ' . date('d/m/Y', strtotime($fecha_inicio)) . ' al ' . date('d/m/Y', strtotime($fecha_fin)) . ')']);
+        } else {
+            echo json_encode(['ordenes' => $ordenes, 'total' => count($ordenes)]);
+        }
+        
+    } catch (\Throwable $th) {
+        echo json_encode(['error' => 'Error obteniendo órdenes: ' . $th->getMessage()]);
+    }
 }

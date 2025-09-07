@@ -841,7 +841,7 @@ async function printOrdenEnvioFactura(dataOrden) {
                               </div>
                             </td> 
                             <td class="text-center">
-                              <div class="p-2" id="qr-code-factura-${i}"></div>
+                              <div class="p-2 qr-code-factura" id="qr-code-factura-${i}"></div>
                               
                             </td>
                           </tr>
@@ -940,7 +940,7 @@ async function printOrdenEnvioFactura(dataOrden) {
     $(".print-orden-envio").append(tabladest);
   });
 
-  // Inyectar CSS de impresión
+  // Crear CSS específico para orden de envío con ID único
   const css = `
     @media print {
       @page {
@@ -955,9 +955,10 @@ async function printOrdenEnvioFactura(dataOrden) {
         width: 106mm;
         height: 164mm;
       }
-        .tablin {
-          width: 100vw !important;
-        }
+      .print-orden-envio .tablin {
+        width: 100vw !important;
+        page-break-inside: avoid;
+      }
       .bulto-print {
         width: 100vw;
         height: 164mm;
@@ -979,15 +980,25 @@ async function printOrdenEnvioFactura(dataOrden) {
         vertical-align: top;
         font-size: 12px;
       }
-      #qr-code {
+      .qr-code-factura {
         text-align: center;
+        width: 150px !important;
+        height: 150px !important;
       }
-      #qr-code img {
-        width: 200px !important;
-        height: 200px !important;
+      .qr-code-factura img {
+        width: 150px !important;
+        height: 150px !important;
       }
     }`;
+  
+  // Remover estilos anteriores si existen
+  const oldStyleTag = document.getElementById('orden-envio-print-styles-factura');
+  if (oldStyleTag) {
+    document.head.removeChild(oldStyleTag);
+  }
+  
   let styleTag = document.createElement("style");
+  styleTag.id = 'orden-envio-print-styles-factura';
   styleTag.innerHTML = css;
   document.head.appendChild(styleTag);
 
@@ -995,11 +1006,13 @@ async function printOrdenEnvioFactura(dataOrden) {
   $(".print-orden-envio").css({ display: "block" });
 
   setTimeout(() => {
-
-
     storeOrdenEnvioFactura($(".print-orden-envio").html())
     window.print();
-    document.getElementsByTagName("style")[0].innerHTML = ``;
+    // Limpiar estilos después de imprimir
+    const printStyleTag = document.getElementById('orden-envio-print-styles-factura');
+    if (printStyleTag) {
+      document.head.removeChild(printStyleTag);
+    }
     document.getElementById("ocultar").style.display = "block";
     $(".print-orden-envio").css({ display: "none" });
   }, 500);
@@ -1928,6 +1941,7 @@ function printOrdenEnvio2(data) {
   $("#ocultar").css({ display: "none" });
   $(".print-orden-envio").css({ display: "block" });
 
+  // Crear CSS específico para orden de envío con ID único  
   const css = `
     @media print {
       @page {
@@ -1942,9 +1956,10 @@ function printOrdenEnvio2(data) {
         width: 106mm;
         height: 164mm;
       }
-        .tablin {
-          width: 100vw !important;
-        }
+      .print-orden-envio .tablin {
+        width: 100vw !important;
+        page-break-inside: avoid;
+      }
       .bulto-print {
         width: 100vw;
         height: 164mm;
@@ -1966,22 +1981,38 @@ function printOrdenEnvio2(data) {
         vertical-align: top;
         font-size: 12px;
       }
-      #qr-code {
+      .qr-code-factura {
         text-align: center;
+        width: 150px !important;
+        height: 150px !important;
       }
-      #qr-code img {
-        width: 200px !important;
-        height: 200px !important;
+      .qr-code-factura img {
+        width: 150px !important;
+        height: 150px !important;
       }
     }`;
+  
+  // Remover estilos anteriores si existen
+  const oldStyleTag = document.getElementById('orden-envio-print-styles-factura');
+  if (oldStyleTag) {
+    document.head.removeChild(oldStyleTag);
+  }
+  
   let styleTag = document.createElement("style");
+  styleTag.id = 'orden-envio-print-styles-factura';
   styleTag.innerHTML = css;
   document.head.appendChild(styleTag);
 
-  window.print();
-  document.getElementsByTagName("style")[0].innerHTML = ``;
-  document.getElementById("ocultar").style.display = "block";
-  $(".print-orden-envio").css({ display: "none" });
+  setTimeout(() => {
+    window.print();
+    // Limpiar estilos después de imprimir
+    const printStyleTag = document.getElementById('orden-envio-print-styles-factura');
+    if (printStyleTag) {
+      document.head.removeChild(printStyleTag);
+    }
+    document.getElementById("ocultar").style.display = "block";
+    $(".print-orden-envio").css({ display: "none" });
+  }, 500);
 }
 
 function modalAnularFactura(rowid, folio, esFactDirecta, id_cliente, esBoleta) {
@@ -3868,4 +3899,237 @@ function testToken() {
       console.log(x)
     }
   });
+}
+
+function imprimirSemanaActual() {
+  // Calcular fechas de la semana actual (lunes a domingo)
+  const today = new Date();
+  const dayOfWeek = today.getDay(); // 0 = domingo, 1 = lunes, ..., 6 = sábado
+  const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // Si es domingo, retroceder 6 días
+  
+  const monday = new Date(today);
+  monday.setDate(today.getDate() + mondayOffset);
+  monday.setHours(0, 0, 0, 0);
+  
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  sunday.setHours(23, 59, 59, 999);
+  
+  // Formatear fechas para el servidor
+  const formatDate = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+  };
+  
+  const fechaInicio = formatDate(monday);
+  const fechaFin = formatDate(sunday);
+  
+  console.log(`Buscando órdenes de envío desde ${fechaInicio} hasta ${fechaFin}`);
+  
+  // Obtener las órdenes de envío de la semana actual
+  $.ajax({
+    url: "data_ver_facturacion.php",
+    type: "POST",
+    data: {
+      consulta: "cargar_ordenes_semana_actual",
+      fecha_inicio: fechaInicio,
+      fecha_fin: fechaFin
+    },
+    success: function (response) {
+      console.log("Respuesta del servidor:", response);
+      try {
+        const data = JSON.parse(response);
+        if (data.error) {
+          swal("Error", data.error, "error");
+          return;
+        }
+        
+        if (!data.ordenes || data.ordenes.length === 0) {
+          swal("Sin órdenes", "No hay órdenes de envío para la semana actual", "info");
+          return;
+        }
+        
+        // Renderizar todas las órdenes para imprimir
+        renderizarOrdenesParaImprimir(data.ordenes);
+        
+      } catch (e) {
+        console.error("Error parseando respuesta:", e);
+        swal("Error", "Error procesando las órdenes de envío", "error");
+      }
+    },
+    error: function (jqXHR, estado, error) {
+      console.error("Error AJAX:", error);
+      swal("Error", "Error obteniendo órdenes de envío de la semana", "error");
+    }
+  });
+}
+
+function renderizarOrdenesParaImprimir(ordenes) {
+  // Limpiar contenedor de impresión
+  $(".print-orden-envio").html("");
+  
+  // CSS específico para impresión semanal (replicando el CSS que funciona individualmente)
+  const css = `
+    @media print {
+      @page {
+        size: 106mm 164mm;
+        margin: 0;
+      }
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      .print-orden-envio {
+        width: 106mm;
+        height: 164mm;
+      }
+      .print-orden-envio .semana-sheet {
+        width: 100vw !important;
+        height: 164mm;
+        padding: 5mm;
+        box-sizing: border-box;
+        page-break-after: always;
+        break-after: page;
+        page-break-inside: avoid;
+        break-inside: avoid;
+        display: block;
+        overflow: visible;
+      }
+      .print-orden-envio .semana-sheet:last-child {
+        page-break-after: auto;
+        break-after: auto;
+      }
+      .print-orden-envio .semana-sheet table {
+        width: 100% !important;
+        table-layout: fixed;
+        border-collapse: collapse;
+        margin-bottom: 3mm;
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
+      .print-orden-envio .semana-sheet table td {
+        vertical-align: top;
+        font-size: 12px;
+        padding: 2px 3px;
+        word-wrap: break-word;
+        border: 1px solid #000;
+      }
+      .print-orden-envio .semana-sheet table th {
+        font-size: 12px;
+        padding: 2px 3px;
+        border: 1px solid #000;
+      }
+      .print-orden-envio .semana-sheet img {
+        width: 170px !important;
+        height: 110px !important;
+        max-width: 170px !important;
+        max-height: 110px !important;
+      }
+      .print-orden-envio .semana-sheet h4,
+      .print-orden-envio .semana-sheet h5,
+      .print-orden-envio .semana-sheet h6 {
+        margin: 0 0 2px 0;
+        font-size: 14px;
+        font-weight: bold;
+      }
+      .print-orden-envio .semana-sheet .d-flex {
+        display: flex !important;
+      }
+      .print-orden-envio .semana-sheet .flex-row {
+        flex-direction: row !important;
+      }
+      .print-orden-envio .semana-sheet .align-items-center {
+        align-items: center !important;
+      }
+      .print-orden-envio .semana-sheet .text-center {
+        text-align: center !important;
+      }
+      .print-orden-envio .semana-sheet .ml-4 {
+        margin-left: 1rem !important;
+      }
+      .print-orden-envio .semana-sheet .ml-5 {
+        margin-left: 1.25rem !important;
+      }
+      .print-orden-envio .semana-sheet .font-weight-bold {
+        font-weight: bold !important;
+      }
+      .print-orden-envio .semana-sheet .p-2 {
+        padding: 0.5rem !important;
+      }
+      .print-orden-envio .semana-sheet span {
+        font-size: 12px;
+      }
+      .print-orden-envio .semana-sheet div {
+        margin-bottom: 1px;
+      }
+    }`;
+  
+  // Remover estilos anteriores si existen
+  const oldStyleTag = document.getElementById('orden-envio-semana-print-styles');
+  if (oldStyleTag) {
+    document.head.removeChild(oldStyleTag);
+  }
+  
+  let styleTag = document.createElement("style");
+  styleTag.id = 'orden-envio-semana-print-styles';
+  styleTag.innerHTML = css;
+  document.head.appendChild(styleTag);
+  
+  // Decodificar función base64 (igual que en imprimir2.php)
+  function decodeBase64UTF8(base64String) {
+    try {
+      const binaryString = atob(base64String);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      return new TextDecoder("utf-8").decode(bytes);
+    } catch (e) {
+      console.warn("Error decodificando base64, usando contenido original:", e);
+      return base64String;
+    }
+  }
+  
+  // Renderizar cada orden como una hoja separada
+  ordenes.forEach((orden, index) => {
+    let codigoDecodificado = decodeBase64UTF8(orden.codigo);
+    
+    const sheetHtml = `
+      <div class="semana-sheet" role="region" aria-label="Etiqueta orden #${orden.id}">
+        <div class="label-content">
+          ${codigoDecodificado}
+        </div>
+      </div>
+    `;
+    
+    $(".print-orden-envio").append(sheetHtml);
+  });
+  
+  // Ocultar interfaz y mostrar contenido de impresión
+  $("#ocultar").css({ display: "none" });
+  $(".print-orden-envio").css({ display: "block" });
+  
+  // Imprimir después de un breve delay
+  setTimeout(() => {
+    window.print();
+    
+    // Restaurar después de imprimir
+    setTimeout(() => {
+      // Limpiar estilos
+      const printStyleTag = document.getElementById('orden-envio-semana-print-styles');
+      if (printStyleTag) {
+        document.head.removeChild(printStyleTag);
+      }
+      
+      // Restaurar interfaz
+      document.getElementById("ocultar").style.display = "block";
+      $(".print-orden-envio").css({ display: "none" });
+      $(".print-orden-envio").html("");
+    }, 1000);
+  }, 500);
 }
