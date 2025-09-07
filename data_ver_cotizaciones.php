@@ -384,28 +384,35 @@ if ($consulta == "cargar_datos_cliente") {
 
     try {
         $query = "SELECT
-        cl.nombre as cliente,
-        cl.rut,
-        cl.id_cliente,
-        cl.domicilio,
-        cl.domicilio2,
-        cl.comuna as id_comuna,
-        cl.mail,
-        com.nombre as comuna,
-        com.ciudad as ciudad,
-        cl.region,
-        DATE_FORMAT(co.fecha, '%d/%m/%Y %H:%i') as fecha,
-        co.observaciones as comentario,
-        co.condicion_pago,
-        co.uniqid,
-        cl.giro,
-        cl.razon_social,
-        cl.telefono as telcliente,
-        ROUND(co.monto) as monto
-        FROM clientes cl
-        INNER JOIN cotizaciones" . ($directa == true ? "_directas" : "") . " co ON co.id_cliente = cl.id_cliente
-        LEFT JOIN comunas com ON cl.comuna = com.id
-         WHERE co.id = $id";
+    cl.nombre as cliente,
+    cl.rut,
+    cl.id_cliente,
+    cl.domicilio,
+    cl.domicilio2,
+    cl.comuna as id_comuna,
+    cl.mail,
+    com.nombre as comuna,
+    com.ciudad as ciudad,
+    cl.region,
+    DATE_FORMAT(co.fecha, '%d/%m/%Y %H:%i') as fecha,
+    co.observaciones as comentario,
+    co.condicion_pago,
+    co.uniqid,
+    cl.giro,
+    cl.razon_social,
+    cl.telefono as telcliente,
+    ROUND(co.monto) as monto," .
+    // Subconsulta para obtener num_factura según si es directa o no
+    ($directa == true ?
+        " (SELECT f.folio FROM facturas f WHERE f.id_cotizacion_directa = co.id LIMIT 1) as num_factura"
+        :
+        " (SELECT f.folio FROM facturas f WHERE f.id_cotizacion = co.id LIMIT 1) as num_factura"
+    ) . "
+    FROM clientes cl
+    INNER JOIN cotizaciones" . ($directa == true ? "_directas" : "") . " co ON co.id_cliente = cl.id_cliente
+    LEFT JOIN comunas com ON cl.comuna = com.id
+    WHERE co.id = $id";
+
 
         $val = mysqli_query($con, $query);
         if (mysqli_num_rows($val) > 0) {
@@ -507,7 +514,8 @@ if ($consulta == "cargar_datos_cliente") {
                     "condicion_pago" => $ww["condicion_pago"],
                     "monto" => $ww["monto"],
                     "productos" => $productos,
-                    "telcliente" => $ww["telcliente"]
+                    "telcliente" => $ww["telcliente"],
+                    "num_factura" => $ww["num_factura"],
                 );
                 echo json_encode($array);
             }

@@ -107,7 +107,7 @@ if ($consulta == "cargar_historial") { //FACTURAS
             // Botón Orden de Envío
             $id_cotizacion_for_orden = $ww["id_cotizacion"] ? $ww["id_cotizacion"] : null;
             $id_cotizacion_directa_for_orden = $ww["id_cotizacion_directa"] ? $ww["id_cotizacion_directa"] : null;
-            $btn_orden_envio = "<button onclick='modalOrdenEnvioFactura($ww[rowid], " . ($id_cotizacion_for_orden ? $id_cotizacion_for_orden : "null") . ", " . ($id_cotizacion_directa_for_orden ? $id_cotizacion_directa_for_orden : "null") . ", $ww[id_cliente])' class='btn btn-secondary btn-sm px-1 py-1' style='font-size:10px;'>ORDEN ENVIO</button>";
+            $btn_orden_envio = "<button onclick='modalOrdenEnvioFactura($ww[rowid], " . ($id_cotizacion_for_orden ? $id_cotizacion_for_orden : "null") . ", " . ($id_cotizacion_directa_for_orden ? $id_cotizacion_directa_for_orden : "null") . ", $ww[id_cliente])' class='btn btn-secondary btn-sm px-1 py-1 mr-2' style='font-size:10px;'>ORDEN ENVIO</button>";
 
             $montoint = (int) $ww["monto"];
             $btn_enviar = ($ww["track_id"] ? "<button onclick='sendMailFactura(this, $ww[rowid], $ww[folio], 0, $montoint, $email)' class='btn btn-info fa fa-envelope btn-sm'></button>" : "");

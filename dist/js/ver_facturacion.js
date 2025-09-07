@@ -906,7 +906,7 @@ async function printOrdenEnvioFactura(dataOrden) {
             <div style="width:130px">
               <span>Factura Nº:</span>
             </div>
-            <span>${dataCotizacion.id_cotizacion} (\$${montoCotizacion})</span>
+            <span>${dataCotizacion.data.num_factura} (\$${montoCotizacion})</span>
           </div>
           
         </td> 
