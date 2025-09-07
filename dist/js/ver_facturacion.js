@@ -862,7 +862,7 @@ async function printOrdenEnvioFactura(dataOrden) {
 
     let montoCotizacion = Math.floor(dataCotizacion.data.monto || 0).toLocaleString('de-DE');
 
-    const tabladest = `<table style='width: 100%' class='table table-bordered tablin' role='grid'>
+    const tabladest = `<table style='width: 100%' class='table table-bordered tablin tabla-bulto' role='grid'>
     <tbody>
       <tr>
         <td>
@@ -3973,7 +3973,7 @@ function renderizarOrdenesParaImprimir(ordenes) {
   // Limpiar contenedor de impresión
   $(".print-orden-envio").html("");
   
-  // CSS específico para impresión semanal (replicando el CSS que funciona individualmente)
+  // CSS específico para impresión semanal (exactamente igual al de las individuales)
   const css = `
     @media print {
       @page {
@@ -3984,88 +3984,78 @@ function renderizarOrdenesParaImprimir(ordenes) {
         margin: 0;
         padding: 0;
       }
+    
       .print-orden-envio {
         width: 106mm;
         height: 164mm;
       }
+        .tabla-bulto {
+          page-break-after: always !important;
+        }
       .print-orden-envio .semana-sheet {
-        width: 100vw !important;
+        width: 100vw;
         height: 164mm;
-        padding: 5mm;
-        box-sizing: border-box;
         page-break-after: always;
-        break-after: page;
-        page-break-inside: avoid;
-        break-inside: avoid;
-        display: block;
-        overflow: visible;
+        box-sizing: border-box;
+        padding: 5mm;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
       }
       .print-orden-envio .semana-sheet:last-child {
         page-break-after: auto;
-        break-after: auto;
       }
       .print-orden-envio .semana-sheet table {
         width: 100% !important;
         table-layout: fixed;
         border-collapse: collapse;
-        margin-bottom: 3mm;
-        page-break-inside: avoid;
-        break-inside: avoid;
       }
-      .print-orden-envio .semana-sheet table td {
+      .print-orden-envio .semana-sheet td {
         vertical-align: top;
         font-size: 12px;
-        padding: 2px 3px;
-        word-wrap: break-word;
-        border: 1px solid #000;
-      }
-      .print-orden-envio .semana-sheet table th {
-        font-size: 12px;
-        padding: 2px 3px;
-        border: 1px solid #000;
+        padding: 2px;
+        border: 1px solid #dee2e6;
       }
       .print-orden-envio .semana-sheet img {
         width: 170px !important;
         height: 110px !important;
-        max-width: 170px !important;
-        max-height: 110px !important;
       }
       .print-orden-envio .semana-sheet h4,
       .print-orden-envio .semana-sheet h5,
       .print-orden-envio .semana-sheet h6 {
-        margin: 0 0 2px 0;
-        font-size: 14px;
+        margin: 0;
         font-weight: bold;
       }
       .print-orden-envio .semana-sheet .d-flex {
-        display: flex !important;
+        display: flex;
       }
       .print-orden-envio .semana-sheet .flex-row {
-        flex-direction: row !important;
+        flex-direction: row;
       }
       .print-orden-envio .semana-sheet .align-items-center {
-        align-items: center !important;
+        align-items: center;
       }
       .print-orden-envio .semana-sheet .text-center {
-        text-align: center !important;
+        text-align: center;
       }
       .print-orden-envio .semana-sheet .ml-4 {
-        margin-left: 1rem !important;
+        margin-left: 1.5rem;
       }
       .print-orden-envio .semana-sheet .ml-5 {
-        margin-left: 1.25rem !important;
+        margin-left: 3rem;
       }
       .print-orden-envio .semana-sheet .font-weight-bold {
-        font-weight: bold !important;
+        font-weight: bold;
       }
       .print-orden-envio .semana-sheet .p-2 {
-        padding: 0.5rem !important;
+        padding: 0.5rem;
       }
-      .print-orden-envio .semana-sheet span {
-        font-size: 12px;
+      [id^="qr-code-factura-"], [id^="qr-code-"] {
+        text-align: center;
       }
-      .print-orden-envio .semana-sheet div {
-        margin-bottom: 1px;
+      [id^="qr-code-factura-"] img, [id^="qr-code-"] img {
+        width: 150px !important;
+        height: 150px !important;
       }
     }`;
   
@@ -4100,7 +4090,7 @@ function renderizarOrdenesParaImprimir(ordenes) {
     let codigoDecodificado = decodeBase64UTF8(orden.codigo);
     
     const sheetHtml = `
-      <div class="semana-sheet" role="region" aria-label="Etiqueta orden #${orden.id}">
+      <div class="semana-sheet"  role="region" aria-label="Etiqueta orden #${orden.id}">
         <div class="label-content">
           ${codigoDecodificado}
         </div>

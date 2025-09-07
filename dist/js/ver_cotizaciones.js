@@ -2104,7 +2104,7 @@ async function printOrdenEnvio(dataOrden) {
     const { peso, alto, ancho, largo } = b;
 
     const tablarte = `
-      <table class='table table-bordered tablin' style='width: 100%;' role='grid'>
+      <table class='table table-bordered tablin tabla-bulto' style='width: 100%;' role='grid'>
         <tbody>
           <tr>
             <td colspan="2">

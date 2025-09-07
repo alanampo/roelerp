@@ -12,7 +12,7 @@
     <script src="dist/js/common/agregar_cliente.js?v=<?php echo $version ?>"></script>
     <script src="dist/js/common/pagos.js?v=<?php echo $version ?>"></script>
     <script src="dist/js/uploadcaf.js?v=<?php echo $version ?>"></script>
-    <script src="dist/js/ver_facturacion.js?v=<?php echo $version ?>"></script>
+    <script src="dist/js/ver_facturacion.js?v=<?php echo uniqid() ?>"></script>
     <script src="plugins/QRCode/qrcode.min.js"></script>
     <link rel="stylesheet" href="./css/loading.css" />
     <style>
