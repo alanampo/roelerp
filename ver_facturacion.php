@@ -13,6 +13,7 @@
     <script src="dist/js/common/pagos.js?v=<?php echo $version ?>"></script>
     <script src="dist/js/uploadcaf.js?v=<?php echo $version ?>"></script>
     <script src="dist/js/ver_facturacion.js?v=<?php echo $version ?>"></script>
+    <script src="plugins/QRCode/qrcode.min.js"></script>
     <link rel="stylesheet" href="./css/loading.css" />
     <style>
       input {
@@ -23,6 +24,7 @@
 
   <body>
     <div class="print-cotizacion" id="miVentana" style="padding:60px !important"></div>
+    <div id="print-orden-envio" class="print-orden-envio" style="position: relative; top: 7px;"></div>
     <div id="ocultar">
       <div class="wrapper">
         <header class="main-header">
@@ -110,6 +112,13 @@ $fecha = $dias[date('w')] . " " . date('d') . " de " . $meses[date('n') - 1] . "
                     onclick="abrirTab(event, 'sag');"
                   >
                     GUÍAS SAG
+                  </button>
+                  <button
+                    id="tabordenes"
+                    class="tablinks"
+                    onclick="abrirTab(event, 'ordenes');"
+                  >
+                    ÓRDENES ENVÍO
                   </button>
                 </div>
               </div>
@@ -232,6 +241,13 @@ $fecha = $dias[date('w')] . " " . date('d') . " de " . $meses[date('n') - 1] . "
               <div class="row mt-2 mb-5">
                 <div class="col">
                   <div id="tabla_sag"></div>
+                </div>
+              </div>
+            </div>
+            <div class="tabco tab-ordenes d-none">
+              <div class="row mt-2 mb-5">
+                <div class="col">
+                  <div id="tabla_ordenes"></div>
                 </div>
               </div>
             </div>
@@ -447,6 +463,8 @@ include './class_lib/main_footer.php';
       </div>
 
       <?php include "modal_pagos.php"?>
+      
+      <?php include "modals/orden_envio.php"; ?>
 
       <div id="modal-solicitud-despacho" class="modal" tabindex="-1">
         <div class="modal-dialog modal-xl" style="max-width:1300px !important">

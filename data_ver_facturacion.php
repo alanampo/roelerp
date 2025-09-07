@@ -104,6 +104,10 @@ if ($consulta == "cargar_historial") { //FACTURAS
 
             $btn_descargar_xml_cliente = ($ww["track_id"] ? "<button onclick='downloadXML(this, $ww[rowid], $ww[folio], $ww[id_cliente])' class='btn btn-primary btn-sm mr-2 px-1' style='font-size:10px;'>XML CLI</button>" : "");
 
+            // Botón Orden de Envío
+            $id_cotizacion_for_orden = $ww["id_cotizacion"] ? $ww["id_cotizacion"] : null;
+            $id_cotizacion_directa_for_orden = $ww["id_cotizacion_directa"] ? $ww["id_cotizacion_directa"] : null;
+            $btn_orden_envio = "<button onclick='modalOrdenEnvioFactura($ww[rowid], " . ($id_cotizacion_for_orden ? $id_cotizacion_for_orden : "null") . ", " . ($id_cotizacion_directa_for_orden ? $id_cotizacion_directa_for_orden : "null") . ", $ww[id_cliente])' class='btn btn-secondary btn-sm px-1 py-1' style='font-size:10px;'>ORDEN ENVIO</button>";
 
             $montoint = (int) $ww["monto"];
             $btn_enviar = ($ww["track_id"] ? "<button onclick='sendMailFactura(this, $ww[rowid], $ww[folio], 0, $montoint, $email)' class='btn btn-info fa fa-envelope btn-sm'></button>" : "");
@@ -167,6 +171,7 @@ if ($consulta == "cargar_historial") { //FACTURAS
                             $btn_print
                             $btn_descargar_xml
                             $btn_descargar_xml_cliente
+                            $btn_orden_envio
                             $btn_add_pago
                         </div>
                         <div class='mt-2 d-flex flex-row justify-content-center align-items-center'>
@@ -1435,6 +1440,68 @@ UNION
     } else {
         echo "<div class='callout callout-danger'><b>No se encontraron guías...</b></div>";
     }
+} else if ($consulta == "cargar_historial_ordenes_envio_facturas") {
+    mysqli_query($con, "SET SESSION SQL_BIG_SELECTS=1");
+    $query = "SELECT
+            o.id,
+            o.codigo,
+            cl.nombre as cliente,
+            cl.id_cliente,
+            o.id_cotizacion,
+            o.id_cotizacion_directa,
+            COALESCE(f.folio, cd.folio) as folio_factura,
+            DATE_FORMAT(o.fecha, '%d/%m/%Y %H:%i') as fecha,
+            DATE_FORMAT(o.fecha, '%Y%m%d%H%i') as fecha_raw
+            
+            FROM ordenes_envio o
+            INNER JOIN clientes cl ON cl.id_cliente = o.id_cliente
+            LEFT JOIN facturas f ON f.id_cotizacion = o.id_cotizacion
+            LEFT JOIN facturas cd ON cd.id_cotizacion_directa = o.id_cotizacion_directa
+            WHERE (o.id_cotizacion IS NOT NULL AND f.folio IS NOT NULL) 
+               OR (o.id_cotizacion_directa IS NOT NULL AND cd.folio IS NOT NULL)
+            ";
+
+    $val = mysqli_query($con, $query);
+
+    if (mysqli_num_rows($val) > 0) {
+
+        echo "<div class='box box-primary'>";
+        echo "<div class='box-header with-border'>";
+        echo "<h3 class='box-title'>Historial de Órdenes</h3>";
+        echo "</div>";
+        echo "<div class='box-body'>";
+        echo "<table id='tabla_ordenes_envio' class='table table-bordered table-responsive w-100 d-block d-md-table'>";
+        echo "<thead>";
+        echo "<tr>";
+        echo "<th>N°</th><th>Cliente</th><th>Fecha</th><th>Factura Nº</th><th></th>";
+        echo "</tr>";
+        echo "</thead>";
+        echo "<tbody>";
+
+        while ($ww = mysqli_fetch_array($val)) {
+            $data = base64_encode($ww["codigo"]);
+            $boton_eliminar = "<button class='btn btn-danger fa fa-trash btn-sm' onClick='eliminarOrdenEnvio($ww[id])'></button>";
+            echo "
+    <tr class='text-center' style='cursor:pointer' x-id='$ww[id]'>
+      <td>$ww[id]</td>
+      <td>$ww[cliente] ($ww[id_cliente])</td>
+      <td><span class='d-none'>$ww[fecha_raw]</span>$ww[fecha]</td>
+      <td>$ww[folio_factura]</td>
+      <td class='text-center'>
+            <div class='d-flex flex-row justify-content-center align-items-center'>
+                <button onclick='printOrdenEnvio2(\"$data\")' class='btn btn-primary fa fa-print btn-sm mr-4'></button>
+                $boton_eliminar
+            </div>
+      </td>
+    </tr>";
+        }
+        echo "</tbody>";
+        echo "</table>";
+        echo "</div>";
+        echo "</div>";
+    } else {
+        echo "<div class='callout callout-danger'><b>No se encontraron órdenes...</b></div>";
+    }
 } else if ($consulta == "eliminar_solicitud_despacho") {
     $rowid = $_POST["rowid"];
     $errors = array();
@@ -1455,6 +1522,21 @@ UNION
     $errors = array();
     try {
         $query = "DELETE FROM guias_transito WHERE id = $rowid";
+        if (mysqli_query($con, $query)) {
+            echo "success";
+        } else {
+            echo "error: " . mysqli_error($con);
+        }
+
+    } catch (\Throwable $th) {
+        //throw $th;
+        echo "error: $th";
+    }
+} else if ($consulta == "eliminar_orden_envio") {
+    $rowid = $_POST["rowid"];
+    $errors = array();
+    try {
+        $query = "DELETE FROM ordenes_envio WHERE id = $rowid";
         if (mysqli_query($con, $query)) {
             echo "success";
         } else {

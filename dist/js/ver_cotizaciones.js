@@ -2066,7 +2066,6 @@ async function printOrdenEnvio(dataOrden) {
   const { direccion, email, telefono, logo } = dataMembrete;
   const razonEmpresa = dataMembrete.razon;
   const rutEmpresa = dataMembrete.rut;
-  const comunaEmpresa = dataMembrete.comuna;
 
   $(".print-orden-envio").html("");
 
@@ -2078,231 +2077,193 @@ async function printOrdenEnvio(dataOrden) {
       ? "0" + (now.getMonth() + 1)
       : now.getMonth() + 1) +
     "/" +
-    now.getFullYear() +
-    " ";
+    now.getFullYear();
 
   const {
     tipo,
     nombre_sucursal,
     nombre_transp,
     direccion_sucursal,
-    id_sucursal,
     notas,
     bultos,
   } = dataOrden;
 
   let direccionEntrega = "";
-
   let titulo = "ORDEN ENVÍO";
 
   if (tipo == 0) {
-    //SUCURSAL
     titulo = `${nombre_sucursal} - ${nombre_transp}`;
     direccionEntrega = `Suc. ${nombre_transp} ${nombre_sucursal} - ${direccion_sucursal}`;
   } else if (tipo == 1) {
     direccionEntrega = dataOrden.direccion;
-  }
-  else if (tipo == 2) {
+  } else if (tipo == 2) {
     direccionEntrega = dataOrden.direccion2;
   }
+
   bultos.forEach(function (b, i) {
     const { peso, alto, ancho, largo } = b;
-    if (i > 0) {
-      $(".print-orden-envio").append(
-        `<p class="salto" style="page-break-after: always;page-break-inside: avoid;"></p>`
-      );
-    }
-    const tablarte = `<table class='table table-bordered mt-2 w-100' role='grid'>
-                        <tbody>
-                          <tr>
-                            <td colspan="2">
-                              <div class="d-flex flex-row align-items-center">
-                                <img style="width: 170px !important; height: 110px !important" src="${logo}"></img>
-                                <div class="ml-4">
-                                  <h4 style="font-weight:bold;">${titulo}</h4>
-                                  ${titulo && titulo.length && direccion_sucursal && direccion_sucursal.length
-        ? `<span>${direccion_sucursal}</span>`
-        : ""
-      }
-                                </div>
-                              </div>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td>
-                              Fecha emisión: ${datetime}
-                            </td>
-                            <td class="text-center">
-                                <h5 class="font-weight-bold">${dataCotizacion.id_cotizacion
+
+    const tablarte = `
+      <table class='table table-bordered tablin' style='width: 100%;' role='grid'>
+        <tbody>
+          <tr>
+            <td colspan="2">
+              <div class="d-flex flex-row align-items-center">
+                <img style="width: 160px; height: 100px" src="${logo}"></img>
+                <div class="ml-4">
+                  <h4 style="font-weight:bold;">${titulo}</h4>
+                  ${direccion_sucursal ? `<span>${direccion_sucursal}</span>` : ""}
+                </div>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              Fecha emisión: ${datetime}
+            </td>
+            <td class="text-center">
+              <h5 class="font-weight-bold">${dataCotizacion.id_cotizacion
         .toString()
         .padStart(6, "0")}</h5>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td>
-                              <div class="d-flex flex-row">
-                                 <div style="width:130px">
-                                  <span>Remitente:</span>
-                                 </div>
-                                 <span>${razonEmpresa}</span>
-                              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <div><strong>Remitente:</strong> ${razonEmpresa}</div>
+              <div><strong>Dirección:</strong> ${direccion}</div>
+              <div><strong>R.U.T:</strong> ${rutEmpresa}</div>
+              <div><strong>Teléfono:</strong> ${telefono}</div>
+              <div><strong>Email:</strong> ${email}</div>
+            </td>
+            <td class="text-center">
+              <div class="p-2" id="qr-code-${i}"></div>
+            </td>
+          </tr>
+        </tbody>
+      </table>`;
 
-                              <div class="d-flex flex-row" style="justify-content:start;">
-                                 <span>Dirección:</span>
-                                 <span class="ml-5">${direccion}</span>
-                              </div>
+    let montoCotizacion = Math.floor(dataCotizacion.data.monto).toLocaleString('de-DE');
 
-                              <div class="d-flex flex-row">
-                                 <div style="width:130px">
-                                  <span>R.U.T:</span>
-                                 </div>
-                                 <span>${rutEmpresa}</span>
-                              </div>
+    const tabladest = `
+      <table class='table table-bordered w-100' role='grid'>
+        <tbody>
+          <tr>
+            <td>
+              <div><strong>Destinatario:</strong> ${dataCotizacion.data.cliente}</div>
+              <div><strong>Dirección:</strong> ${direccionEntrega}</div>
+              <div><strong>Comuna:</strong> ${dataCotizacion.data.comuna ?? '-'}</div>
+              <div><strong>Región:</strong> ${dataCotizacion.data.region ?? '-'}</div>
+              <div><strong>R.U.T:</strong> ${dataCotizacion.data.rut}</div>
+              <div><strong>Teléfono:</strong> ${dataCotizacion.data.telcliente}</div>
+              <div><strong>Email:</strong> ${dataCotizacion.data.email || '-'}</div>
+              <div><strong>Cotización Nº:</strong> ${dataCotizacion.id_cotizacion} (\$${montoCotizacion})</div>
+            </td>
+            <td class="text-center">
+              <h6>BULTO N°</h6>
+              <h4 class="font-weight-bold">${(i + 1)
+        .toString()
+        .padStart(3, "0")}/${bultos.length.toString().padStart(3, "0")}</h4>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <div><strong>Notas:</strong> ${notas ? notas.toUpperCase() : ""}</div>
+            </td>
+            <td class="text-center">
+              <span>Peso: ${peso ? `${peso} kg` : ""}</span><br>
+              <span>Alto: ${alto ? `${alto} cm` : ""}</span><br>
+              <span>Ancho: ${ancho ? `${ancho} cm` : ""}</span><br>
+              <span>Largo: ${largo ? `${largo} cm` : ""}</span><br>
+            </td>
+          </tr>
+        </tbody>
+      </table>`;
 
-                              <div class="d-flex flex-row">
-                                 <div style="width:130px">
-                                  <span>Teléfono:</span>
-                                 </div>
-                                 <span>${telefono}</span>
-                              </div>
+    const contenidoBulto = `
+      <div class="bulto-print">
+        ${tablarte}
+        ${tabladest}
+      </div>
+    `;
 
-                              <div class="d-flex flex-row">
-                                 <div style="width:130px">
-                                  <span>Email:</span>
-                                 </div>
-                                 <span>${email}</span>
-                              </div>
-                            </td> 
-                            <td class="text-center">
-                              <div class="p-2" id="qr-code-${i}"></div>
-                              
-                            </td>
-                          </tr>
-                        </tbody>
-                      </table>`;
+    $(".print-orden-envio").append(contenidoBulto);
 
-    $(".print-orden-envio").append(tablarte);
-
+    // Generar QR más grande
     var qrcode = new QRCode(document.getElementById("qr-code-" + i), {
       text: dataCotizacion.data.uniqid,
-      width: 150, //default 128
-      height: 150,
+      width: 200,  // más grande
+      height: 200,
       colorDark: "#000000",
       colorLight: "#ffffff",
       correctLevel: QRCode.CorrectLevel.H,
     });
-    const dt = qrcode._oDrawing._elCanvas.toDataURL("image/png");
-
-    //$("#qr-code2-"+index).html(`<img class='qrcode2' src='${dt}'/>`);
-    let montoCotizacion = Math.floor(dataCotizacion.data.monto).toLocaleString('de-DE');
-
-
-    const tabladest = `<table style='width: 100%' class='table table-bordered w-100' role='grid'>
-    <tbody>
-      <tr>
-        <td>
-          <div class="d-flex flex-row">
-            <div style="width:130px">
-              <span>Destinatario:</span>
-            </div>
-            <span>${dataCotizacion.data.cliente}</span>
-          </div>
-          <div class="d-flex flex-row" style="justify-content:start;">
-            <span>Dirección:</span>
-            <span class="ml-5">${direccionEntrega}</span>
-          </div>
-          <div class="d-flex flex-row" style="justify-content:start;">
-            <span class="mr-2">Comuna:</span>
-            <span class="ml-5">${dataCotizacion.data.comuna ?? '-'}</span>
-          </div>
-          <div class="d-flex flex-row" style="justify-content:start;">
-            <span class="mr-4">Región:</span>
-            <span class="ml-5">${dataCotizacion.data.region ?? '-'}</span>
-          </div>
-          <div class="d-flex flex-row">
-            <div style="width:130px">
-              <span>R.U.T:</span>
-            </div>
-            <span>${dataCotizacion.data.rut}</span>
-          </div>
-          <div class="d-flex flex-row">
-            <div style="width:130px">
-              <span>Teléfono:</span>
-            </div>
-            <span>${dataCotizacion.data.telcliente}</span>
-          </div>
-          <div class="d-flex flex-row">
-            <div style="width:130px">
-              <span>Email:</span>
-            </div>
-            <span>${dataCotizacion.data.email && dataCotizacion.data.email.length ? dataCotizacion.data.email : "-"}</span>
-          </div>
-          <div class="d-flex flex-row">
-            <div style="width:130px">
-              <span>Cotización Nº:</span>
-            </div>
-            <span>${dataCotizacion.id_cotizacion} (\$${montoCotizacion})</span>
-          </div>
-          
-        </td> 
-        <td class="text-center">
-          <h6>BULTO N°</h6>
-          <h4 class="font-weight-bold">${(i + 1)
-        .toString()
-        .padStart(3, "0")}/${bultos.length.toString().padStart(3, "0")}</h4>
-        </td>
-      </tr>
-
-      <tr>
-        <td>
-          <div class="d-flex flex-row">
-            <div style="width:130px">
-              <span>Notas:</span>
-            </div>
-            <span>${notas && notas.length ? notas.toUpperCase() : ""} </span>
-          </div>
-        </td> 
-        <td class="text-center" style="min-width:140px">
-          <span>Peso: ${peso && peso != "" ? `${peso} kg` : ""}</span><br>
-          <span>Alto: ${alto && alto != "" ? `${alto} cm` : ""}</span><br>
-          <span>Ancho: ${ancho && ancho != "" ? `${ancho} cm` : ""}</span><br>
-          <span>Largo: ${largo && largo != "" ? `${largo} cm` : ""}</span><br>
-        </td>
-      </tr>
-    </tbody>
-  </table>`;
-
-    $(".print-orden-envio").append(tabladest);
   });
+
+  // Inyectar CSS de impresión
+  const css = `
+    @media print {
+      @page {
+        size: 106mm 164mm;
+        margin: 0;
+      }
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      .print-orden-envio {
+        width: 106mm;
+        height: 164mm;
+      }
+        .tablin {
+          width: 100vw !important;
+        }
+      .bulto-print {
+        width: 100vw;
+        height: 164mm;
+        page-break-after: always;
+        box-sizing: border-box;
+        padding: 5mm;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+      .bulto-print:last-child {
+        page-break-after: auto;
+      }
+      .bulto-print table {
+        width: 100% !important;
+        table-layout: fixed;
+      }
+      .bulto-print td {
+        vertical-align: top;
+        font-size: 12px;
+      }
+      #qr-code {
+        text-align: center;
+      }
+      #qr-code img {
+        width: 200px !important;
+        height: 200px !important;
+      }
+    }`;
+  let styleTag = document.createElement("style");
+  styleTag.innerHTML = css;
+  document.head.appendChild(styleTag);
 
   $("#ocultar").css({ display: "none" });
   $(".print-orden-envio").css({ display: "block" });
-
   $("#modal-vistaprevia").modal("hide");
 
   setTimeout(() => {
-    document.getElementsByTagName("style")[0].innerHTML = `
-  
-    @media print {
-      html {
-          width: 100%;
-          height:100%;
-      }
-      @page{
-          size: 600px 600px !important;
-          margin: 0 !important; 
-      }
-   }
-    `; //some css goes here
-
-    storeOrdenEnvio($(".print-orden-envio").html())
+    storeOrdenEnvio($(".print-orden-envio").html());
     window.print();
-    document.getElementsByTagName("style")[0].innerHTML = ``;
+    document.head.removeChild(styleTag);
     document.getElementById("ocultar").style.display = "block";
     $(".print-orden-envio").css({ display: "none" });
     $("#modal-vistaprevia").modal("show");
   }, 500);
 }
+
 function decodeBase64UTF8(base64String) {
   const binaryString = atob(base64String);
   const bytes = new Uint8Array(binaryString.length);
@@ -2312,32 +2273,75 @@ function decodeBase64UTF8(base64String) {
   return new TextDecoder("utf-8").decode(bytes);
 }
 function printOrdenEnvio2(data) {
-  $(".print-orden-envio").html(decodeBase64UTF8(data));
+  // Limpiar el contenedor primero
+  $(".print-orden-envio").html("");
+
+  // Decodificar el HTML ya guardado en la BD
+  let htmlContent = decodeBase64UTF8(data);
+  $(".print-orden-envio").html(htmlContent);
+
+  // Inyectar CSS de impresión (igual que en printOrdenEnvio)
+  const css = `
+    @media print {
+      @page {
+        size: 106mm 164mm;
+        margin: 0;
+      }
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      .print-orden-envio {
+        width: 106mm;
+        height: 164mm;
+      }
+        .tablin {
+        width: 100vw !important;}
+      .bulto-print {
+        width: 106mm !important;
+        height: 164mm;
+        page-break-after: always;
+        box-sizing: border-box;
+        padding: 5mm;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+      .bulto-print:last-child {
+        page-break-after: auto;
+      }
+      .bulto-print table {
+        width: 100% !important;
+        table-layout: fixed;
+      }
+      .bulto-print td {
+        vertical-align: top;
+        font-size: 12px;
+      }
+      #qr-code {
+        text-align: center;
+      }
+      #qr-code img {
+        width: 200px !important;
+        height: 200px !important;
+      }
+    }`;
+  
+  let styleTag = document.createElement("style");
+  styleTag.innerHTML = css;
+  document.head.appendChild(styleTag);
 
   $("#ocultar").css({ display: "none" });
   $(".print-orden-envio").css({ display: "block" });
 
   setTimeout(() => {
-    document.getElementsByTagName("style")[0].innerHTML = `
-  
-    @media print {
-      html {
-          width: 100%;
-          height:100%;
-      }
-      @page{
-          size: 600px 600px !important;
-          margin: 0 !important; 
-      }
-   }
-    `; //some css goes here
-
     window.print();
-    document.getElementsByTagName("style")[0].innerHTML = ``;
+    document.head.removeChild(styleTag);
     document.getElementById("ocultar").style.display = "block";
     $(".print-orden-envio").css({ display: "none" });
   }, 500);
 }
+
 
 function storeOrdenEnvio(html) {
   $.ajax({

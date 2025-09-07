@@ -57,6 +57,10 @@ function abrirTab(evt, tabName) {
     $(".tab-sag").addClass("d-block");
     loadSag();
   }
+  else if (tabName == "ordenes") {
+    $(".tab-ordenes").addClass("d-block");
+    loadOrdenes();
+  }
 }
 
 //************************* */
@@ -449,6 +453,592 @@ function loadHistorial(mostrarProductos) {
         "Ocurrió un error al cargar los datos: " + estado + " " + error
       );
     },
+  });
+}
+
+// FUNCIONES PARA ÓRDENES DE ENVÍO DESDE FACTURAS
+
+function modalOrdenEnvioFactura(rowid_factura, id_cotizacion, id_cotizacion_directa, id_cliente) {
+  // Primero cargar los datos de la cotización correspondiente
+  loadCotizacionDataForOrdenEnvio(rowid_factura, id_cotizacion, id_cotizacion_directa, id_cliente);
+}
+
+function loadCotizacionDataForOrdenEnvio(rowid_factura, id_cotizacion, id_cotizacion_directa, id_cliente) {
+  const isDirecta = id_cotizacion_directa !== null;
+  const cotizacion_id = isDirecta ? id_cotizacion_directa : id_cotizacion;
+  const phpFile = "data_ver_cotizaciones.php";
+
+  $.ajax({
+    url: phpFile,
+    type: "POST",
+    data: {
+      consulta: "cargar_cotizacion",
+      id: cotizacion_id,
+      directa: isDirecta ? 1 : null,
+    },
+    success: function (x) {
+      if (x && x.length) {
+        try {
+          const data = JSON.parse(x);
+
+          // Establecer currentCotizacion con los datos necesarios
+          currentCotizacion = {
+            id_cotizacion: cotizacion_id,
+            data: data,
+            isDirecta: isDirecta,
+            rowid_factura: rowid_factura
+          };
+
+          // Ahora abrir el modal con los datos cargados
+          openModalOrdenEnvioFactura();
+
+        } catch (error) {
+          console.log(error);
+          swal("Error al cargar los datos de la cotización", error.toString(), "error");
+        }
+      } else {
+        swal("No se encontraron datos de la cotización", "", "error");
+      }
+    },
+    error: function (jqXHR, estado, error) {
+      swal("Error al cargar la cotización", error.toString(), "error");
+    },
+  });
+}
+
+function openModalOrdenEnvioFactura() {
+  $("#input-direccion-entrega").val(currentCotizacion.data.domicilio);
+  $("#input-direccion-entrega2").val(currentCotizacion.data.domicilio2 || "");
+  $("#select-tipo-envio").val("0").selectpicker("refresh");
+  getTransportistasSelectFactura();
+
+  $("#select-transportista").val("default").selectpicker("refresh");
+  $("#select-sucursal").html("").selectpicker("refresh");
+  $(".col-select-transp,.col-select-sucursal").removeClass("d-none");
+  $(".col-direccion-envio,.col-direccion-envio-2").addClass("d-none");
+
+  $("#modal-orden-envio").modal("show");
+
+  $("#table-bultos > tbody").html(`
+    <tr scope="row" class="tr-add-row">
+      <td colspan="6">
+        <button onclick="addBultoFactura()" class="btn btn-success btn-sm"><i class="fa fa-plus-square"></i></button>
+      </td>
+    </tr>
+  `);
+
+  addBultoFactura();
+}
+
+function addBultoFactura() {
+  const index = $("#table-bultos > tbody > tr").length;
+
+  if (index >= 25) return;
+
+  let peso = "",
+    alto = "",
+    ancho = "",
+    largo = "";
+  if ($(".tr-bulto").last().length > 0) {
+    const obj = $(".tr-bulto").last();
+    peso = $(obj).find(".i-peso").val().trim();
+    alto = $(obj).find(".i-alto").val().trim();
+    ancho = $(obj).find(".i-ancho").val().trim();
+    largo = $(obj).find(".i-largo").val().trim();
+  }
+
+  $("#table-bultos > tbody .tr-add-row").first().before(`
+    <tr class='tr-bulto'>
+      <td class='td-index'>
+       ${index}
+      </td>
+      <td>
+        <input value='${peso}' type='search' autocomplete="off" class="form-control input-decimal i-peso text-center" maxlength="6"/>
+      </td>
+      <td>
+        <input value='${alto}' type='search' autocomplete="off" class="form-control input-decimal i-alto text-center" maxlength="6"/>
+      </td>
+      <td>
+        <input value='${ancho}' type='search' autocomplete="off" class="form-control input-decimal i-ancho text-center" maxlength="6"/>
+      </td>
+      <td>
+        <input value='${largo}' type='search' autocomplete="off" class="form-control input-decimal i-largo text-center" maxlength="6"/>
+      </td>
+      <td class="text-center">
+        <button onclick="$(this).parent().parent().remove();updateIndexBultoFactura()" class="btn btn-secondary fa fa-trash btn-sm"></button>
+      </td>
+    </tr>
+  `);
+
+  setInputDecimal($(".input-decimal"));
+}
+
+function updateIndexBultoFactura() {
+  $("#table-bultos > tbody > tr").each(function (i) {
+    if (!$(this).hasClass("tr-bulto")) return;
+
+    $(this)
+      .find(".td-index")
+      .html(i + 1);
+  });
+}
+
+function getTransportistasSelectFactura() {
+  const phpFile = "data_ver_cotizaciones.php";
+  $.ajax({
+    beforeSend: function () {
+      $("#select-transportista").html("").selectpicker("refresh");
+    },
+    url: phpFile,
+    type: "POST",
+    data: {
+      consulta: "get_transportistas_select",
+    },
+    success: function (x) {
+      $("#select-transportista").html(x).selectpicker("refresh");
+      $("#select-transportista").on(
+        "changed.bs.select",
+        function (e, clickedIndex, newValue, oldValue) {
+          getSucursalesSelectFactura(this.value)
+        }
+      );
+    },
+    error: function (jqXHR, estado, error) { },
+  });
+}
+
+function getSucursalesSelectFactura(id) {
+  const phpFile = "data_ver_cotizaciones.php";
+  $.ajax({
+    beforeSend: function () {
+      $("#select-sucursal").selectpicker({ title: "Cargando..." });
+      $("#select-sucursal").html("").selectpicker("refresh");
+    },
+    url: phpFile,
+    type: "POST",
+    data: {
+      id_transportista: id,
+      consulta: "get_sucursales_select",
+    },
+    success: function (x) {
+      console.log(x)
+      $("#select-sucursal").selectpicker({ title: "Selecciona" });
+      $("#select-sucursal").html(x).selectpicker("refresh");
+    },
+    error: function (jqXHR, estado, error) { },
+  });
+}
+
+function guardarOrdenEnvioFactura() {
+  if (!$(".tr-bulto").length) {
+    swal("Debes agregar un bulto", "", "error");
+    return;
+  }
+
+  const tipo = $("#select-tipo-envio option:selected").val();
+  const id_sucursal = $("#select-transportista option:selected").val();
+  const nombre_sucursal = $("#select-sucursal option:selected").attr(
+    "x-nombre"
+  );
+  const nombre_transp = $("#select-transportista option:selected").attr(
+    "x-nombre"
+  );
+  const direccion_sucursal = $("#select-sucursal option:selected").attr(
+    "x-direccion"
+  );
+
+  if (!tipo || !tipo.length) {
+    swal("Selecciona un Tipo de Entrega", "", "error");
+    return;
+  }
+
+  if (tipo == 0 && (!id_sucursal || !id_sucursal.length)) {
+    swal("Selecciona una Sucursal", "", "error");
+    return;
+  }
+
+  const direccion = $("#input-direccion-entrega")
+    .val()
+    .trim()
+    .replace(/[\s|.'"']/g, " ");
+  if (tipo == 1 && (!direccion || !direccion.length)) {
+    swal("Ingresa la Dirección de Entrega", "", "error");
+    return;
+  }
+
+  const direccion2 = $("#input-direccion-entrega2")
+    .val()
+    .trim()
+    .replace(/[\s|.'"']/g, " ");
+  if (tipo == 2 && (!direccion2 || !direccion2.length)) {
+    swal("Ingresa la Dirección de Entrega", "", "error");
+    return;
+  }
+
+  const notas = $("#input-notas-entrega")
+    .val()
+    .trim()
+    .replace(/[\s|.'"']/g, " ");
+
+  let bultos = [];
+  $("#table-bultos > tbody > tr").each(function (i) {
+    if ($(this).hasClass("tr-add-row") || $(this).hasClass("tr-ignore")) return;
+
+    const peso = $(this).find(".i-peso").val().trim();
+    const alto = $(this).find(".i-alto").val().trim();
+    const ancho = $(this).find(".i-ancho").val().trim();
+    const largo = $(this).find(".i-largo").val().trim();
+
+    bultos.push({
+      index: i + 1,
+      peso: peso && peso.length ? parseFloat(peso) : null,
+      alto: alto && alto.length ? parseFloat(alto) : null,
+      ancho: ancho && ancho.length ? parseFloat(ancho) : null,
+      largo: largo && largo.length ? parseFloat(largo) : null,
+    });
+  });
+
+  if (!bultos.length) {
+    swal("Debes agregar un bulto", "", "error");
+    return;
+  }
+
+  $("#modal-orden-envio").modal("hide");
+
+  const dataOrden = {
+    tipo,
+    id_sucursal,
+    direccion,
+    direccion2,
+    notas,
+    bultos,
+    nombre_sucursal,
+    nombre_transp,
+    direccion_sucursal,
+  };
+
+  printOrdenEnvioFactura(dataOrden);
+}
+
+async function printOrdenEnvioFactura(dataOrden) {
+  let dataCotizacion = currentCotizacion;
+
+  const dataMembrete = await loadDatosEmpresaPrint();
+  if (!dataMembrete || dataMembrete.error) {
+    swal(
+      "Ocurrió un error al obtener los datos de la Empresa",
+      dataMembrete.error,
+      "error"
+    );
+    return;
+  }
+
+  const { direccion, email, telefono, logo } = dataMembrete;
+  const razonEmpresa = dataMembrete.razon;
+  const rutEmpresa = dataMembrete.rut;
+  const comunaEmpresa = dataMembrete.comuna;
+
+  $(".print-orden-envio").html("");
+
+  const now = new Date();
+  const datetime =
+    (now.getDate() < 10 ? "0" + now.getDate() : now.getDate()) +
+    "/" +
+    (now.getMonth() + 1 < 10
+      ? "0" + (now.getMonth() + 1)
+      : now.getMonth() + 1) +
+    "/" +
+    now.getFullYear() +
+    " ";
+
+  const {
+    tipo,
+    nombre_sucursal,
+    nombre_transp,
+    direccion_sucursal,
+    id_sucursal,
+    notas,
+    bultos,
+  } = dataOrden;
+
+  let direccionEntrega = "";
+
+  let titulo = "ORDEN ENVÍO";
+
+  if (tipo == 0) {
+    //SUCURSAL
+    titulo = `${nombre_sucursal} - ${nombre_transp}`;
+    direccionEntrega = `Suc. ${nombre_transp} ${nombre_sucursal} - ${direccion_sucursal}`;
+  } else if (tipo == 1) {
+    direccionEntrega = dataOrden.direccion;
+  }
+  else if (tipo == 2) {
+    direccionEntrega = dataOrden.direccion2;
+  }
+
+  bultos.forEach(function (b, i) {
+    const { peso, alto, ancho, largo } = b;
+    // Ya no necesitamos saltos - cada tabla se auto-pagina con CSS
+    const tablarte = `<table class='table table-bordered mt-2 tablin' role='grid'>
+                        <tbody>
+                          <tr>
+                            <td colspan="2">
+                              <div class="d-flex flex-row align-items-center">
+                                <img style="width: 170px !important; height: 110px !important" src="${logo}"></img>
+                                <div class="ml-4">
+                                  <h4 style="font-weight:bold;">${titulo}</h4>
+                                  ${titulo && titulo.length && direccion_sucursal && direccion_sucursal.length
+        ? `<span>${direccion_sucursal}</span>`
+        : ""
+      }
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
+                              Fecha emisión: ${datetime}
+                            </td>
+                            <td class="text-center">
+                                <h5 class="font-weight-bold">${dataCotizacion.id_cotizacion
+        .toString()
+        .padStart(6, "0")}</h5>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <div class="d-flex flex-row">
+                                 <div style="width:130px">
+                                  <span>Remitente:</span>
+                                 </div>
+                                 <span>${razonEmpresa}</span>
+                              </div>
+
+                              <div class="d-flex flex-row" style="justify-content:start;">
+                                 <span>Dirección:</span>
+                                 <span class="ml-5">${direccion}</span>
+                              </div>
+
+                              <div class="d-flex flex-row">
+                                 <div style="width:130px">
+                                  <span>R.U.T:</span>
+                                 </div>
+                                 <span>${rutEmpresa}</span>
+                              </div>
+
+                              <div class="d-flex flex-row">
+                                 <div style="width:130px">
+                                  <span>Teléfono:</span>
+                                 </div>
+                                 <span>${telefono}</span>
+                              </div>
+
+                              <div class="d-flex flex-row">
+                                 <div style="width:130px">
+                                  <span>Email:</span>
+                                 </div>
+                                 <span>${email}</span>
+                              </div>
+                            </td> 
+                            <td class="text-center">
+                              <div class="p-2" id="qr-code-factura-${i}"></div>
+                              
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>`;
+
+    $(".print-orden-envio").append(tablarte);
+
+    // Generar QR Code para facturas
+    var qrcode = new QRCode(document.getElementById("qr-code-factura-" + i), {
+      text: dataCotizacion.data.uniqid || dataCotizacion.id_cotizacion.toString(),
+      width: 150,
+      height: 150,
+      colorDark: "#000000",
+      colorLight: "#ffffff",
+      correctLevel: QRCode.CorrectLevel.H,
+    });
+
+    let montoCotizacion = Math.floor(dataCotizacion.data.monto || 0).toLocaleString('de-DE');
+
+    const tabladest = `<table style='width: 100%' class='table table-bordered tablin' role='grid'>
+    <tbody>
+      <tr>
+        <td>
+          <div class="d-flex flex-row">
+            <div style="width:130px">
+              <span>Destinatario:</span>
+            </div>
+            <span>${dataCotizacion.data.cliente}</span>
+          </div>
+          <div class="d-flex flex-row" style="justify-content:start;">
+            <span>Dirección:</span>
+            <span class="ml-5">${direccionEntrega}</span>
+          </div>
+          <div class="d-flex flex-row" style="justify-content:start;">
+            <span class="mr-2">Comuna:</span>
+            <span class="ml-5">${dataCotizacion.data.comuna ?? '-'}</span>
+          </div>
+          <div class="d-flex flex-row" style="justify-content:start;">
+            <span class="mr-4">Región:</span>
+            <span class="ml-5">${dataCotizacion.data.region ?? '-'}</span>
+          </div>
+          <div class="d-flex flex-row">
+            <div style="width:130px">
+              <span>R.U.T:</span>
+            </div>
+            <span>${dataCotizacion.data.rut}</span>
+          </div>
+          <div class="d-flex flex-row">
+            <div style="width:130px">
+              <span>Teléfono:</span>
+            </div>
+            <span>${dataCotizacion.data.telcliente || dataCotizacion.data.telefono || '-'}</span>
+          </div>
+          <div class="d-flex flex-row">
+            <div style="width:130px">
+              <span>Email:</span>
+            </div>
+            <span>${dataCotizacion.data.email && dataCotizacion.data.email.length ? dataCotizacion.data.email : "-"}</span>
+          </div>
+          <div class="d-flex flex-row">
+            <div style="width:130px">
+              <span>Factura Nº:</span>
+            </div>
+            <span>${dataCotizacion.id_cotizacion} (\$${montoCotizacion})</span>
+          </div>
+          
+        </td> 
+        <td class="text-center">
+          <h6>BULTO N°</h6>
+          <h4 class="font-weight-bold">${(i + 1)
+        .toString()
+        .padStart(3, "0")}/${bultos.length.toString().padStart(3, "0")}</h4>
+        </td>
+      </tr>
+
+      <tr>
+        <td>
+          <div class="d-flex flex-row">
+            <div style="width:130px">
+              <span>Notas:</span>
+            </div>
+            <span>${notas && notas.length ? notas.toUpperCase() : ""} </span>
+          </div>
+        </td> 
+        <td class="text-center" style="min-width:140px">
+          <span>Peso: ${peso && peso != "" ? `${peso} kg` : ""}</span><br>
+          <span>Alto: ${alto && alto != "" ? `${alto} cm` : ""}</span><br>
+          <span>Ancho: ${ancho && ancho != "" ? `${ancho} cm` : ""}</span><br>
+          <span>Largo: ${largo && largo != "" ? `${largo} cm` : ""}</span><br>
+        </td>
+      </tr>
+    </tbody>
+  </table>`;
+
+    $(".print-orden-envio").append(tabladest);
+  });
+
+  // Inyectar CSS de impresión
+  const css = `
+    @media print {
+      @page {
+        size: 106mm 164mm;
+        margin: 0;
+      }
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      .print-orden-envio {
+        width: 106mm;
+        height: 164mm;
+      }
+        .tablin {
+          width: 100vw !important;
+        }
+      .bulto-print {
+        width: 100vw;
+        height: 164mm;
+        page-break-after: always;
+        box-sizing: border-box;
+        padding: 5mm;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+      .bulto-print:last-child {
+        page-break-after: auto;
+      }
+      .bulto-print table {
+        width: 100% !important;
+        table-layout: fixed;
+      }
+      .bulto-print td {
+        vertical-align: top;
+        font-size: 12px;
+      }
+      #qr-code {
+        text-align: center;
+      }
+      #qr-code img {
+        width: 200px !important;
+        height: 200px !important;
+      }
+    }`;
+  let styleTag = document.createElement("style");
+  styleTag.innerHTML = css;
+  document.head.appendChild(styleTag);
+
+  $("#ocultar").css({ display: "none" });
+  $(".print-orden-envio").css({ display: "block" });
+
+  setTimeout(() => {
+
+
+    storeOrdenEnvioFactura($(".print-orden-envio").html())
+    window.print();
+    document.getElementsByTagName("style")[0].innerHTML = ``;
+    document.getElementById("ocultar").style.display = "block";
+    $(".print-orden-envio").css({ display: "none" });
+  }, 500);
+}
+
+function storeOrdenEnvioFactura(html) {
+  const ajaxData = {
+    consulta: "guardar_orden_envio",
+    data: html,
+    id_cliente: currentCotizacion.data.id_cliente,
+  };
+
+  // Enviar el parámetro correcto según el tipo de cotización
+  if (currentCotizacion.isDirecta) {
+    ajaxData.id_cotizacion_directa = currentCotizacion.id_cotizacion;
+  } else {
+    ajaxData.id_cotizacion = currentCotizacion.id_cotizacion;
+  }
+
+  $.ajax({
+    url: "data_ver_cotizaciones.php",
+    type: "POST",
+    data: ajaxData,
+    success: function (x) {
+      console.log("Orden de envío guardada:", x);
+      if (x.includes("success")) {
+        console.log("Orden de envío guardada exitosamente");
+      }
+    },
+    error: function (jqXHR, estado, error) {
+      console.error("Error al guardar orden de envío:", error);
+    },
+  });
+}
+
+// Función auxiliar para setInputDecimal (simplificada)
+function setInputDecimal(elements) {
+  elements.on("input", function () {
+    this.value = this.value.replace(/[^0-9.]/g, '');
   });
 }
 
@@ -1242,6 +1832,156 @@ function loadSag() {
       );
     },
   });
+}
+
+function loadOrdenes() {
+  $.ajax({
+    beforeSend: function () {
+      $("#tabla_ordenes").html("Buscando, espere...");
+    },
+    url: "data_ver_facturacion.php",
+    type: "POST",
+    data: {
+      consulta: "cargar_historial_ordenes_envio_facturas",
+    },
+    success: function (x) {
+      $("#tabla_ordenes").html(x);
+      $("#tabla_ordenes_envio").DataTable({
+        pageLength: 50,
+        order: [[0, "desc"]],
+        language: {
+          lengthMenu: "Mostrando _MENU_ órdenes por página",
+          zeroRecords: "No hay órdenes",
+          info: "Página _PAGE_ de _PAGES_",
+          infoEmpty: "No hay órdenes",
+          infoFiltered: "(filtrado de _MAX_ órdenes en total)",
+          lengthMenu: "Mostrar _MENU_ órdenes",
+          loadingRecords: "Cargando...",
+          processing: "Procesando...",
+          search: "Buscar:",
+          zeroRecords: "No se encontraron órdenes",
+          paginate: {
+            first: "Primera",
+            last: "Última",
+            next: "Siguiente",
+            previous: "Anterior",
+          },
+          aria: {
+            sortAscending: ": toca para ordenar en modo ascendente",
+            sortDescending: ": toca para ordenar en modo descendente",
+          },
+        },
+      });
+    },
+    error: function (jqXHR, estado, error) {
+      $("#tabla_ordenes").html(
+        "Ocurrió un error al cargar los datos: " + estado + " " + error
+      );
+    },
+  });
+}
+
+function eliminarOrdenEnvio(rowid) {
+  swal("Estás seguro/a de ELIMINAR la Órden de Envío?", "", {
+    icon: "warning",
+    buttons: {
+      cancel: "NO",
+      catch: {
+        text: "SI, ELIMINAR",
+        value: "catch",
+      },
+    },
+  }).then((value) => {
+    switch (value) {
+      case "catch":
+        $.ajax({
+          type: "POST",
+          url: "data_ver_facturacion.php",
+          data: { consulta: "eliminar_orden_envio", rowid: rowid },
+          success: function (data) {
+            if (data.trim() == "success") {
+              swal("Eliminaste la Órden correctamente!", "", "success");
+              loadOrdenes();
+            } else {
+              swal("Error al eliminar", data, "error");
+            }
+          },
+          error: function (jqXHR, estado, error) {
+            swal("Ocurrió un error", estado + " " + error, "error");
+          },
+        });
+        break;
+      default:
+    }
+  });
+}
+
+function printOrdenEnvio2(data) {
+  // Limpiar el contenedor primero
+  $(".print-orden-envio").html("");
+
+  // Decodificar el HTML 
+  let htmlContent = decodeBase64UTF8(data);
+
+  $(".print-orden-envio").html(htmlContent);
+
+  $("#ocultar").css({ display: "none" });
+  $(".print-orden-envio").css({ display: "block" });
+
+  const css = `
+    @media print {
+      @page {
+        size: 106mm 164mm;
+        margin: 0;
+      }
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      .print-orden-envio {
+        width: 106mm;
+        height: 164mm;
+      }
+        .tablin {
+          width: 100vw !important;
+        }
+      .bulto-print {
+        width: 100vw;
+        height: 164mm;
+        page-break-after: always;
+        box-sizing: border-box;
+        padding: 5mm;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+      .bulto-print:last-child {
+        page-break-after: auto;
+      }
+      .bulto-print table {
+        width: 100% !important;
+        table-layout: fixed;
+      }
+      .bulto-print td {
+        vertical-align: top;
+        font-size: 12px;
+      }
+      #qr-code {
+        text-align: center;
+      }
+      #qr-code img {
+        width: 200px !important;
+        height: 200px !important;
+      }
+    }`;
+  let styleTag = document.createElement("style");
+  styleTag.innerHTML = css;
+  document.head.appendChild(styleTag);
+
+  window.print();
+  document.getElementsByTagName("style")[0].innerHTML = ``;
+  document.getElementById("ocultar").style.display = "block";
+  $(".print-orden-envio").css({ display: "none" });
 }
 
 function modalAnularFactura(rowid, folio, esFactDirecta, id_cliente, esBoleta) {
@@ -2299,10 +3039,10 @@ function printSolicitudDespacho(tipo) {
     // Iterar sobre cada celda y obtener su texto
     let index = 0;
     celdasUltimaColumna.each(function () {
-      if (index > 0){
+      if (index > 0) {
         textos.push($(this).text().trim());
       }
-      
+
       index++
     });
 
@@ -2325,7 +3065,7 @@ function decodeBase64UTF8(base64String) {
   const binaryString = atob(base64String);
   const bytes = new Uint8Array(binaryString.length);
   for (let i = 0; i < binaryString.length; i++) {
-      bytes[i] = binaryString.charCodeAt(i);
+    bytes[i] = binaryString.charCodeAt(i);
   }
   return new TextDecoder("utf-8").decode(bytes);
 }
@@ -2437,7 +3177,7 @@ function printSAG(tipo, data) {
   }
 }
 
-function guardarSolicitudDespacho(observaciones, data, consignatarios){
+function guardarSolicitudDespacho(observaciones, data, consignatarios) {
   $.ajax({
     beforeSend: function () { },
     url: "data_ver_facturacion.php",
@@ -2785,14 +3525,14 @@ function generarGuiaTransito(obj, rowid, folio, fecha, cliente, domicilio, comun
 //       <div class='col w-100'>
 //       <div class='d-flex flex-row' style='width:100%;align-items:end;'>
 //         <img src='dist/img/roelprint.png' style='width: 120px' class="mr-2"/>  
-        
+
 //         <table class="tableizer-table-transito w-100">
 //             <thead><tr>
 //             <td>Fecha 5 de septiembre de 2023
 //             </td>
 //           </tr></thead>
 //             <tbody>
-              
+
 //               <tr>
 //                 <td>Nombre de la Empresa/Vivero: Vivero Roelplant
 //                 </td>
@@ -2801,11 +3541,11 @@ function generarGuiaTransito(obj, rowid, folio, fecha, cliente, domicilio, comun
 //                 <td>Número de Registro SAG Despacho Directo: EDD-05-27</td>
 //               </tr>
 //             </tbody></table> 
-        
-        
+
+
 
 //       </div>
-        
+
 //       </div>
 //     </div>
 //     <div class="row mt-3">
@@ -2838,7 +3578,7 @@ function generarGuiaTransito(obj, rowid, folio, fecha, cliente, domicilio, comun
 //     <span class='font-weight-bold'></span></td>
 //   </tr></thead>
 //     <tbody>
-      
+
 //       <tr>
 //         <td>REGIÓN:
 //         <br>
@@ -2984,7 +3724,7 @@ function generarGuiaTransito(obj, rowid, folio, fecha, cliente, domicilio, comun
 //   $(".container-guia-transito").append(`
 //     <div class='row' style="margin-top:100px">
 //       <div class='col-md-6'>
-        
+
 //       </div>
 //       <div class='col-md-6 text-center'>
 //         Firma y Timbre
@@ -3057,29 +3797,29 @@ function printGuiaTransito(tipo) {
       patente_carro: $(".input-patente-carro").val(),
       empresa_transporte: $(".input-empresa-transporte").val(),
       fecha_despacho: $(".input-fecha-despacho").val(),
-    
+
       sustratos_nombre: $(".input-sustratos-nombres").val(),
       sustratos_cantidad: $(".input-sustratos-cantidad").val(),
-    
+
       vegetal_sin_suelo_nombre: $(".input-material-vegetal-sin-suelo-nombres").val(),
       vegetal_sin_suelo_cantidad: $(".input-material-vegetal-sin-suelo-cantidad").val(),
-    
+
       vegetal_esterilizado_nombre: $(".input-material-vegetal-esterilizado-nombres").val(),
       vegetal_esterilizado_cantidad: $(".input-material-vegetal-esterilizado-cantidad").val(),
-    
+
       plantas_sin_turba_nombre: $(".input-plantas-sin-turba-nombres").val(),
       plantas_sin_turba_cantidad: $(".input-plantas-sin-turba-cantidad").val(),
-    
+
       otros_nombres: $(".input-otros-nombres").val(),
       otros_cantidad: $(".input-otros-cantidad").val(),
-    
+
       region: $(".input-region").val(),
       provincia: $(".input-provincia").val(),
       comuna: $(".input-comuna").val(),
       direccion: $(".input-direccion").val(),
-    
+
       observaciones: $(".input-observaciones").val(),
-    
+
       nombre_despachador: $(".input-nombre-despachador").val(),
       rut_despachador: $(".input-rut-despachador").val(),
     };

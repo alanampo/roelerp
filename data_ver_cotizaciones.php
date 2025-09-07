@@ -711,7 +711,13 @@ if ($consulta == "cargar_datos_cliente") {
     $data = $_POST["data"];
     $id_cliente = $_POST["id_cliente"];
     $id_cotizacion = $_POST["id_cotizacion"];
-    $query = "INSERT INTO ordenes_envio (codigo, id_cliente, id_cotizacion, fecha) VALUES ('$data', $id_cliente, $id_cotizacion, NOW())";
+    $id_cotizacion_directa = isset($_POST["id_cotizacion_directa"]) ? $_POST["id_cotizacion_directa"] : null;
+    
+    // Si es una cotización directa, usar id_cotizacion_directa, sino usar id_cotizacion
+    $cotizacion_field = $id_cotizacion_directa ? "id_cotizacion_directa" : "id_cotizacion";
+    $cotizacion_value = $id_cotizacion_directa ? $id_cotizacion_directa : $id_cotizacion;
+    
+    $query = "INSERT INTO ordenes_envio (codigo, id_cliente, $cotizacion_field, fecha) VALUES ('$data', $id_cliente, $cotizacion_value, NOW())";
 
     if (mysqli_query($con, $query)) {
         echo "success";

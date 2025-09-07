@@ -78,7 +78,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                <button type="button" onclick="guardarOrdenEnvio()" class="btn btn-primary">IMPRIMIR</button>
+                <button type="button" onclick="typeof guardarOrdenEnvioFactura === 'function' ? guardarOrdenEnvioFactura() : guardarOrdenEnvio()" class="btn btn-primary">IMPRIMIR</button>
             </div>
         </div>
     </div>

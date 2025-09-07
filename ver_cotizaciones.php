@@ -21,6 +21,7 @@
         input {
             text-transform: uppercase;
         }
+        
     </style>
 </head>
 

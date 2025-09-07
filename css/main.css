@@ -551,19 +551,6 @@ input[type=checkbox] {
   display:none;
 }
 
-.print-orden-envio {
-  height: 700px;
-  margin-left: 5px;
-  padding:5px; 
-  width: 700px; 
-  font-family:Verdana, Arial, Helvetica, sans-serif; 
-  background-color: #ffffff; 
-  color: #000000; 
-  display:none;
-  
-}
-
-
 #miVentana h6 {
   font-size: 13px !important;
 }

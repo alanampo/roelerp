@@ -294,7 +294,6 @@
 
     <?php include("./modal_agregar_producto.php"); ?>
     <?php include("./modal_modificar_semillas.php"); ?>
-    <?php include "modals/etiquetas.php";?>
     <div class="control-sidebar-bg"></div>
 
 
