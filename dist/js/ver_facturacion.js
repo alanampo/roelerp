@@ -3989,71 +3989,16 @@ function renderizarOrdenesParaImprimir(ordenes) {
         width: 106mm;
         height: 164mm;
       }
-        .tabla-bulto {
-          page-break-after: always !important;
-        }
-      .print-orden-envio .semana-sheet {
-        width: 100vw;
-        height: 164mm;
+      .tabla-bulto {
         page-break-after: always;
-        box-sizing: border-box;
-        padding: 5mm;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
       }
-      .print-orden-envio .semana-sheet:last-child {
-        page-break-after: auto;
-      }
-      .print-orden-envio .semana-sheet table {
-        width: 100% !important;
-        table-layout: fixed;
-        border-collapse: collapse;
-      }
-      .print-orden-envio .semana-sheet td {
-        vertical-align: top;
-        font-size: 12px;
-        padding: 2px;
-        border: 1px solid #dee2e6;
-      }
-      .print-orden-envio .semana-sheet img {
-        width: 170px !important;
-        height: 110px !important;
-      }
-      .print-orden-envio .semana-sheet h4,
-      .print-orden-envio .semana-sheet h5,
-      .print-orden-envio .semana-sheet h6 {
-        margin: 0;
-        font-weight: bold;
-      }
-      .print-orden-envio .semana-sheet .d-flex {
-        display: flex;
-      }
-      .print-orden-envio .semana-sheet .flex-row {
-        flex-direction: row;
-      }
-      .print-orden-envio .semana-sheet .align-items-center {
-        align-items: center;
-      }
-      .print-orden-envio .semana-sheet .text-center {
+
+      .qr-code-factura {
         text-align: center;
+        width: 150px !important;
+        height: 150px !important;
       }
-      .print-orden-envio .semana-sheet .ml-4 {
-        margin-left: 1.5rem;
-      }
-      .print-orden-envio .semana-sheet .ml-5 {
-        margin-left: 3rem;
-      }
-      .print-orden-envio .semana-sheet .font-weight-bold {
-        font-weight: bold;
-      }
-      .print-orden-envio .semana-sheet .p-2 {
-        padding: 0.5rem;
-      }
-      [id^="qr-code-factura-"], [id^="qr-code-"] {
-        text-align: center;
-      }
-      [id^="qr-code-factura-"] img, [id^="qr-code-"] img {
+      .qr-code-factura img {
         width: 150px !important;
         height: 150px !important;
       }
@@ -4086,11 +4031,17 @@ function renderizarOrdenesParaImprimir(ordenes) {
   }
   
   // Renderizar cada orden como una hoja separada
-  ordenes.forEach((orden, index) => {
+  ordenes.forEach((orden) => {
     let codigoDecodificado = decodeBase64UTF8(orden.codigo);
     
+    // Agregar clase tabla-bulto a todas las tablas para los page breaks
+    codigoDecodificado = codigoDecodificado.replace(
+      /<table([^>]*)>/gi, 
+      '<table$1 class="tabla-bulto">'
+    );
+    
     const sheetHtml = `
-      <div class="semana-sheet"  role="region" aria-label="Etiqueta orden #${orden.id}">
+      <div class="semana-sheet" role="region" aria-label="Etiqueta orden #${orden.id}">
         <div class="label-content">
           ${codigoDecodificado}
         </div>
