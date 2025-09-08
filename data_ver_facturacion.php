@@ -1489,7 +1489,8 @@ UNION
       <td>$ww[folio_factura]</td>
       <td class='text-center'>
             <div class='d-flex flex-row justify-content-center align-items-center'>
-                <button onclick='printOrdenEnvio2(\"$data\")' class='btn btn-primary fa fa-print btn-sm mr-4'></button>
+                <button onclick='printOrdenEnvio2(\"$data\")' class='btn btn-primary fa fa-print btn-sm mr-2' title='Imprimir 106mm x 164mm'></button>
+                <button onclick='printOrdenEnvioA4(\"$data\")' class='btn btn-success btn-sm mr-4' title='Imprimir A4'><i class='fa fa-print'></i> A4</button>
                 $boton_eliminar
             </div>
       </td>

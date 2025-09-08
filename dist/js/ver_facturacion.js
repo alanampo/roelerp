@@ -848,17 +848,9 @@ async function printOrdenEnvioFactura(dataOrden) {
                         </tbody>
                       </table>`;
 
-    $(".print-orden-envio").append(tablarte);
-
+    
     // Generar QR Code para facturas
-    var qrcode = new QRCode(document.getElementById("qr-code-factura-" + i), {
-      text: dataCotizacion.data.uniqid || dataCotizacion.id_cotizacion.toString(),
-      width: 150,
-      height: 150,
-      colorDark: "#000000",
-      colorLight: "#ffffff",
-      correctLevel: QRCode.CorrectLevel.H,
-    });
+    
 
     let montoCotizacion = Math.floor(dataCotizacion.data.monto || 0).toLocaleString('de-DE');
 
@@ -937,7 +929,22 @@ async function printOrdenEnvioFactura(dataOrden) {
     </tbody>
   </table>`;
 
-    $(".print-orden-envio").append(tabladest);
+    const contenidoBulto = `
+      <div class="bulto-print">
+        ${tablarte}
+        ${tabladest}
+      </div>
+    `;
+
+    $(".print-orden-envio").append(contenidoBulto);
+    var qrcode = new QRCode(document.getElementById("qr-code-factura-" + i), {
+      text: dataCotizacion.data.uniqid || dataCotizacion.id_cotizacion.toString(),
+      width: 150,
+      height: 150,
+      colorDark: "#000000",
+      colorLight: "#ffffff",
+      correctLevel: QRCode.CorrectLevel.H,
+    });
   });
 
   // Crear CSS específico para orden de envío con ID único
@@ -2007,6 +2014,136 @@ function printOrdenEnvio2(data) {
     window.print();
     // Limpiar estilos después de imprimir
     const printStyleTag = document.getElementById('orden-envio-print-styles-factura');
+    if (printStyleTag) {
+      document.head.removeChild(printStyleTag);
+    }
+    document.getElementById("ocultar").style.display = "block";
+    $(".print-orden-envio").css({ display: "none" });
+  }, 500);
+}
+
+function printOrdenEnvioA4(data) {
+  // Limpiar el contenedor primero
+  $(".print-orden-envio").html("");
+
+  // Decodificar el HTML 
+  let htmlContent = decodeBase64UTF8(data);
+
+  $(".print-orden-envio").html(htmlContent);
+
+  $("#ocultar").css({ display: "none" });
+  $(".print-orden-envio").css({ display: "block" });
+
+  // Crear CSS específico para orden de envío A4 con ID único  
+  const css = `
+    @media print {
+      @page {
+        size: A4;
+        margin: 0mm;
+      }
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+      }
+      .print-orden-envio {
+        width: 100%;
+        max-width: none;
+        height: auto;
+        padding: 10px;
+      }
+      .print-orden-envio .tablin,
+      .print-orden-envio .tabla-bulto {
+        width: 95% !important;
+        max-width: 95% !important;
+        page-break-inside: avoid;
+        margin: 0 auto 20px auto;
+        padding: 10px;
+        box-sizing: border-box;
+      }
+      .print-orden-envio .tabla-bulto:last-child {
+        page-break-after: auto;
+      }
+      .bulto-print {
+        width: 95%;
+        max-width: 95%;
+        height: auto;
+        box-sizing: border-box;
+        padding: 15px;
+        display: block;
+        margin: 0 auto;
+        page-break-after: always !important;
+        
+      }
+      .bulto-print table {
+        width: 100% !important;
+        max-width: 100% !important;
+        table-layout: auto;
+        border-collapse: collapse;
+        margin-bottom: 15px;
+        box-sizing: border-box;
+      }
+      .bulto-print td {
+        vertical-align: top;
+        font-size: 14px;
+        padding: 8px;
+        border: 1px solid #ddd;
+        word-wrap: break-word;
+      }
+      .bulto-print th {
+        font-size: 14px;
+        padding: 8px;
+        border: 1px solid #ddd;
+        word-wrap: break-word;
+      }
+      .qr-code-factura {
+        text-align: center;
+        width: 200px !important;
+        height: 200px !important;
+        margin: 0 auto;
+      }
+      .qr-code-factura img {
+        width: 200px !important;
+        height: 200px !important;
+      }
+      h4, h5, h6 {
+        margin: 5px 0;
+      }
+      .d-flex {
+        display: flex !important;
+      }
+      .flex-row {
+        flex-direction: row !important;
+      }
+      .align-items-center {
+        align-items: center !important;
+      }
+      .text-center {
+        text-align: center !important;
+      }
+      .font-weight-bold {
+        font-weight: bold !important;
+      }
+      .ml-4 {
+        margin-left: 20px !important;
+      }
+    }`;
+  
+  // Remover estilos anteriores si existen
+  const oldStyleTag = document.getElementById('orden-envio-print-styles-a4');
+  if (oldStyleTag) {
+    document.head.removeChild(oldStyleTag);
+  }
+  
+  let styleTag = document.createElement("style");
+  styleTag.id = 'orden-envio-print-styles-a4';
+  styleTag.innerHTML = css;
+  document.head.appendChild(styleTag);
+
+  setTimeout(() => {
+    window.print();
+    // Limpiar estilos después de imprimir
+    const printStyleTag = document.getElementById('orden-envio-print-styles-a4');
     if (printStyleTag) {
       document.head.removeChild(printStyleTag);
     }

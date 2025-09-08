@@ -2376,6 +2376,124 @@ function printOrdenEnvio2(data) {
   }, 500);
 }
 
+function printOrdenEnvioA4(data) {
+  // Limpiar el contenedor primero
+  $(".print-orden-envio").html("");
+
+  // Decodificar el HTML ya guardado en la BD
+  let htmlContent = decodeBase64UTF8(data);
+  $(".print-orden-envio").html(htmlContent);
+
+  // Crear CSS específico para orden de envío A4 con ID único  
+  const css = `
+    @media print {
+      @page {
+        size: A4;
+        margin: 0mm;
+      }
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+      }
+      .print-orden-envio {
+        width: 100%;
+        max-width: none;
+        height: auto;
+      }
+      .print-orden-envio .tablin,
+      .print-orden-envio .tabla-bulto {
+        width: 100% !important;
+        page-break-inside: avoid;
+        margin-bottom: 20px;
+      }
+      .bulto-print {
+        width: 100%;
+        height: auto;
+        page-break-after: always !important;
+        box-sizing: border-box;
+        padding: 15mm;
+        display: block;
+      }
+      .bulto-print:last-child {
+        page-break-after: auto;
+      }
+      .bulto-print table {
+        width: 100% !important;
+        table-layout: auto;
+        border-collapse: collapse;
+        margin-bottom: 15px;
+      }
+      .bulto-print td {
+        vertical-align: top;
+        font-size: 14px;
+        padding: 8px;
+        border: 1px solid #ddd;
+      }
+      .bulto-print th {
+        font-size: 14px;
+        padding: 8px;
+        border: 1px solid #ddd;
+      }
+      .qr-code-cotizacion {
+        text-align: center;
+        width: 200px !important;
+        height: 200px !important;
+        margin: 0 auto;
+      }
+      .qr-code-cotizacion img {
+        width: 200px !important;
+        height: 200px !important;
+      }
+      h4, h5, h6 {
+        margin: 5px 0;
+      }
+      .d-flex {
+        display: flex !important;
+      }
+      .flex-row {
+        flex-direction: row !important;
+      }
+      .align-items-center {
+        align-items: center !important;
+      }
+      .text-center {
+        text-align: center !important;
+      }
+      .font-weight-bold {
+        font-weight: bold !important;
+      }
+      .ml-4 {
+        margin-left: 20px !important;
+      }
+    }`;
+  
+  // Remover estilos anteriores si existen
+  const oldStyleTag = document.getElementById('orden-envio-print-styles-a4-cotizaciones');
+  if (oldStyleTag) {
+    document.head.removeChild(oldStyleTag);
+  }
+  
+  let styleTag = document.createElement("style");
+  styleTag.id = 'orden-envio-print-styles-a4-cotizaciones';
+  styleTag.innerHTML = css;
+  document.head.appendChild(styleTag);
+
+  $("#ocultar").css({ display: "none" });
+  $(".print-orden-envio").css({ display: "block" });
+
+  setTimeout(() => {
+    window.print();
+    // Limpiar estilos después de imprimir
+    const printStyleTag = document.getElementById('orden-envio-print-styles-a4-cotizaciones');
+    if (printStyleTag) {
+      document.head.removeChild(printStyleTag);
+    }
+    document.getElementById("ocultar").style.display = "block";
+    $(".print-orden-envio").css({ display: "none" });
+  }, 500);
+}
+
 
 function storeOrdenEnvio(html) {
   $.ajax({
