@@ -416,6 +416,34 @@ if ($consulta == "busca_tipos") {
                 }
             }
 
+            // Agregar Vivero Roelplant si existe link_roelplant
+            if (isset($ww["link_roelplant"]) && $ww["link_roelplant"] != null) {
+                $id_variedad = (int)$ww["link_roelplant"];
+
+                // Consultar cantidad en stock de articulospedidos con estado = 8
+                $q_roelplant = "SELECT COUNT(*) as cantidad_roelplant
+                                FROM articulospedidos
+                                WHERE id_variedad = $id_variedad
+                                AND estado = 8";
+
+                $v_roelplant = mysqli_query($con, $q_roelplant);
+
+                if ($v_roelplant && mysqli_num_rows($v_roelplant) > 0) {
+                    $d_roelplant = mysqli_fetch_array($v_roelplant);
+                    $cantidad_roelplant = (int)$d_roelplant["cantidad_roelplant"];
+
+                    if ($dataux == "") {
+                        $dataux .= "<br>";
+                    }
+
+                    if ($cantidad_roelplant > 0) {
+                        $dataux .= "<small class='text-muted'>Vivero Roelplant: <span class='badge badge-success'>$cantidad_roelplant</span></small><br>";
+                    } else {
+                        $dataux .= "<small class='text-muted'>Vivero Roelplant: <span class='badge badge-danger'>0</span></small><br>";
+                    }
+                }
+            }
+
             $tipo = $ww['nombre_tipo'];
             $producto = $ww['nombre_producto'];
 
