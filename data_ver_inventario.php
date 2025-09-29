@@ -261,6 +261,7 @@ if ($consulta == "busca_tipos") {
             v.imagen,
             t.codigo,
             v.id_interno,
+            v.link_roelplant,
             (SELECT IFNULL(SUM(i.cantidad),0) FROM pys_ingresos i
         WHERE i.id_$tbl = v.id) as ingresos,
         (SELECT IFNULL(SUM(e.cantidad),0) FROM pys_egresos e
@@ -420,10 +421,14 @@ if ($consulta == "busca_tipos") {
 
             $cantidad = (int) $ww["ingresos"] - (int) $ww["egresos"];
             $class = $cantidad <= 0 ? "text-danger" : "";
+            $link_roelplant = isset($ww["link_roelplant"]) && $ww["link_roelplant"] ? $ww["link_roelplant"] : "null";
             $onclick = "onclick=\"modalProducto({
                                 id: '$id_producto',
                                 id_tipo: $ww[id_tipo],
                                 nombre: '$producto',
+                                id_interno: '$ww[id_interno]',
+                                codigo_tipo: '$ww[codigo]',
+                                link_roelplant: $link_roelplant
                         })\" ";
             $btneliminar = "<button class='btn btn-danger fa fa-trash btn-sm' onClick='eliminar($id_producto)'></button>";
             $imagen = "dist/img/noimage.jpg";
@@ -461,6 +466,7 @@ if ($consulta == "busca_tipos") {
 } else if ($consulta == "agregar_producto") {
     $nombre = mysqli_real_escape_string($con, test_input($_POST['nombre']));
     $codigo = mysqli_real_escape_string($con, test_input($_POST['codigo']));
+    $link_roelplant = isset($_POST["link_roelplant"]) && !empty($_POST["link_roelplant"]) ? (int)$_POST["link_roelplant"] : "NULL";
 
     $id_tipo = $_POST["id_tipo"];
     $table = ($_POST["tab"] == "productos" ? "productos" : "servicios");
@@ -477,7 +483,7 @@ if ($consulta == "busca_tipos") {
                 $errors = array();
                 mysqli_autocommit($con, false);
 
-                $query = "INSERT INTO $table (nombre, id_tipo, id_interno) VALUES (UPPER('$nombre'), '$id_tipo', '$codigo');";
+                $query = "INSERT INTO $table (nombre, id_tipo, id_interno, link_roelplant) VALUES (UPPER('$nombre'), '$id_tipo', '$codigo', $link_roelplant);";
                 if (!mysqli_query($con, $query)) {
                     $errors[] = mysqli_error($con) . "-" . $query;
                 }
@@ -555,6 +561,7 @@ if ($consulta == "busca_tipos") {
 } else if ($consulta == "editar_producto") {
     $id_producto = $_POST['id_producto'];
     $nombre = $_POST["nombre"];
+    $link_roelplant = isset($_POST["link_roelplant"]) && !empty($_POST["link_roelplant"]) ? (int)$_POST["link_roelplant"] : "NULL";
     $table = ($_POST["tab"] == "productos" ? "productos" : "servicios");
 
     try {
@@ -563,7 +570,7 @@ if ($consulta == "busca_tipos") {
         $errors = array();
         mysqli_autocommit($con, false);
 
-        $query = "UPDATE $table SET nombre = UPPER('$nombre') WHERE id = $id_producto";
+        $query = "UPDATE $table SET nombre = UPPER('$nombre'), link_roelplant = $link_roelplant WHERE id = $id_producto";
         if (!mysqli_query($con, $query)) {
             $errors[] = mysqli_error($con) . "-" . $query;
         }
@@ -1719,5 +1726,83 @@ else if ($consulta == "get_atributos_select") {
         while ($ww = mysqli_fetch_array($val)) {
             echo "<option x-nombre='$ww[nombre]' value='$ww[id]'>$ww[nombre] ($ww[id])</option>";
         }
+    }
+}
+else if ($consulta == "buscar_variedades_roelplant") {
+    $busqueda = isset($_POST["busqueda"]) ? mysqli_real_escape_string($con, $_POST["busqueda"]) : "";
+
+    if (strlen($busqueda) >= 3) {
+        $query = "SELECT
+                    vp.id,
+                    tp.nombre as nombre_tipo,
+                    vp.nombre as nombre_variedad,
+                    tp.codigo,
+                    vp.id_interno
+                FROM variedades_producto vp
+                INNER JOIN tipos_producto tp ON tp.id = vp.id_tipo
+                WHERE vp.eliminada IS NULL
+                AND (
+                    UPPER(vp.nombre) LIKE UPPER('%$busqueda%')
+                    OR UPPER(tp.nombre) LIKE UPPER('%$busqueda%')
+                    OR UPPER(CONCAT(tp.nombre, ' ', vp.nombre)) LIKE UPPER('%$busqueda%')
+                )
+                ORDER BY tp.nombre, vp.nombre
+                LIMIT 50";
+
+        $val = mysqli_query($con, $query);
+
+        if (mysqli_num_rows($val) > 0) {
+            $resultados = array();
+            while ($ww = mysqli_fetch_array($val)) {
+                $id_interno_formatted = str_pad($ww["id_interno"], 2, '0', STR_PAD_LEFT);
+                $nombre_completo = $ww["nombre_tipo"] . " " . $ww["nombre_variedad"];
+                $codigo_completo = $ww["codigo"] . $id_interno_formatted;
+
+                array_push($resultados, array(
+                    "id" => $ww["id"],
+                    "nombre_completo" => $nombre_completo,
+                    "codigo" => $codigo_completo
+                ));
+            }
+            echo json_encode($resultados);
+        } else {
+            echo json_encode(array());
+        }
+    } else {
+        echo json_encode(array());
+    }
+}
+else if ($consulta == "get_variedad_roelplant") {
+    $id = isset($_POST["id"]) ? (int)$_POST["id"] : 0;
+
+    if ($id > 0) {
+        $query = "SELECT
+                    vp.id,
+                    tp.nombre as nombre_tipo,
+                    vp.nombre as nombre_variedad,
+                    tp.codigo,
+                    vp.id_interno
+                FROM variedades_producto vp
+                INNER JOIN tipos_producto tp ON tp.id = vp.id_tipo
+                WHERE vp.id = $id AND vp.eliminada IS NULL";
+
+        $val = mysqli_query($con, $query);
+
+        if (mysqli_num_rows($val) > 0) {
+            $ww = mysqli_fetch_array($val);
+            $id_interno_formatted = str_pad($ww["id_interno"], 2, '0', STR_PAD_LEFT);
+            $nombre_completo = $ww["nombre_tipo"] . " " . $ww["nombre_variedad"];
+            $codigo_completo = $ww["codigo"] . $id_interno_formatted;
+
+            echo json_encode(array(
+                "id" => $ww["id"],
+                "nombre_completo" => $nombre_completo,
+                "codigo" => $codigo_completo
+            ));
+        } else {
+            echo json_encode(null);
+        }
+    } else {
+        echo json_encode(null);
     }
 }

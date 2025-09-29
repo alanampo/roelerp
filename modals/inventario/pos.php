@@ -32,6 +32,21 @@
                                 style="text-transform: uppercase" class="form-control" placeholder="SOLO NÚMEROS" />
                         </div>
                     </div>
+
+                    <div class="row">
+                        <div class="col form-group">
+                            <label class="control-label">Linkeado con Vivero Roelplant:</label>
+                            <select id="select-link-roelplant" class="selectpicker w-100"
+                                title="Buscar producto (escriba al menos 3 letras)"
+                                data-style="btn-info"
+                                data-live-search="true"
+                                data-width="100%"
+                                data-min-length="3">
+                                <option value="">-- Sin linkear --</option>
+                            </select>
+                            <small class="form-text text-muted">Escribe al menos 3 letras para buscar</small>
+                        </div>
+                    </div>
                 
                 
                 <div class="row mt-2 mb-2">

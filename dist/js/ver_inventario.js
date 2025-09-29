@@ -293,6 +293,9 @@ function modalProducto(producto) {
 
   $("#select_tipo2").unbind("changed.bs.select");
 
+  // Limpiar el select de link roelplant
+  $("#select-link-roelplant").html('<option value="">-- Sin linkear --</option>').selectpicker('refresh');
+
   if (producto) {
     // EDITANDO
     $("#modal-producto .modal-title").html("Modificar Producto/Servicio");
@@ -305,6 +308,12 @@ function modalProducto(producto) {
     $("#modal-producto").attr("x-id-producto", producto.id);
     $("#modal-producto").attr("x-codigo-tipo", producto.codigo_tipo);
     getTableAtributosProducto(producto.id, producto.id_tipo);
+
+    // Cargar el link_roelplant si existe
+    if (producto.link_roelplant && producto.link_roelplant !== "null" && producto.link_roelplant > 0) {
+      cargarVariedadRoelplant(producto.link_roelplant);
+    }
+
     edit_mode = true;
   } else {
     //AGREGANDO
@@ -324,6 +333,9 @@ function modalProducto(producto) {
     );
     edit_mode = false;
   }
+
+  // Inicializar búsqueda dinámica para link roelplant
+  initBusquedaRoelplant();
 
   $("#modal-producto").modal("show");
   $("#input-nombre-producto").focus();
@@ -387,6 +399,8 @@ function guardarProducto() {
     return;
   }
 
+  const link_roelplant = $("#select-link-roelplant").val();
+
   $("#modal-producto").modal("hide");
   if (!edit_mode) {
     $.ajax({
@@ -397,6 +411,7 @@ function guardarProducto() {
         nombre: nombre,
         id_tipo: id_tipo,
         codigo: codigo,
+        link_roelplant: link_roelplant,
         tab: currentTab,
         atributos:
           atributos && atributos.length ? JSON.stringify(atributos) : null,
@@ -427,6 +442,7 @@ function guardarProducto() {
         consulta: "editar_producto",
         id_producto: $("#modal-producto").attr("x-id-producto"),
         nombre: nombre,
+        link_roelplant: link_roelplant,
         tab: currentTab,
         atributos:
           atributos && atributos.length ? JSON.stringify(atributos) : null,
@@ -1969,4 +1985,108 @@ function readFoto(input) {
     }
     reader.readAsDataURL(input.files[0]);
   }
+}
+
+// Funciones para búsqueda dinámica de variedades Roelplant
+let timeoutBusquedaRoelplant = null;
+
+function initBusquedaRoelplant() {
+  // Esperar a que el selectpicker esté listo
+  setTimeout(function() {
+    // Remover eventos anteriores
+    const $searchBox = $('#select-link-roelplant').closest('.bootstrap-select').find('.bs-searchbox input');
+
+    if ($searchBox.length > 0) {
+      $searchBox.off('input.roelplant keyup.roelplant');
+
+      // Agregar evento de búsqueda
+      $searchBox.on('input.roelplant keyup.roelplant', function() {
+        const busqueda = $(this).val();
+
+        clearTimeout(timeoutBusquedaRoelplant);
+
+        if (busqueda.length >= 3) {
+          timeoutBusquedaRoelplant = setTimeout(function() {
+            buscarVariedadesRoelplant(busqueda);
+          }, 500);
+        } else if (busqueda.length === 0) {
+          // Limpiar el select si se borra todo
+          $("#select-link-roelplant").html('<option value="">-- Sin linkear --</option>').selectpicker('refresh');
+        }
+      });
+    }
+  }, 100);
+}
+
+function buscarVariedadesRoelplant(busqueda) {
+  $.ajax({
+    url: "data_ver_inventario.php",
+    type: "POST",
+    data: {
+      consulta: "buscar_variedades_roelplant",
+      busqueda: busqueda
+    },
+    success: function(response) {
+      try {
+        const variedades = JSON.parse(response);
+        let opciones = '<option value="">-- Sin linkear --</option>';
+
+        if (variedades && variedades.length > 0) {
+          variedades.forEach(function(variedad) {
+            opciones += `<option value="${variedad.id}">${variedad.nombre_completo} (${variedad.codigo})</option>`;
+          });
+        } else {
+          opciones += '<option disabled>No se encontraron resultados</option>';
+        }
+
+        const valorActual = $("#select-link-roelplant").val();
+        $("#select-link-roelplant").html(opciones);
+
+        // Mantener el valor seleccionado si existe
+        if (valorActual) {
+          $("#select-link-roelplant").val(valorActual);
+        }
+
+        $("#select-link-roelplant").selectpicker('refresh');
+      } catch(e) {
+        console.error("Error al procesar las variedades:", e);
+      }
+    },
+    error: function(jqXHR, estado, error) {
+      console.error("Error al buscar variedades:", error);
+    }
+  });
+}
+
+function cargarVariedadRoelplant(id) {
+  $.ajax({
+    url: "data_ver_inventario.php",
+    type: "POST",
+    data: {
+      consulta: "get_variedad_roelplant",
+      id: id
+    },
+    success: function(response) {
+      try {
+        const variedad = JSON.parse(response);
+
+        if (variedad) {
+          const opcion = `<option value="${variedad.id}">${variedad.nombre_completo} (${variedad.codigo})</option>`;
+          $("#select-link-roelplant").html('<option value="">-- Sin linkear --</option>' + opcion);
+
+          // Establecer el valor ANTES de refrescar el selectpicker
+          $("#select-link-roelplant").val(variedad.id);
+
+          // Refrescar el selectpicker y forzar la selección
+          $("#select-link-roelplant").selectpicker('refresh');
+          $("#select-link-roelplant").selectpicker('val', variedad.id);
+        }
+      } catch(e) {
+        console.error("Error al cargar la variedad:", e);
+      }
+    },
+    error: function(jqXHR, estado, error) {
+      console.error("Error al cargar la variedad:", error);
+    }
+  });
 }
