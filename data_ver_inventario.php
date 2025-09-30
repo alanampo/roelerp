@@ -421,7 +421,7 @@ if ($consulta == "busca_tipos") {
                 $id_variedad = (int)$ww["link_roelplant"];
 
                 // Consultar cantidad en stock de articulospedidos con estado = 8
-                $q_roelplant = "SELECT COUNT(*) as cantidad_roelplant
+                $q_roelplant = "SELECT SUM(cant_plantas) as cantidad_roelplant
                                 FROM articulospedidos
                                 WHERE id_variedad = $id_variedad
                                 AND estado = 8";
