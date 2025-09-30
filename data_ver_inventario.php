@@ -420,17 +420,29 @@ if ($consulta == "busca_tipos") {
             if (isset($ww["link_roelplant"]) && $ww["link_roelplant"] != null) {
                 $id_variedad = (int)$ww["link_roelplant"];
 
-                // Consultar cantidad en stock de articulospedidos con estado = 8
-                $q_roelplant = "SELECT SUM(cant_plantas) as cantidad_roelplant
-                                FROM articulospedidos
-                                WHERE id_variedad = $id_variedad
-                                AND estado = 8";
+                // Consultar stock real de Roelplant (stock - entregadas - reservadas)
+                $q_roelplant = "SELECT
+                    SUM(s.cantidad) as cantidad_stock,
+                    (SELECT IFNULL(SUM(r.cantidad),0) FROM reservas_productos r
+                        WHERE r.id_variedad = $id_variedad AND (r.estado = 0 OR r.estado = 1)) as cantidad_reservada,
+                    (SELECT IFNULL(SUM(e.cantidad),0) FROM entregas_stock e
+                        INNER JOIN reservas_productos r ON e.id_reserva = r.id
+                        WHERE r.id_variedad = $id_variedad AND r.estado = 2) as cantidad_entregada
+                FROM stock_productos s
+                INNER JOIN articulospedidos ap ON s.id_artpedido = ap.id
+                WHERE ap.id_variedad = $id_variedad
+                AND ap.estado = 8";
 
                 $v_roelplant = mysqli_query($con, $q_roelplant);
 
                 if ($v_roelplant && mysqli_num_rows($v_roelplant) > 0) {
                     $d_roelplant = mysqli_fetch_array($v_roelplant);
-                    $cantidad_roelplant = (int)$d_roelplant["cantidad_roelplant"];
+                    $cantidad_stock = (int)$d_roelplant["cantidad_stock"];
+                    $cantidad_reservada = (int)$d_roelplant["cantidad_reservada"];
+                    $cantidad_entregada = (int)$d_roelplant["cantidad_entregada"];
+
+                    // Calcular stock real: stock - entregadas - reservadas
+                    $cantidad_roelplant = $cantidad_stock - $cantidad_entregada - $cantidad_reservada;
 
                     if ($dataux == "") {
                         $dataux .= "<br>";
