@@ -441,6 +441,25 @@ if ($consulta == "busca_tipos") {
                     } else {
                         $dataux .= "<small class='text-muted'>Vivero Roelplant: <span class='badge badge-danger'>0</span></small><br>";
                     }
+
+                    // Consultar precio de variedades_producto
+                    $q_precio_var = "SELECT precio FROM variedades_producto WHERE id = $id_variedad";
+                    $v_precio_var = mysqli_query($con, $q_precio_var);
+
+                    if ($v_precio_var && mysqli_num_rows($v_precio_var) > 0) {
+                        $d_precio_var = mysqli_fetch_array($v_precio_var);
+                        $precio_variedad = $d_precio_var["precio"];
+
+                        if (isset($precio_variedad) && $precio_variedad > 0) {
+                            $precio_formatted = "$" . number_format($precio_variedad, 0, ',', '.');
+                            $dataux_precios .= "<small>Vivero Roelplant: <span class='badge badge-success'>$precio_formatted</span></small><br>";
+
+                            // Calcular precio con IVA (19%)
+                            $precio_iva = round((float)$precio_variedad * 1.19, 0, PHP_ROUND_HALF_UP);
+                            $precio_iva_formatted = "$" . number_format($precio_iva, 0, ',', '.');
+                            $dataux_iva .= "<small>Vivero Roelplant: <span class='badge badge-success'>$precio_iva_formatted</span></small><br>";
+                        }
+                    }
                 }
             }
 
