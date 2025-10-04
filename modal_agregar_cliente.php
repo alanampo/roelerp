@@ -182,9 +182,21 @@
                         <label class="control-label">E-Mail:</label>
                     </div>
                     <div>
-                        <form action="#" onsubmit="return false;">
+                        <form action="#" onsubmit="$('#select-vendedor').focus();return false;">
                             <input maxlength="50" type="search" autocomplete="off" id="mailcliente_txt"
                                 style="text-transform:lowercase !important" class="form-control">
+                        </form>
+                    </div>
+                </div>
+                <div class='form-group' id='grupo-vendedor-agregar'>
+                    <div>
+                        <label class="control-label">Vendedor Asignado:</label>
+                    </div>
+                    <div>
+                        <form action="#" onsubmit="return false;">
+                            <select id="select-vendedor" class="selectpicker" title="Seleccionar Vendedor" data-style="btn-info"
+                                data-dropup-auto="false" data-live-search="true" data-width="100%"
+                                data-size="5"></select>
                         </form>
                     </div>
                 </div>

@@ -1,24 +1,34 @@
+$(document).ready(function () {
+  pone_comunas();
+  pone_usuarios();
+
+  $("#rutcliente_txt")
+    .keypress(function (e) {
+      var allowedChars = new RegExp("^[0-9-kK]+$");
+      var str = String.fromCharCode(!e.charCode ? e.which : e.charCode);
+      if (allowedChars.test(str)) {
+        return true;
+      }
+      e.preventDefault();
+      return false;
+    })
+    .keyup(function () {
+      // the addition, which whill check the value after a keyup (triggered by Ctrl+V)
+      // We take the same regex as for allowedChars, but we add ^ after the first bracket : it means "all character BUT these"
+      var forbiddenChars = new RegExp("[^0-9-kK]", "g");
+      if (forbiddenChars.test($(this).val())) {
+        $(this).val($(this).val().replace(forbiddenChars, ""));
+      }
+    });
+});
+
 function MostrarModalAgregarCliente() {
     $("#ModalAgregarCliente").removeAttr("x-id-cliente");
     $("#ModalAgregarCliente").find("input").val("");
     $("#ModalAgregarCliente").find("#titulo").html("Agregar Cliente");
     $("#select-comuna2").val("default").selectpicker("refresh");
-    $('#rutcliente_txt').keypress(function (e) {
-      var allowedChars = new RegExp("^[0-9\-kK]+$");
-      var str = String.fromCharCode(!e.charCode ? e.which : e.charCode);
-      if (allowedChars.test(str)) {
-          return true;
-      }
-      e.preventDefault();
-      return false;
-    }).keyup(function() {
-      // the addition, which whill check the value after a keyup (triggered by Ctrl+V)
-      // We take the same regex as for allowedChars, but we add ^ after the first bracket : it means "all character BUT these"
-      var forbiddenChars = new RegExp("[^0-9\-kK]", 'g');
-      if (forbiddenChars.test($(this).val())) {
-          $(this).val($(this).val().replace(forbiddenChars, ''));
-      }
-  });
+    $("#select-vendedor").val("default").selectpicker("refresh");
+    $("#grupo-vendedor-agregar").show();
 
     $("#ModalAgregarCliente").modal("show");
     document.getElementById("nombrecliente_txt").focus();
@@ -36,6 +46,7 @@ function MostrarModalAgregarCliente() {
     const mail = $("#mailcliente_txt").val().trim();
     const comuna = $("#select-comuna2 option:selected").val();
     const id_cliente = $("#ModalAgregarCliente").attr("x-id-cliente");
+    const id_vendedor = (id_cliente && id_cliente.length) ? null : $("#select-vendedor option:selected").val();
 
 
     if (nombre.length < 3) {
@@ -67,6 +78,7 @@ function MostrarModalAgregarCliente() {
           razonSocial: razonSocial,
           mail: mail,
           comuna: comuna,
+          id_vendedor: id_vendedor,
           id_cliente: id_cliente && id_cliente.length ? id_cliente : null
         },
         success: function (x) {
@@ -77,7 +89,7 @@ function MostrarModalAgregarCliente() {
             else{
               pone_clientes();
             }
-            
+
             swal("El cliente fue guardado correctamente!", "", "success");
           } else {
             swal("Ocurrió un error al guardar el cliente", x, "error");
@@ -100,6 +112,40 @@ function MostrarModalAgregarCliente() {
     }
   }
   
+function pone_comunas() {
+  $.ajax({
+    beforeSend: function () {
+      $("#select-comuna2").html("Cargando lista de comunas...");
+    },
+    url: "data_ver_clientes.php",
+    type: "POST",
+    data: { consulta: "pone_comunas" },
+    success: function (x) {
+      $("#select-comuna2").html(x).selectpicker("refresh");
+    },
+    error: function (jqXHR, estado, error) {
+      console.error("Error al cargar comunas:", error);
+    },
+  });
+}
+
+function pone_usuarios() {
+  $.ajax({
+    beforeSend: function () {
+      $("#select-vendedor").html("Cargando lista de usuarios...");
+    },
+    url: "data_ver_clientes.php",
+    type: "POST",
+    data: { consulta: "pone_usuarios" },
+    success: function (x) {
+      $("#select-vendedor").html(x).selectpicker("refresh");
+    },
+    error: function (jqXHR, estado, error) {
+      $("#select-vendedor").html("Error al cargar usuarios").selectpicker("refresh");
+    },
+  });
+}
+
   function modificarCliente(tr, id_cliente){
     MostrarModalAgregarCliente()
     $("#ModalAgregarCliente").find("#titulo").html("Modificar Cliente");
@@ -127,5 +173,6 @@ function MostrarModalAgregarCliente() {
     $("#razonsocial_txt").val(razon);
     $("#mailcliente_txt").val(email);
     $("#select-comuna2").val(id_comuna).selectpicker("refresh");
+    $("#grupo-vendedor-agregar").hide();
 
   }

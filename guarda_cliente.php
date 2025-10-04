@@ -54,6 +54,11 @@ if (strlen(trim($razon_social)) == 0) {
 
 $comuna = $_POST['comuna'];
 
+$id_vendedor = $_POST['id_vendedor'];
+if (strlen(trim($id_vendedor)) == 0 || $id_vendedor == 'default') {
+    $id_vendedor = null;
+}
+
 if ($tipo == "agregar") {
     $query = "SELECT * FROM clientes WHERE rut = '$rut' LIMIT 1";
     $val = mysqli_query($con, $query);
@@ -62,7 +67,11 @@ if ($tipo == "agregar") {
         die("Ya existe un Cliente con ese RUT");
     }
     else{
-        $query = "INSERT INTO clientes (nombre, domicilio, domicilio2, telefono, mail, rut, comuna, razon_social, region, provincia) VALUES (UPPER('$nombre'), UPPER('$domicilio'), UPPER('$domicilio2'), '$telefono', LOWER('$mail'), UPPER('$rut'), $comuna, UPPER('$razon_social'), UPPER('$region'), UPPER('$provincia'));";
+        if ($id_vendedor !== null) {
+            $query = "INSERT INTO clientes (nombre, domicilio, domicilio2, telefono, mail, rut, comuna, razon_social, region, provincia, id_vendedor) VALUES (UPPER('$nombre'), UPPER('$domicilio'), UPPER('$domicilio2'), '$telefono', LOWER('$mail'), UPPER('$rut'), $comuna, UPPER('$razon_social'), UPPER('$region'), UPPER('$provincia'), $id_vendedor);";
+        } else {
+            $query = "INSERT INTO clientes (nombre, domicilio, domicilio2, telefono, mail, rut, comuna, razon_social, region, provincia) VALUES (UPPER('$nombre'), UPPER('$domicilio'), UPPER('$domicilio2'), '$telefono', LOWER('$mail'), UPPER('$rut'), $comuna, UPPER('$razon_social'), UPPER('$region'), UPPER('$provincia'));";
+        }
     }
 } else if ($tipo == "editar") {
     $query = "SELECT * FROM clientes WHERE rut = '$rut' AND id_cliente <> $global_id_cliente LIMIT 1";
@@ -72,8 +81,9 @@ if ($tipo == "agregar") {
         die("Ya existe un Cliente con ese RUT");
     }
     else{
+        // En modo edición NO se actualiza el vendedor (se usa el modal de cambio de vendedor para eso)
         $query = "UPDATE clientes SET nombre = UPPER('$nombre'), domicilio = UPPER('$domicilio'), domicilio2 = UPPER('$domicilio2'), telefono = '$telefono', mail = LOWER('$mail'), rut = UPPER('$rut'), comuna = $comuna, razon_social = UPPER('$razon_social'), region = UPPER('$region'), provincia = UPPER('$provincia') WHERE id_cliente = '$global_id_cliente';";
-    }    
+    }
 }
 
 if (mysqli_query($con, $query)) {

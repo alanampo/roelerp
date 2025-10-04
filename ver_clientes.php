@@ -13,7 +13,6 @@
   </head>
   <body>
     <div id="miVentana">
-    <button onClick="printCliente(2);">CERRAR</button>
     </div>
     
     <div id="ocultar">
@@ -45,8 +44,8 @@
         <!-- Content Header (Page header) -->
         <section class="content-header">
           <h1>
-            Clientes <button class="btn ml-3 btn-success fa fa-plus-square" onclick="MostrarModalAgregarCliente();"></button>
-            
+            Clientes
+
           </h1>
           <ol class="breadcrumb">
             <li><a href="inicio.php"> Inicio</a></li>
@@ -56,9 +55,23 @@
 
         <!-- Main content -->
         <section class="content">
-        
 
-        
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label style="cursor: pointer;">
+                  <input type="checkbox" id="filtro-sin-vendedor" style="margin-right: 8px;">
+                  <span style="font-size: 14px;">Mostrar solo clientes sin vendedor asignado</span>
+                </label>
+              </div>
+            </div>
+            <div class="col-md-6 text-lg-right text-center">
+              <button class="btn btn-info" onclick="sincronizarVendedoresManual();" id="btn-sync-vendedores"><i class="fa fa-refresh"></i> ACTUALIZAR VENDEDORES</button>
+              <button class="btn btn-success" onclick="MostrarModalAgregarCliente();"><i class="fa fa-plus-square"></i> AGREGAR</span></button>
+            </div>
+          </div>
+
+
           <!-- Your Page Content Here -->
           <div class='row mt-3 mb-5'>
           
@@ -78,6 +91,8 @@
       ?>
 
   <?php include("modal_agregar_cliente.php") ?>
+  <?php include("modal_cambiar_vendedor.php") ?>
+  <?php include("modal_historial_vendedor.php") ?>
       <!-- Add the sidebar's background. This div must be placed
            immediately after the control sidebar -->
       <div class="control-sidebar-bg"></div>
@@ -85,8 +100,12 @@
   </div>
 
     <!-- REQUIRED JS SCRIPTS -->
-    
-    
-    
+
+
+    <script>
+      const id_usuario = "<?php echo $_SESSION['id_usuario'] ?>";
+       const permisos = "<?php echo $_SESSION['permisos'] ?>";
+       func_check(id_usuario, permisos.split(","));
+    </script>
   </body>
 </html>
