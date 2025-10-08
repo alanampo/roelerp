@@ -33,12 +33,7 @@ function busca_clientes() {
       tablaClientes = $("#tabla").DataTable({
         order: [[1, "asc"]],
         pageLength: 50,
-        scrollX: true,
-        columnDefs: [
-          { width: "5%", targets: 0 },  // ID
-          { width: "10%", targets: 11 }, // Vendedor
-          { width: "8%", targets: 12 }   // Últ. Contacto
-        ],
+        autoWidth: true,
         language: {
           lengthMenu: "Mostrando _MENU_ clientes por página",
           zeroRecords: "No hay clientes",

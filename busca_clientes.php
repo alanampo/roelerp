@@ -36,7 +36,8 @@ if (mysqli_num_rows($val)>0){
  echo "<div class='box-header with-border'>";
  echo "</div>";
  echo "<div class='box-body'>";
- echo "<table id='tabla' class='table table-bordered table-striped'>";
+ echo "<div style='overflow-x: auto;'>";
+ echo "<table id='tabla' class='table table-bordered table-striped' style='width:100%;'>";
  echo "<thead>";
  echo "<tr>";
  $th_eliminar = ($_SESSION["id_usuario"] == 1 ? "<th></th>" :"");
@@ -93,8 +94,9 @@ if (mysqli_num_rows($val)>0){
  }
  echo "</tbody>";
  echo "</table>";
- echo "</div>";
- echo "</div>";
+ echo "</div>"; // cierra overflow-x
+ echo "</div>"; // cierra box-body
+ echo "</div>"; // cierra box-primary
 
 
 }else{
