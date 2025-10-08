@@ -92,6 +92,12 @@
                                 <select id="select_cliente" class="selectpicker" title="Selecciona un Cliente"
                                     data-style="btn-info" data-dropup-auto="false" data-live-search="true"
                                     data-width="100%" data-size="10" data-container="body"></select>
+                                <div class="mt-2">
+                                    <label class="text-muted" style="font-size: 14px;">
+                                        <i class="fa fa-user"></i> <strong>Vendedor:</strong>
+                                        <span id="label-vendedor-cliente" style="color: #333;">-</span>
+                                    </label>
+                                </div>
                             </div>
                             <div class="col-2 col-md-1">
                                 <button class="btn btn-info" onclick="MostrarModalAgregarCliente(null);"><i

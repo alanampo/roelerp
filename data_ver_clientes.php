@@ -173,4 +173,23 @@ else if ($consulta == "obtener_historial_vendedor"){
 
     echo json_encode($historial);
 }
+else if ($consulta == "obtener_vendedor_cliente"){
+    $id_cliente = $_POST["id_cliente"];
+
+    $query = "SELECT u.nombre_real as vendedor_nombre
+    FROM clientes c
+    LEFT JOIN usuarios u ON c.id_vendedor = u.id
+    WHERE c.id_cliente = $id_cliente";
+
+    $val = mysqli_query($con, $query);
+
+    if (mysqli_num_rows($val) > 0) {
+        $row = mysqli_fetch_assoc($val);
+        echo json_encode([
+            'vendedor' => $row['vendedor_nombre'] ? $row['vendedor_nombre'] : 'Sin asignar'
+        ]);
+    } else {
+        echo json_encode(['vendedor' => 'Sin asignar']);
+    }
+}
 ?>
