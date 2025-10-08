@@ -57,7 +57,7 @@ else if ($consulta == "eliminar_cliente"){
     }
 }
 else if ($consulta == "pone_usuarios"){
-    $cadena="SELECT id, nombre_real FROM usuarios ORDER BY nombre_real";
+    $cadena="SELECT id, nombre_real FROM usuarios WHERE tipo_usuario = 1 AND inhabilitado != 1 ORDER BY nombre_real";
     $val = mysqli_query($con, $cadena);
     if (mysqli_num_rows($val)>0){
         while($re=mysqli_fetch_array($val)){
