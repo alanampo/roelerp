@@ -494,12 +494,14 @@ if ($consulta == "cargar_historial") { //FACTURAS
             co.estado,
             f.id_cotizacion,
             ROUND(co.monto) as monto,
-            u.nombre_real
+            u.nombre_real,
+            uv.nombre_real as vendedor_nombre
             FROM cotizaciones co
             INNER JOIN clientes cl ON cl.id_cliente = co.id_cliente
             LEFT JOIN facturas f ON f.id_cotizacion = co.id
             LEFT JOIN boletas b ON b.id_cotizacion = co.id
             LEFT JOIN usuarios u ON u.id = co.id_usuario
+            LEFT JOIN usuarios uv ON uv.id = cl.id_vendedor
             WHERE f.id_cotizacion IS NULL
             AND b.id_cotizacion IS NULL
             AND co.estado >= 0 AND co.estado <= 1
@@ -518,7 +520,7 @@ if ($consulta == "cargar_historial") { //FACTURAS
         echo "<table id='tabla_cotizaciones" . ($isBoleta ? "_boletas" : "") . "' class='table table-bordered table-responsive w-100 d-block d-md-table'>";
         echo "<thead>";
         echo "<tr>";
-        echo "<th>N°</th><th>Cliente</th><th>Fecha</th><th style='max-width:150px'>Comentario</th><th>Autor</th><th>Monto</th><th>Estado</th><th></th>";
+        echo "<th>N°</th><th>Cliente</th><th>Fecha</th><th style='max-width:150px'>Comentario</th><th>Autor</th><th>Vendedor</th><th>Monto</th><th>Estado</th><th></th>";
         echo "</tr>";
         echo "</thead>";
         echo "<tbody>";
@@ -526,6 +528,7 @@ if ($consulta == "cargar_historial") { //FACTURAS
         while ($ww = mysqli_fetch_array($val)) {
             $estado = boxEstadoCotizacion($ww["estado"], true);
             $monto = $ww["monto"] != null ? "$" . number_format($ww["monto"], 0, ',', '.') : "";
+            $vendedor = $ww["vendedor_nombre"] ? $ww["vendedor_nombre"] : "-";
 
             echo "
                 <tr class='text-center' style='cursor:pointer' x-id='$ww[id]'>
@@ -534,6 +537,7 @@ if ($consulta == "cargar_historial") { //FACTURAS
                 <td><span class='d-none'>$ww[fecha_raw]</span>$ww[fecha]</td>
                 <td><small>$ww[comentario]</small></td>
                 <td>$ww[nombre_real]</td>
+                <td>$vendedor</td>
                 <td>$monto</td>
                 <td>$estado</td>
                 <td class='text-center'>

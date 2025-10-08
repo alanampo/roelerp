@@ -723,8 +723,13 @@ async function printCotizacion(dataCotizacion) {
 }
 
 function cargarDatosCliente(id_cliente) {
+  if (!id_cliente) {
+    $("#label-vendedor-cliente").text("-");
+    return;
+  }
   $("#input-rut,#input-domicilio,#input-razon,#input-giro").val("");
   $("#select_comuna").val("default").selectpicker("refresh");
+  $("#label-vendedor-cliente").text("-");
 
   $.ajax({
     beforeSend: function () { },
@@ -748,6 +753,27 @@ function cargarDatosCliente(id_cliente) {
       }
     },
     error: function (jqXHR, estado, error) { },
+  });
+
+  // Cargar vendedor del cliente
+  $.ajax({
+    url: "data_ver_clientes.php",
+    type: "POST",
+    data: {
+      consulta: "obtener_vendedor_cliente",
+      id_cliente: id_cliente,
+    },
+    success: function (response) {
+      try {
+        const data = JSON.parse(response);
+        $("#label-vendedor-cliente").text(data.vendedor || "Sin asignar");
+      } catch (error) {
+        $("#label-vendedor-cliente").text("Sin asignar");
+      }
+    },
+    error: function () {
+      $("#label-vendedor-cliente").text("Sin asignar");
+    },
   });
 }
 
