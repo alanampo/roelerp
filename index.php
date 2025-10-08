@@ -69,15 +69,50 @@
     login(user, pass);
   });
   function login(user, pass) {
+    if (!user || !pass) {
+      swal("Campos requeridos", "Por favor ingrese usuario y contraseña", "warning");
+      return;
+    }
+
+    // Deshabilitar botón mientras se procesa
+    const $btn = $('button[type="submit"]');
+    const textoOriginal = $btn.html();
+    $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Iniciando sesión...');
+
     $.ajax({
       url: 'valida_usr.php',
       type: 'POST',
+      dataType: 'json',
       data: { user: user, pass: pass },
-      success: function (x) {
-        $(".contenedor").html(x);
+      success: function (response) {
+        if (response.status === 'success') {
+          swal({
+            title: "¡Bienvenido!",
+            text: "Iniciando sesión...",
+            icon: "success",
+            buttons: false,
+            timer: 1000
+          }).then(() => {
+            window.location.href = response.redirect;
+          });
+        } else {
+          swal(response.message || "Error", response.description || "Error desconocido", "error");
+          $btn.prop('disabled', false).html(textoOriginal);
+        }
       },
       error: function (jqXHR, estado, error) {
-        swal("Error al Iniciar Sesión", error, "error");
+        console.error("Error AJAX:", jqXHR.responseText);
+        let mensaje = "Error al conectar con el servidor";
+
+        try {
+          const response = JSON.parse(jqXHR.responseText);
+          mensaje = response.description || response.message || mensaje;
+        } catch (e) {
+          mensaje = jqXHR.responseText || mensaje;
+        }
+
+        swal("Error de conexión", mensaje, "error");
+        $btn.prop('disabled', false).html(textoOriginal);
       }
     });
   }

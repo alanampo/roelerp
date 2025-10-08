@@ -36,7 +36,7 @@ if (mysqli_num_rows($val)>0){
  echo "<div class='box-header with-border'>";
  echo "</div>";
  echo "<div class='box-body'>";
- echo "<table id='tabla' class='table table-bordered table-striped' style='width:100%'>";
+ echo "<table id='tabla' class='table table-bordered table-striped'>";
  echo "<thead>";
  echo "<tr>";
  $th_eliminar = ($_SESSION["id_usuario"] == 1 ? "<th></th>" :"");
@@ -68,25 +68,21 @@ if (mysqli_num_rows($val)>0){
          }
      }
 
-   echo "<tr class='text-center' x-razon=\"$ww[razon_social]\" x-id-vendedor='$id_vendedor'$alerta_inactividad>";
-   echo "<td onClick='modificarCliente(this.parentNode, $id_cliente)' style='color:#1F618D; font-weight:bold; font-size:16px;'>$id_cliente</td>";
-   echo "<td onClick='modificarCliente(this.parentNode, $id_cliente)' class='td-nombre'>$nombre</td>";
-   echo "<td onClick='modificarCliente(this.parentNode, $id_cliente)' class='td-domicilio'>$domicilio</td>";
-   echo "<td onClick='modificarCliente(this.parentNode, $id_cliente)' class='td-domicilio2'>$domicilio2</td>";
+   echo "<tr class='text-center' x-razon=\"$ww[razon_social]\" x-id-comuna='$ww[id_comuna]' x-id-vendedor='$id_vendedor' id='cliente_$id_cliente' style='cursor:pointer;'$alerta_inactividad>";
+   echo "<td onClick='MostrarModalModificarCliente(this.parentNode.id)' style='color:#1F618D; font-weight:bold; font-size:16px;'>$id_cliente</td>";
+   echo "<td onClick='MostrarModalModificarCliente(this.parentNode.id)' class='td-nombre'>$nombre</td>";
+   echo "<td onClick='MostrarModalModificarCliente(this.parentNode.id)' class='td-domicilio'>$domicilio</td>";
+   echo "<td onClick='MostrarModalModificarCliente(this.parentNode.id)' class='td-domicilio2'>$domicilio2</td>";
 
-   echo "<td onClick='modificarCliente(this.parentNode, $id_cliente)' class='td-telefono'>$telefono</td>";
-   echo "<td onClick='modificarCliente(this.parentNode, $id_cliente)' class='td-email'>$mail</td>";
-   echo "<td onClick='modificarCliente(this.parentNode, $id_cliente)' class='td-rut'>$ww[rut]</td>";
-   echo "<td>$ww[ciudad]</td>";
-   echo "<td class='td-comuna' x-id='$ww[id_comuna]'>$ww[comuna]</td>";
-   echo "<td onClick='modificarCliente(this.parentNode, $id_cliente)' class='td-provincia'>$provincia</td>";
-   echo "<td onClick='modificarCliente(this.parentNode, $id_cliente)' class='td-region'>$region</td>";
-   echo "<td style='white-space: nowrap;'>
-       <span>$vendedor_nombre</span>
-       <button class='btn btn-xs btn-info fa fa-exchange' style='margin-left: 5px; padding: 2px 6px; font-size: 0.8em;' onclick='event.stopPropagation(); mostrarModalCambiarVendedor($id_cliente, \"$nombre\", $id_vendedor)' title='Cambiar vendedor'></button>
-       <button class='btn btn-xs btn-default fa fa-history' style='margin-left: 3px; padding: 2px 6px; font-size: 0.8em;' onclick='event.stopPropagation(); verHistorialVendedor($id_cliente, \"$nombre\")' title='Ver historial de cambios'></button>
-   </td>";
-   echo "<td>$fecha_ultimo_contacto</td>";
+   echo "<td onClick='MostrarModalModificarCliente(this.parentNode.id)' class='td-telefono'>$telefono</td>";
+   echo "<td onClick='MostrarModalModificarCliente(this.parentNode.id)' class='td-email'>$mail</td>";
+   echo "<td onClick='MostrarModalModificarCliente(this.parentNode.id)' class='td-rut'>$ww[rut]</td>";
+   echo "<td onClick='MostrarModalModificarCliente(this.parentNode.id)'>$ww[ciudad]</td>";
+   echo "<td onClick='MostrarModalModificarCliente(this.parentNode.id)' class='td-comuna'>$ww[comuna]</td>";
+   echo "<td onClick='MostrarModalModificarCliente(this.parentNode.id)' class='td-provincia'>$provincia</td>";
+   echo "<td onClick='MostrarModalModificarCliente(this.parentNode.id)' class='td-region'>$region</td>";
+   echo "<td onClick='MostrarModalModificarCliente(this.parentNode.id)'>$vendedor_nombre</td>";
+   echo "<td onClick='MostrarModalModificarCliente(this.parentNode.id)'>$fecha_ultimo_contacto</td>";
    if ($_SESSION["id_usuario"] == 1){
     echo "<td style='text-align: center;'>
     <button class='btn btn-sm btn-danger fa fa-trash' onclick='eliminarCliente($id_cliente, \"$nombre\")'></button>

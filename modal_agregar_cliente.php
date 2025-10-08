@@ -1,10 +1,14 @@
-<div id="ModalAgregarCliente" class="modal" data-keyboard="false" data-backdrop="static">
+<div id="ModalAgregarCliente" class="modal">
     <div class="modal-content2">
         <div class='box box-primary'>
             <div class='box-header with-border'>
                 <h3 id='titulo' class='box-title'>Agregar Cliente</h3>
             </div>
             <div class='box-body'>
+                <div class="row">
+                    <!-- COLUMNA IZQUIERDA: Datos del Cliente -->
+                    <div class="col-md-6" style="border-right: 1px solid #ddd; padding-right: 20px;">
+                        <h4 class="text-primary" style="margin-top: 0;">Información del Cliente</h4>
                 <div class='form-group'>
                     <div>
                         <label class="control-label">Nombre:</label>
@@ -22,7 +26,7 @@
                     </div>
                     <div>
                         <form action="#" onsubmit="$('#domiciliocliente2_txt').focus();return false;">
-                            <input type="search" maxlength="100" autocomplete="off" id="domiciliocliente_txt"
+                            <input type="search" maxlength="50" autocomplete="off" id="domiciliocliente_txt"
                                 style="text-transform:uppercase" class="form-control">
                         </form>
                     </div>
@@ -67,6 +71,7 @@
                             <option value="CACHAPOAL">CACHAPOAL</option>
                             <option value="CAPITÁN PRAT">CAPITÁN PRAT</option>
                             <option value="CARDENAL CARO">CARDENAL CARO</option>
+                            <option value="CAUQUENES">CAUQUENES</option>
                             <option value="CAUTÍN">CAUTÍN</option>
                             <option value="CHAÑARAL">CHAÑARAL</option>
                             <option value="CHACABUCO">CHACABUCO</option>
@@ -188,19 +193,86 @@
                         </form>
                     </div>
                 </div>
-                <div class='form-group' id='grupo-vendedor-agregar'>
-                    <div>
-                        <label class="control-label">Vendedor Asignado:</label>
                     </div>
-                    <div>
-                        <form action="#" onsubmit="return false;">
-                            <select id="select-vendedor" class="selectpicker" title="Seleccionar Vendedor" data-style="btn-info"
-                                data-dropup-auto="false" data-live-search="true" data-width="100%"
-                                data-size="5"></select>
-                        </form>
-                    </div>
-                </div>
+                    <!-- FIN COLUMNA IZQUIERDA -->
 
+                    <!-- COLUMNA DERECHA: Gestión de Vendedor -->
+                    <div class="col-md-6" style="padding-left: 20px;">
+                        <h4 class="text-success" style="margin-top: 0;">Gestión de Vendedor</h4>
+
+                        <!-- Vendedor Asignado (solo al crear) -->
+                        <div class='form-group' id='grupo-vendedor-agregar'>
+                            <div>
+                                <label class="control-label">Vendedor Asignado:</label>
+                            </div>
+                            <div>
+                                <form action="#" onsubmit="return false;">
+                                    <select id="select-vendedor" class="selectpicker" title="Seleccionar Vendedor" data-style="btn-info"
+                                        data-dropup-auto="false" data-live-search="true" data-width="100%"
+                                        data-size="5"></select>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Información del vendedor actual (solo al editar) -->
+                        <div id="grupo-vendedor-editar" style="display: none;">
+                            <div class="alert alert-info">
+                                <strong>Vendedor Actual:</strong>
+                                <p id="vendedor-actual-nombre" style="font-size: 16px; margin: 10px 0;">-</p>
+                            </div>
+
+                            <div class='form-group'>
+                                <div>
+                                    <label class="control-label">Cambiar a:</label>
+                                </div>
+                                <div>
+                                    <form action="#" onsubmit="return false;">
+                                        <select id="select-nuevo-vendedor-edit" class="selectpicker" title="Seleccionar Vendedor" data-style="btn-success"
+                                            data-dropup-auto="false" data-live-search="true" data-width="100%"
+                                            data-size="5"></select>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <div class='form-group'>
+                                <div>
+                                    <label class="control-label">
+                                        Justificación del cambio
+                                        <span id="asterisco-requerido-edit" style="color: red; display: none;">*</span>
+                                        <span id="texto-opcional-edit" style="color: #999; font-size: 12px;">(opcional)</span>
+                                    </label>
+                                </div>
+                                <div>
+                                    <textarea id="justificacion-cambio-edit" class="form-control" rows="3"
+                                        placeholder="Indica el motivo del cambio de vendedor..." style="text-transform: none !important;"></textarea>
+                                    <small class="text-muted">Mínimo 3 caracteres si hay vendedor asignado</small>
+                                </div>
+                            </div>
+
+                            <div class='form-group'>
+                                <button type="button" class="btn btn-success btn-block" onclick="aplicarCambioVendedor();">
+                                    <i class="fa fa-exchange"></i> Cambiar Vendedor
+                                </button>
+                            </div>
+
+                            <div class='form-group'>
+                                <button type="button" class="btn btn-info btn-block" onclick="verHistorialVendedorEnModal();">
+                                    <i class="fa fa-history"></i> Ver Historial de Cambios
+                                </button>
+                            </div>
+
+                            <!-- Historial en el mismo modal -->
+                            <div id="historial-vendedor-inline" style="display: none; margin-top: 20px;">
+                                <hr>
+                                <h5 class="text-info"><i class="fa fa-history"></i> Historial de Cambios</h5>
+                                <div id="contenido-historial-inline" style="max-height: 300px; overflow-y: auto;">
+                                    <p class="text-center">Cargando historial...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- FIN COLUMNA DERECHA -->
+                </div>
             </div>
             <div class="d-flex justify-content-end">
                 <button type="button" class="btn fa fa-close" style="font-size: 2em"

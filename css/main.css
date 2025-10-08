@@ -93,11 +93,11 @@ a {
 /* Modal Content/Box */
 .modal-content2 {
   background-color: #fefefe;
-  margin: 1% 33%; /* 15% from the top and centered */
+  margin: 1% 15%; /* 15% from the top and centered */
   padding: 10px;
   border: 1px solid #888;
   overflow-y: auto;
-  width: 35%; /* Could be more or less, depending on screen size */
+  width: 70%; /* Could be more or less, depending on screen size */
   height: 96%;
 }
 

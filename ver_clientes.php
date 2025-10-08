@@ -91,8 +91,6 @@
       ?>
 
   <?php include("modal_agregar_cliente.php") ?>
-  <?php include("modal_cambiar_vendedor.php") ?>
-  <?php include("modal_historial_vendedor.php") ?>
       <!-- Add the sidebar's background. This div must be placed
            immediately after the control sidebar -->
       <div class="control-sidebar-bg"></div>
