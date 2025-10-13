@@ -90,14 +90,21 @@ function GuardarCliente() {
       },
       success: function (x) {
         if (x.trim() == "success") {
-          // Si existe busca_clientes (desde ver_clientes.php), llamarla
-          if (typeof busca_clientes === 'function') {
-            busca_clientes();
+          // Detectar en qué página estamos y refrescar el listado correspondiente
+          const currentPage = window.location.href;
+
+          if (currentPage.includes('ver_clientes.php')) {
+            // Estamos en ver_clientes.php - refrescar tabla
+            if (typeof busca_clientes === 'function') {
+              busca_clientes();
+            }
+          } else if (currentPage.includes('ver_cotizaciones.php') || currentPage.includes('factura_directa.php') || currentPage.includes('boleta_directa.php')) {
+            // Estamos en ver_cotizaciones.php, factura_directa.php o boleta_directa.php - refrescar selectpicker
+            if (typeof pone_clientes === 'function') {
+              pone_clientes();
+            }
           }
-          // Si existe pone_clientes (desde ver_cotizaciones.php, factura_directa.php, etc), llamarla
-          if (typeof pone_clientes === 'function') {
-            pone_clientes();
-          }
+
           swal("El cliente fue guardado correctamente!", "", "success");
         } else {
           swal("Ocurrió un error al guardar el cliente", x, "error");
