@@ -123,7 +123,7 @@ if ($consulta == "cargar_historial") { //FACTURAS
                 $onclick = "onclick='getEstadoDTE($ww[track_id], $ww[folio], 0, \"$ww[estado]\", $ww[rowid])'";
             }
 
-            $btn_eliminar = ($ww["estado"] == "NOENV" && !$ww["track_id"]) ? "<button class='btn btn-danger fa fa-trash btn-sm ml-2' onClick='eliminarDTE($ww[rowid], 0)'></button>" : "";
+            $btn_eliminar = ($ww["estado"] == "NOENV" && !$ww["track_id"]) || ($ww["estado"] == "NOREC") ? "<button class='btn btn-danger fa fa-trash btn-sm ml-2' onClick='eliminarDTE($ww[rowid], 0)'></button>" : "";
 
             $docRef = "";
 
