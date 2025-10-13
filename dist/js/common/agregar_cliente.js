@@ -90,7 +90,14 @@ function GuardarCliente() {
       },
       success: function (x) {
         if (x.trim() == "success") {
-          busca_clientes();
+          // Si existe busca_clientes (desde ver_clientes.php), llamarla
+          if (typeof busca_clientes === 'function') {
+            busca_clientes();
+          }
+          // Si existe pone_clientes (desde ver_cotizaciones.php, factura_directa.php, etc), llamarla
+          if (typeof pone_clientes === 'function') {
+            pone_clientes();
+          }
           swal("El cliente fue guardado correctamente!", "", "success");
         } else {
           swal("Ocurrió un error al guardar el cliente", x, "error");
