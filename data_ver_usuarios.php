@@ -68,6 +68,9 @@ if ($consulta == "busca_usuarios") {
     $password = mysqli_real_escape_string($con, $_POST['password']);
     $permisos = json_decode($_POST["permisos"]);
 
+    // Hashear la contraseña con bcrypt
+    $password_hash = password_hash($password, PASSWORD_BCRYPT);
+
     $query = "SELECT * FROM usuarios WHERE nombre = '$nombre'";
 
     $val = mysqli_query($con, $query);
@@ -87,7 +90,7 @@ if ($consulta == "busca_usuarios") {
             $id_usuario = mysqli_fetch_assoc($usuario)["id_usuario"];
             mysqli_autocommit($con, false);
             $errors = array();
-            $query = "INSERT INTO usuarios (nombre, nombre_real, password, tipo_usuario, iniciales) VALUES (LOWER('$nombre'), '$nombre_real', '$password', 1, UPPER('$inicial'));";
+            $query = "INSERT INTO usuarios (nombre, nombre_real, password, tipo_usuario, iniciales) VALUES (LOWER('$nombre'), '$nombre_real', '$password_hash', 1, UPPER('$inicial'));";
             if (!mysqli_query($con, $query)) {
                 $errors[] = mysqli_error($con);
             }
@@ -120,6 +123,9 @@ if ($consulta == "busca_usuarios") {
     $permisos = json_decode($_POST["permisos"]);
     $id_usuario = $_POST["id_usuario"];
 
+    // Hashear la contraseña con bcrypt
+    $password_hash = password_hash($password, PASSWORD_BCRYPT);
+
     $query = "SELECT * FROM usuarios WHERE nombre = '$nombre' AND id <> $id_usuario;";
 
     $val = mysqli_query($con, $query);
@@ -129,7 +135,7 @@ if ($consulta == "busca_usuarios") {
         echo "yaexiste";
     } else {
         mysqli_autocommit($con, false);
-        $query = "UPDATE usuarios SET nombre = LOWER('$nombre'), nombre_real = '$nombre_real', password = '$password' WHERE id = $id_usuario;";
+        $query = "UPDATE usuarios SET nombre = LOWER('$nombre'), nombre_real = '$nombre_real', password = '$password_hash' WHERE id = $id_usuario;";
         if (!mysqli_query($con, $query)) {
             $errors[] = mysqli_error($con);
         }

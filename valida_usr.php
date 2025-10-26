@@ -25,6 +25,7 @@ try {
 
     mysqli_query($con, "SET NAMES 'utf8'");
 
+    // Primero buscar el usuario sin validar contraseña
     $query = "
         SELECT
             u.nombre,
@@ -39,7 +40,6 @@ try {
             permisos p ON p.id_usuario = u.id
         WHERE
             u.nombre='$usuario'
-            AND BINARY u.password='$password'
             AND u.tipo_usuario = 1
         GROUP BY
             u.nombre,
@@ -55,8 +55,23 @@ try {
         throw new Exception("Error en la consulta: " . mysqli_error($con));
     }
 
+    $passwordValid = false;
+    $r = null;
+
     if (mysqli_num_rows($val) > 0) {
         $r = mysqli_fetch_assoc($val);
+
+        // Verificar contraseña: primero texto plano (legacy), luego bcrypt (nuevo)
+        if ($r['password'] === $password) {
+            // Contraseña en texto plano (legacy)
+            $passwordValid = true;
+        } elseif (strlen($r['password']) >= 60 && password_verify($password, $r['password'])) {
+            // Contraseña hasheada con bcrypt (nuevo desde la API)
+            $passwordValid = true;
+        }
+    }
+
+    if ($passwordValid && $r) {
 
         if ($r["inhabilitado"] == 1) {
             setcookie('roel-erp-usuario', '', time() - 3600, '/');
