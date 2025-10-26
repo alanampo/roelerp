@@ -67,11 +67,13 @@ class AuthController {
             ? explode(',', $usuario['modulos'])
             : [];
 
+        $jwtConfig = require __DIR__ . '/../config/jwt.php';
+
         Response::success([
             'access_token' => $accessToken,
             'refresh_token' => $refreshToken,
             'token_type' => 'Bearer',
-            'expires_in' => 900, // 15 minutos
+            'expires_in' => $jwtConfig['access_token_expire'], // 2 semanas
             'user' => [
                 'id' => $usuario['id'],
                 'username' => $usuario['nombre'],
@@ -230,10 +232,12 @@ class AuthController {
 
         $accessToken = JWT::encode($newPayload, 'access');
 
+        $jwtConfig = require __DIR__ . '/../config/jwt.php';
+
         Response::success([
             'access_token' => $accessToken,
             'token_type' => 'Bearer',
-            'expires_in' => 900
+            'expires_in' => $jwtConfig['access_token_expire']
         ], 'Token refrescado exitosamente');
     }
 

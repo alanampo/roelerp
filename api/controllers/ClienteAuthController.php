@@ -75,7 +75,7 @@ class ClienteAuthController {
             'access_token' => $accessToken,
             'refresh_token' => $refreshToken,
             'token_type' => 'Bearer',
-            'expires_in' => 900, // 15 minutos
+            'expires_in' => (require __DIR__ . '/../config/jwt.php')['access_token_expire'], // 2 semanas
             'cliente' => [
                 'id' => $cliente['id'],
                 'nombre' => $cliente['nombre'],
@@ -259,7 +259,7 @@ class ClienteAuthController {
         Response::success([
             'access_token' => $accessToken,
             'token_type' => 'Bearer',
-            'expires_in' => 900
+            'expires_in' => (require __DIR__ . '/../config/jwt.php')['access_token_expire']
         ], 'Token refrescado exitosamente');
     }
 
