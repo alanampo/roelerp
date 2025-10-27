@@ -100,7 +100,9 @@ class ClienteModel {
      */
     public function findByUsuarioId($id_usuario) {
         // Primero obtener el id_cliente del usuario
-        $query = "SELECT id_cliente FROM usuarios WHERE id = ? AND tipo_usuario = 0";
+        // NOTA: Funciona tanto para tipo_usuario = 0 (clientes) como tipo_usuario = 1 (trabajadores)
+        // porque un trabajador también puede estar asociado a un cliente (ej: admin con su empresa)
+        $query = "SELECT id_cliente FROM usuarios WHERE id = ?";
         $stmt = mysqli_prepare($this->conn, $query);
         mysqli_stmt_bind_param($stmt, 'i', $id_usuario);
         mysqli_stmt_execute($stmt);
