@@ -97,10 +97,28 @@ class Cliente {
      * Crea un nuevo cliente con capacidad de login
      */
     public function create($email, $nombre, $password, $telefono = '', $rut = '', $domicilio = '', $comuna = null, $region = '', $razonSocial = '', $domicilio2 = '', $provincia = '') {
+        // Iniciar transacción
+        mysqli_autocommit($this->conn, false);
+
         try {
             // Verificar si el cliente ya existe
             if ($this->findByEmail($email)) {
+                mysqli_rollback($this->conn);
+                mysqli_autocommit($this->conn, true);
                 return ['success' => false, 'error' => 'El cliente ya existe con ese email'];
+            }
+
+            // Verificar si ya existe un usuario con ese email
+            $queryCheckUser = "SELECT id FROM usuarios WHERE nombre = ?";
+            $stmtCheck = mysqli_prepare($this->conn, $queryCheckUser);
+            mysqli_stmt_bind_param($stmtCheck, 's', $email);
+            mysqli_stmt_execute($stmtCheck);
+            $resultCheck = mysqli_stmt_get_result($stmtCheck);
+
+            if (mysqli_num_rows($resultCheck) > 0) {
+                mysqli_rollback($this->conn);
+                mysqli_autocommit($this->conn, true);
+                return ['success' => false, 'error' => 'Ya existe un usuario con ese email'];
             }
 
             // Hashear password
@@ -111,7 +129,7 @@ class Cliente {
                 $comuna = null;
             }
 
-            // Insertar cliente
+            // 1. Insertar cliente
             $query = "
                 INSERT INTO clientes (nombre, mail, password_hash, telefono, rut, domicilio, domicilio2, comuna, provincia, region, razon_social, activo)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
@@ -140,6 +158,30 @@ class Cliente {
 
             $clienteId = mysqli_insert_id($this->conn);
 
+            // 2. Crear usuario asociado en tabla usuarios
+            $queryUsuario = "
+                INSERT INTO usuarios (nombre, nombre_real, password, tipo_usuario, id_cliente, inhabilitado)
+                VALUES (?, ?, ?, 0, ?, 0)
+            ";
+
+            $stmtUsuario = mysqli_prepare($this->conn, $queryUsuario);
+            mysqli_stmt_bind_param(
+                $stmtUsuario,
+                'sssi',
+                $email,           // nombre = email (username)
+                $nombre,          // nombre_real
+                $hashedPassword,  // password (mismo hash)
+                $clienteId        // id_cliente
+            );
+
+            if (!mysqli_stmt_execute($stmtUsuario)) {
+                throw new Exception("Error al crear usuario: " . mysqli_error($this->conn));
+            }
+
+            // Commit transaction
+            mysqli_commit($this->conn);
+            mysqli_autocommit($this->conn, true);
+
             return [
                 'success' => true,
                 'cliente_id' => $clienteId,
@@ -147,6 +189,8 @@ class Cliente {
             ];
 
         } catch (Exception $e) {
+            mysqli_rollback($this->conn);
+            mysqli_autocommit($this->conn, true);
             return ['success' => false, 'error' => $e->getMessage()];
         }
     }
