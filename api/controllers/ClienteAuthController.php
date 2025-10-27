@@ -123,7 +123,9 @@ class ClienteAuthController {
         $telefono = isset($data['telefono']) ? trim($data['telefono']) : '';
         $rut = isset($data['rut']) ? trim($data['rut']) : '';
         $domicilio = isset($data['domicilio']) ? trim($data['domicilio']) : '';
-        $comuna = isset($data['comuna']) ? trim($data['comuna']) : '';
+        $domicilio2 = isset($data['domicilio2']) ? trim($data['domicilio2']) : '';
+        $comuna = isset($data['comuna']) && $data['comuna'] !== '' ? intval($data['comuna']) : null;
+        $provincia = isset($data['provincia']) ? trim($data['provincia']) : '';
         $region = isset($data['region']) ? trim($data['region']) : '';
         $razonSocial = isset($data['razon_social']) ? trim($data['razon_social']) : '';
 
@@ -137,7 +139,9 @@ class ClienteAuthController {
             $domicilio,
             $comuna,
             $region,
-            $razonSocial
+            $razonSocial,
+            $domicilio2,
+            $provincia
         );
 
         if (!$result['success']) {

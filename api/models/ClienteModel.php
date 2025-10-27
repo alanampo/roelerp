@@ -467,6 +467,47 @@ class ClienteModel {
     }
 
     /**
+     * Obtiene todas las regiones de Chile (hardcoded)
+     */
+    public function getRegiones() {
+        return [
+            ['id' => 1, 'nombre' => 'Arica y Parinacota', 'codigo' => 'XV'],
+            ['id' => 2, 'nombre' => 'Tarapacá', 'codigo' => 'I'],
+            ['id' => 3, 'nombre' => 'Antofagasta', 'codigo' => 'II'],
+            ['id' => 4, 'nombre' => 'Atacama', 'codigo' => 'III'],
+            ['id' => 5, 'nombre' => 'Coquimbo', 'codigo' => 'IV'],
+            ['id' => 6, 'nombre' => 'Valparaíso', 'codigo' => 'V'],
+            ['id' => 7, 'nombre' => 'Metropolitana de Santiago', 'codigo' => 'RM'],
+            ['id' => 8, 'nombre' => 'O\'Higgins', 'codigo' => 'VI'],
+            ['id' => 9, 'nombre' => 'Maule', 'codigo' => 'VII'],
+            ['id' => 10, 'nombre' => 'Ñuble', 'codigo' => 'XVI'],
+            ['id' => 11, 'nombre' => 'Biobío', 'codigo' => 'VIII'],
+            ['id' => 12, 'nombre' => 'La Araucanía', 'codigo' => 'IX'],
+            ['id' => 13, 'nombre' => 'Los Ríos', 'codigo' => 'XIV'],
+            ['id' => 14, 'nombre' => 'Los Lagos', 'codigo' => 'X'],
+            ['id' => 15, 'nombre' => 'Aysén', 'codigo' => 'XI'],
+            ['id' => 16, 'nombre' => 'Magallanes y Antártica Chilena', 'codigo' => 'XII']
+        ];
+    }
+
+    /**
+     * Obtiene todas las provincias únicas de los clientes existentes
+     */
+    public function getProvincias() {
+        $query = "SELECT DISTINCT provincia FROM clientes WHERE provincia IS NOT NULL AND provincia != '' ORDER BY provincia";
+        $result = mysqli_query($this->conn, $query);
+        $provincias = [];
+
+        if ($result && mysqli_num_rows($result) > 0) {
+            while ($row = mysqli_fetch_assoc($result)) {
+                $provincias[] = ['nombre' => $row['provincia']];
+            }
+        }
+
+        return $provincias;
+    }
+
+    /**
      * Crea un cliente CON usuario asociado
      * Útil para crear clientes que puedan hacer login
      */

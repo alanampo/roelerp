@@ -258,6 +258,32 @@ class ClienteController {
     }
 
     /**
+     * Obtener regiones de Chile
+     * GET /api/clientes/regiones
+     */
+    public function regiones() {
+        // Validar autenticación de trabajador
+        AuthMiddleware::requireUsuario();
+
+        $regiones = $this->clienteModel->getRegiones();
+
+        Response::success(['regiones' => $regiones]);
+    }
+
+    /**
+     * Obtener provincias disponibles
+     * GET /api/clientes/provincias
+     */
+    public function provincias() {
+        // Validar autenticación de trabajador
+        AuthMiddleware::requireUsuario();
+
+        $provincias = $this->clienteModel->getProvincias();
+
+        Response::success(['provincias' => $provincias]);
+    }
+
+    /**
      * Crear cliente CON usuario asociado
      * POST /api/clientes/with-usuario
      */

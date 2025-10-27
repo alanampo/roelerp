@@ -36,6 +36,16 @@ class ClientesRoutes {
             return $this->controller->comunas();
         }
 
+        // GET /clientes/regiones - Listar regiones
+        if (preg_match('#^/clientes/regiones$#', $path) && $method === 'GET') {
+            return $this->controller->regiones();
+        }
+
+        // GET /clientes/provincias - Listar provincias
+        if (preg_match('#^/clientes/provincias$#', $path) && $method === 'GET') {
+            return $this->controller->provincias();
+        }
+
         // GET /clientes/usuario/{id} - Obtener cliente por ID de usuario
         if (preg_match('#^/clientes/usuario/(\d+)$#', $path, $matches) && $method === 'GET') {
             return $this->controller->showByUsuario($matches[1]);

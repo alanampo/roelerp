@@ -96,7 +96,7 @@ class Cliente {
     /**
      * Crea un nuevo cliente con capacidad de login
      */
-    public function create($email, $nombre, $password, $telefono = '', $rut = '', $domicilio = '', $comuna = '', $region = '', $razonSocial = '') {
+    public function create($email, $nombre, $password, $telefono = '', $rut = '', $domicilio = '', $comuna = null, $region = '', $razonSocial = '', $domicilio2 = '', $provincia = '') {
         try {
             // Verificar si el cliente ya existe
             if ($this->findByEmail($email)) {
@@ -106,23 +106,30 @@ class Cliente {
             // Hashear password
             $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
 
+            // Convertir comuna vacía a NULL
+            if ($comuna === '' || $comuna === '0') {
+                $comuna = null;
+            }
+
             // Insertar cliente
             $query = "
-                INSERT INTO clientes (nombre, mail, password_hash, telefono, rut, domicilio, comuna, region, razon_social, activo)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
+                INSERT INTO clientes (nombre, mail, password_hash, telefono, rut, domicilio, domicilio2, comuna, provincia, region, razon_social, activo)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
             ";
 
             $stmt = mysqli_prepare($this->conn, $query);
             mysqli_stmt_bind_param(
                 $stmt,
-                'sssssssss',
+                'sssssssssss',
                 $nombre,
                 $email,
                 $hashedPassword,
                 $telefono,
                 $rut,
                 $domicilio,
+                $domicilio2,
                 $comuna,
+                $provincia,
                 $region,
                 $razonSocial
             );
