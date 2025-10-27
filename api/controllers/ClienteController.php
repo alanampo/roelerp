@@ -249,8 +249,8 @@ class ClienteController {
      * GET /api/clientes/comunas
      */
     public function comunas() {
-        // Validar autenticación de trabajador
-        AuthMiddleware::requireUsuario();
+        // Validar autenticación (trabajador o cliente)
+        AuthMiddleware::requireAuth();
 
         $comunas = $this->clienteModel->getComunas();
 
@@ -262,8 +262,8 @@ class ClienteController {
      * GET /api/clientes/regiones
      */
     public function regiones() {
-        // Validar autenticación de trabajador
-        AuthMiddleware::requireUsuario();
+        // Validar autenticación (trabajador o cliente)
+        AuthMiddleware::requireAuth();
 
         $regiones = $this->clienteModel->getRegiones();
 
@@ -275,8 +275,8 @@ class ClienteController {
      * GET /api/clientes/provincias
      */
     public function provincias() {
-        // Validar autenticación de trabajador
-        AuthMiddleware::requireUsuario();
+        // Validar autenticación (trabajador o cliente)
+        AuthMiddleware::requireAuth();
 
         $provincias = $this->clienteModel->getProvincias();
 
