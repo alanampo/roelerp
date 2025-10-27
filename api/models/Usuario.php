@@ -17,6 +17,7 @@ class Usuario {
 
     /**
      * Busca un usuario por nombre de usuario
+     * NOTA: Acepta tanto tipo_usuario = 0 (clientes) como tipo_usuario = 1 (trabajadores)
      */
     public function findByUsername($username) {
         $username = mysqli_real_escape_string($this->conn, $username);
@@ -30,11 +31,12 @@ class Usuario {
                 u.tipo_usuario,
                 u.inhabilitado,
                 u.iniciales,
+                u.id_cliente,
                 GROUP_CONCAT(p.modulo SEPARATOR ',') as modulos
             FROM usuarios u
             LEFT JOIN permisos p ON p.id_usuario = u.id
-            WHERE u.nombre = ? AND u.tipo_usuario = 1
-            GROUP BY u.id, u.nombre, u.nombre_real, u.password, u.tipo_usuario, u.inhabilitado, u.iniciales
+            WHERE u.nombre = ?
+            GROUP BY u.id, u.nombre, u.nombre_real, u.password, u.tipo_usuario, u.inhabilitado, u.iniciales, u.id_cliente
         ";
 
         $stmt = mysqli_prepare($this->conn, $query);

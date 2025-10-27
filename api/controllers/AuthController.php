@@ -51,36 +51,58 @@ class AuthController {
             Response::error('Credenciales inválidas', 401);
         }
 
+        // Determinar el tipo de usuario para el token
+        $userType = ($usuario['tipo_usuario'] == 0) ? 'cliente' : 'usuario';
+
         // Generar tokens
         $payload = [
             'user_id' => $usuario['id'],
             'username' => $usuario['nombre'],
-            'user_type' => 'usuario',
+            'user_type' => $userType,
             'tipo_usuario' => $usuario['tipo_usuario']
         ];
+
+        // Si es un cliente con email, agregarlo al payload
+        if ($usuario['tipo_usuario'] == 0) {
+            $payload['email'] = $usuario['nombre']; // Para clientes, nombre = email
+        }
 
         $accessToken = JWT::encode($payload, 'access');
         $refreshToken = JWT::encode($payload, 'refresh');
 
-        // Preparar permisos
+        // Preparar permisos (solo para trabajadores)
         $permisos = isset($usuario['modulos']) && $usuario['modulos']
             ? explode(',', $usuario['modulos'])
             : [];
 
         $jwtConfig = require __DIR__ . '/../config/jwt.php';
 
+        // Preparar respuesta según tipo de usuario
+        $userData = [
+            'id' => $usuario['id'],
+            'username' => $usuario['nombre'],
+            'nombre_real' => $usuario['nombre_real'],
+            'iniciales' => $usuario['iniciales']
+        ];
+
+        // Agregar campos específicos según el tipo
+        if ($usuario['tipo_usuario'] == 0) {
+            // Cliente
+            $userData['email'] = $usuario['nombre'];
+            if (isset($usuario['id_cliente'])) {
+                $userData['id_cliente'] = $usuario['id_cliente'];
+            }
+        } else {
+            // Trabajador
+            $userData['permisos'] = $permisos;
+        }
+
         Response::success([
             'access_token' => $accessToken,
             'refresh_token' => $refreshToken,
             'token_type' => 'Bearer',
             'expires_in' => $jwtConfig['access_token_expire'], // 2 semanas
-            'user' => [
-                'id' => $usuario['id'],
-                'username' => $usuario['nombre'],
-                'nombre_real' => $usuario['nombre_real'],
-                'iniciales' => $usuario['iniciales'],
-                'permisos' => $permisos
-            ]
+            'user' => $userData
         ], 'Login exitoso');
     }
 
