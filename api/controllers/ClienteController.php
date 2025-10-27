@@ -256,4 +256,143 @@ class ClienteController {
 
         Response::success(['comunas' => $comunas]);
     }
+
+    /**
+     * Crear cliente CON usuario asociado
+     * POST /api/clientes/with-usuario
+     */
+    public function storeWithUsuario() {
+        // Validar autenticación de trabajador
+        AuthMiddleware::requireUsuario();
+
+        $data = json_decode(file_get_contents('php://input'), true);
+
+        // Validar datos requeridos del cliente
+        $errors = [];
+        if (!isset($data['nombre']) || empty(trim($data['nombre']))) {
+            $errors['nombre'] = 'Nombre del cliente requerido';
+        }
+
+        // Validar datos del usuario
+        if (!isset($data['email']) || empty(trim($data['email']))) {
+            $errors['email'] = 'Email requerido para el usuario';
+        } elseif (!filter_var(trim($data['email']), FILTER_VALIDATE_EMAIL)) {
+            $errors['email'] = 'Formato de email inválido';
+        }
+
+        if (!isset($data['password']) || empty($data['password'])) {
+            $errors['password'] = 'Contraseña requerida para el usuario';
+        } elseif (strlen($data['password']) < 6) {
+            $errors['password'] = 'La contraseña debe tener al menos 6 caracteres';
+        }
+
+        if (!empty($errors)) {
+            Response::validationError($errors, 'Errores de validación');
+        }
+
+        // Separar datos de cliente y usuario
+        $dataCliente = [
+            'nombre' => $data['nombre'],
+            'domicilio' => $data['domicilio'] ?? null,
+            'domicilio2' => $data['domicilio2'] ?? null,
+            'telefono' => $data['telefono'] ?? null,
+            'mail' => $data['email'], // El email va al cliente también
+            'rut' => $data['rut'] ?? null,
+            'comuna' => $data['comuna'] ?? null,
+            'razon_social' => $data['razon_social'] ?? null,
+            'region' => $data['region'] ?? null,
+            'provincia' => $data['provincia'] ?? null,
+            'id_vendedor' => $data['id_vendedor'] ?? null
+        ];
+
+        $dataUsuario = [
+            'email' => $data['email'],
+            'password' => $data['password']
+        ];
+
+        $result = $this->clienteModel->createWithUsuario($dataCliente, $dataUsuario);
+
+        if (!$result['success']) {
+            Response::error($result['error'], 400);
+        }
+
+        Response::success([
+            'cliente' => $result['cliente'],
+            'id_usuario' => $result['id_usuario'],
+            'usuario_creado' => true
+        ], 'Cliente creado con usuario asociado exitosamente', 201);
+    }
+
+    /**
+     * Asociar un cliente existente a un usuario existente
+     * POST /api/clientes/{id}/asociar-usuario
+     */
+    public function asociarUsuario($id_cliente) {
+        // Validar autenticación de trabajador
+        AuthMiddleware::requireUsuario();
+
+        $data = json_decode(file_get_contents('php://input'), true);
+
+        // Validar datos requeridos
+        if (!isset($data['id_usuario'])) {
+            Response::validationError(['id_usuario' => 'ID de usuario requerido']);
+        }
+
+        $result = $this->clienteModel->asociarUsuario($id_cliente, $data['id_usuario']);
+
+        if (!$result['success']) {
+            Response::error($result['error'], 400);
+        }
+
+        Response::success([
+            'cliente' => $result['cliente'],
+            'usuario' => $result['usuario']
+        ], 'Usuario asociado al cliente exitosamente');
+    }
+
+    /**
+     * Desasociar un usuario de su cliente
+     * POST /api/clientes/desasociar-usuario/{id_usuario}
+     */
+    public function desasociarUsuario($id_usuario) {
+        // Validar autenticación de trabajador
+        AuthMiddleware::requireUsuario();
+
+        $result = $this->clienteModel->desasociarUsuario($id_usuario);
+
+        if (!$result['success']) {
+            Response::error($result['error'], 400);
+        }
+
+        Response::success(null, 'Usuario desasociado del cliente exitosamente');
+    }
+
+    /**
+     * Obtener el usuario asociado a un cliente
+     * GET /api/clientes/{id}/usuario-asociado
+     */
+    public function usuarioAsociado($id_cliente) {
+        // Validar autenticación de trabajador
+        AuthMiddleware::requireUsuario();
+
+        // Verificar que el cliente existe
+        $cliente = $this->clienteModel->findById($id_cliente);
+        if (!$cliente) {
+            Response::notFound('Cliente no encontrado');
+        }
+
+        $usuario = $this->clienteModel->getUsuarioAsociado($id_cliente);
+
+        if (!$usuario) {
+            Response::success([
+                'usuario' => null,
+                'tiene_usuario' => false
+            ], 'El cliente no tiene usuario asociado');
+        }
+
+        Response::success([
+            'usuario' => $usuario,
+            'tiene_usuario' => true
+        ]);
+    }
 }

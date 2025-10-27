@@ -16,6 +16,16 @@ class ClientesRoutes {
      * Maneja las rutas de clientes
      */
     public function handleRequest($method, $path) {
+        // POST /clientes/with-usuario - Crear cliente CON usuario
+        if (preg_match('#^/clientes/with-usuario$#', $path) && $method === 'POST') {
+            return $this->controller->storeWithUsuario();
+        }
+
+        // POST /clientes/desasociar-usuario/{id_usuario} - Desasociar usuario
+        if (preg_match('#^/clientes/desasociar-usuario/(\d+)$#', $path, $matches) && $method === 'POST') {
+            return $this->controller->desasociarUsuario($matches[1]);
+        }
+
         // GET /clientes/vendedores - Listar vendedores
         if (preg_match('#^/clientes/vendedores$#', $path) && $method === 'GET') {
             return $this->controller->vendedores();
@@ -34,6 +44,16 @@ class ClientesRoutes {
         // PUT /clientes/usuario/{id} - Actualizar cliente por ID de usuario
         if (preg_match('#^/clientes/usuario/(\d+)$#', $path, $matches) && $method === 'PUT') {
             return $this->controller->updateByUsuario($matches[1]);
+        }
+
+        // GET /clientes/{id}/usuario-asociado - Obtener usuario asociado
+        if (preg_match('#^/clientes/(\d+)/usuario-asociado$#', $path, $matches) && $method === 'GET') {
+            return $this->controller->usuarioAsociado($matches[1]);
+        }
+
+        // POST /clientes/{id}/asociar-usuario - Asociar usuario
+        if (preg_match('#^/clientes/(\d+)/asociar-usuario$#', $path, $matches) && $method === 'POST') {
+            return $this->controller->asociarUsuario($matches[1]);
         }
 
         // GET /clientes/{id}/historial-vendedor - Obtener historial de vendedor

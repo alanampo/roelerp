@@ -463,4 +463,184 @@ class ClienteModel {
 
         return $comunas;
     }
+
+    /**
+     * Crea un cliente CON usuario asociado
+     * Útil para crear clientes que puedan hacer login
+     */
+    public function createWithUsuario($dataCliente, $dataUsuario) {
+        mysqli_autocommit($this->conn, false);
+
+        try {
+            // 1. Crear el cliente primero
+            $resultCliente = $this->create($dataCliente);
+
+            if (!$resultCliente['success']) {
+                throw new Exception($resultCliente['error']);
+            }
+
+            $id_cliente = $resultCliente['id_cliente'];
+
+            // 2. Validar que el email no exista como usuario
+            $email = $dataUsuario['email'] ?? $dataCliente['mail'];
+            $password = $dataUsuario['password'] ?? null;
+
+            if (empty($email)) {
+                throw new Exception('Email requerido para crear usuario');
+            }
+
+            if (empty($password)) {
+                throw new Exception('Contraseña requerida para crear usuario');
+            }
+
+            // Verificar que el email no exista
+            $checkQuery = "SELECT id FROM usuarios WHERE nombre = ?";
+            $stmt = mysqli_prepare($this->conn, $checkQuery);
+            mysqli_stmt_bind_param($stmt, 's', $email);
+            mysqli_stmt_execute($stmt);
+            $checkResult = mysqli_stmt_get_result($stmt);
+
+            if (mysqli_num_rows($checkResult) > 0) {
+                throw new Exception('Ya existe un usuario con ese email');
+            }
+
+            // 3. Crear usuario tipo cliente (tipo_usuario = 0)
+            $password_hash = password_hash($password, PASSWORD_BCRYPT);
+            $tipo_usuario = 0; // Cliente
+
+            $queryUsuario = "
+                INSERT INTO usuarios (nombre, password, id_cliente, tipo_usuario, inhabilitado)
+                VALUES (LOWER(?), ?, ?, ?, 0)
+            ";
+
+            $stmt = mysqli_prepare($this->conn, $queryUsuario);
+            mysqli_stmt_bind_param($stmt, 'ssii', $email, $password_hash, $id_cliente, $tipo_usuario);
+
+            if (!mysqli_stmt_execute($stmt)) {
+                throw new Exception("Error al crear usuario: " . mysqli_error($this->conn));
+            }
+
+            $id_usuario = mysqli_insert_id($this->conn);
+
+            mysqli_commit($this->conn);
+
+            return [
+                'success' => true,
+                'id_cliente' => $id_cliente,
+                'id_usuario' => $id_usuario,
+                'cliente' => $this->findById($id_cliente),
+                'usuario_creado' => true
+            ];
+
+        } catch (Exception $e) {
+            mysqli_rollback($this->conn);
+            return ['success' => false, 'error' => $e->getMessage()];
+        } finally {
+            mysqli_autocommit($this->conn, true);
+        }
+    }
+
+    /**
+     * Asocia un cliente existente a un usuario existente
+     * Útil para vincular un trabajador a su propia empresa cliente
+     */
+    public function asociarUsuario($id_cliente, $id_usuario) {
+        // Verificar que el cliente existe
+        $cliente = $this->findById($id_cliente);
+        if (!$cliente) {
+            return ['success' => false, 'error' => 'Cliente no encontrado'];
+        }
+
+        // Verificar que el usuario existe
+        $queryUsuario = "SELECT id, nombre, tipo_usuario, id_cliente FROM usuarios WHERE id = ?";
+        $stmt = mysqli_prepare($this->conn, $queryUsuario);
+        mysqli_stmt_bind_param($stmt, 'i', $id_usuario);
+        mysqli_stmt_execute($stmt);
+        $resultUsuario = mysqli_stmt_get_result($stmt);
+
+        if (mysqli_num_rows($resultUsuario) == 0) {
+            return ['success' => false, 'error' => 'Usuario no encontrado'];
+        }
+
+        $usuario = mysqli_fetch_assoc($resultUsuario);
+
+        // Verificar que el usuario no esté ya asociado a otro cliente
+        if ($usuario['id_cliente'] !== null && $usuario['id_cliente'] != $id_cliente) {
+            return ['success' => false, 'error' => 'El usuario ya está asociado a otro cliente'];
+        }
+
+        // Asociar el cliente al usuario
+        $query = "UPDATE usuarios SET id_cliente = ? WHERE id = ?";
+        $stmt = mysqli_prepare($this->conn, $query);
+        mysqli_stmt_bind_param($stmt, 'ii', $id_cliente, $id_usuario);
+
+        if (mysqli_stmt_execute($stmt)) {
+            return [
+                'success' => true,
+                'cliente' => $this->findById($id_cliente),
+                'usuario' => [
+                    'id' => $usuario['id'],
+                    'nombre' => $usuario['nombre'],
+                    'tipo_usuario' => $usuario['tipo_usuario']
+                ]
+            ];
+        }
+
+        return ['success' => false, 'error' => mysqli_error($this->conn)];
+    }
+
+    /**
+     * Desasocia un usuario de un cliente
+     */
+    public function desasociarUsuario($id_usuario) {
+        // Verificar que el usuario existe y tiene un cliente asociado
+        $queryUsuario = "SELECT id, id_cliente FROM usuarios WHERE id = ?";
+        $stmt = mysqli_prepare($this->conn, $queryUsuario);
+        mysqli_stmt_bind_param($stmt, 'i', $id_usuario);
+        mysqli_stmt_execute($stmt);
+        $resultUsuario = mysqli_stmt_get_result($stmt);
+
+        if (mysqli_num_rows($resultUsuario) == 0) {
+            return ['success' => false, 'error' => 'Usuario no encontrado'];
+        }
+
+        $usuario = mysqli_fetch_assoc($resultUsuario);
+
+        if ($usuario['id_cliente'] === null) {
+            return ['success' => false, 'error' => 'El usuario no tiene ningún cliente asociado'];
+        }
+
+        // Desasociar
+        $query = "UPDATE usuarios SET id_cliente = NULL WHERE id = ?";
+        $stmt = mysqli_prepare($this->conn, $query);
+        mysqli_stmt_bind_param($stmt, 'i', $id_usuario);
+
+        if (mysqli_stmt_execute($stmt)) {
+            return ['success' => true];
+        }
+
+        return ['success' => false, 'error' => mysqli_error($this->conn)];
+    }
+
+    /**
+     * Obtiene el usuario asociado a un cliente (si existe)
+     */
+    public function getUsuarioAsociado($id_cliente) {
+        $query = "
+            SELECT id, nombre, tipo_usuario, inhabilitado
+            FROM usuarios
+            WHERE id_cliente = ?
+        ";
+
+        $stmt = mysqli_prepare($this->conn, $query);
+        mysqli_stmt_bind_param($stmt, 'i', $id_cliente);
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt);
+
+        if ($result && mysqli_num_rows($result) > 0) {
+            return mysqli_fetch_assoc($result);
+        }
+
+        return null;
+    }
 }
