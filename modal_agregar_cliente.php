@@ -11,7 +11,7 @@
                         <h4 class="text-primary" style="margin-top: 0;">Información del Cliente</h4>
                 <div class='form-group'>
                     <div>
-                        <label class="control-label">Nombre:</label>
+                        <label class="control-label">Nombre de Contacto:</label>
                     </div>
                     <div>
                         <form action="#" onsubmit="$('#domiciliocliente_txt').focus();return false;">
@@ -172,7 +172,7 @@
                 </div>
                 <div class='form-group'>
                     <div>
-                        <label class="control-label">Razón Social: <button class="btn btn-sm btn-secondary"
+                        <label class="control-label">Razón Social <span class="text-danger font-weight-bold">(Nombre que aparecerá en las facturas)</span>: <button class="btn btn-sm btn-secondary"
                                 onclick="setRazonSocial()">=</button></label>
                     </div>
                     <div>
