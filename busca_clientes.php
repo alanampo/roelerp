@@ -22,7 +22,8 @@ if ($filtro_sin_vendedor) {
 }
 
 $cadena="SELECT c.id_cliente as id_cliente, c.provincia, c.region, c.nombre as nombre, c.domicilio as domicilio, c.domicilio2, c.telefono, c.mail as mail, c.razon_social, c.rut as rut, c.id_vendedor, c.fecha_ultimo_contacto, co.ciudad as ciudad, co.nombre as comuna, co.id as id_comuna, u.nombre_real as vendedor_nombre,
-DATE_FORMAT(c.fecha_ultimo_contacto, '%d/%m/%Y') as fecha_ultimo_contacto_format
+DATE_FORMAT(c.fecha_ultimo_contacto, '%d/%m/%Y') as fecha_ultimo_contacto_format,
+c.razon_social
 FROM clientes c
 LEFT JOIN comunas co ON c.comuna = co.id
 LEFT JOIN usuarios u ON c.id_vendedor = u.id
@@ -41,7 +42,7 @@ if (mysqli_num_rows($val)>0){
  echo "<thead>";
  echo "<tr>";
  $th_eliminar = ($_SESSION["id_usuario"] == 1 ? "<th></th>" :"");
- echo "<th>ID</th><th>Nombre</th><th>Domicilio</th><th>Domicilio 2</th><th>Teléfono</th><th>E-Mail</th><th>R.U.T</th><th>Ciudad</th><th>Comuna</th><th>Provincia</th><th>Región</th><th>Vendedor</th><th>Últ. Contacto</th>$th_eliminar";
+ echo "<th>ID</th><th>Nombre</th><th>Razón Social</th><th>Domicilio</th><th>Domicilio 2</th><th>Teléfono</th><th>E-Mail</th><th>R.U.T</th><th>Ciudad</th><th>Comuna</th><th>Provincia</th><th>Región</th><th>Vendedor</th><th>Últ. Contacto</th>$th_eliminar";
  echo "</tr>";
  echo "</thead>";
  echo "<tbody>";
@@ -72,6 +73,8 @@ if (mysqli_num_rows($val)>0){
    echo "<tr class='text-center' x-razon=\"$ww[razon_social]\" x-id-comuna='$ww[id_comuna]' x-id-vendedor='$id_vendedor' id='cliente_$id_cliente' style='cursor:pointer;'$alerta_inactividad>";
    echo "<td onClick='MostrarModalModificarCliente(this.parentNode.id)' style='color:#1F618D; font-weight:bold; font-size:16px;'>$id_cliente</td>";
    echo "<td onClick='MostrarModalModificarCliente(this.parentNode.id)' class='td-nombre'>$nombre</td>";
+   echo "<td onClick='MostrarModalModificarCliente(this.parentNode.id)' class='td-razon'>$ww[razon_social]</td>";
+   
    echo "<td onClick='MostrarModalModificarCliente(this.parentNode.id)' class='td-domicilio'>$domicilio</td>";
    echo "<td onClick='MostrarModalModificarCliente(this.parentNode.id)' class='td-domicilio2'>$domicilio2</td>";
 
