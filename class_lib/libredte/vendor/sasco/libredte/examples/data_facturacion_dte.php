@@ -651,7 +651,7 @@ if ($consulta == "generar_factura") {
             $productos = [];
             foreach ($jsonarray as $producto) {
                 array_push($productos, array(
-                    'NmbItem' => $producto["variedad"] . " (" . $producto["codigo"] . ") " . ($producto["especie"] && strlen($producto["especie"]) > 0 ? $producto["especie"] : ""),
+                    'NmbItem' => limpiarYRecortar($producto["variedad"] . " (" . $producto["codigo"] . ") " . ($producto["especie"] && strlen($producto["especie"]) > 0 ? $producto["especie"] : "")),
                     'QtyItem' => (int) $producto["cantidad"],
                     'PrcItem' => (int) $producto["precio"],
                     'DescuentoPct' => ($producto["descuento"] && $producto["descuento"]["tipo"] != null && $producto["descuento"]["tipo"] == "porcentual") ? (int) $producto["descuento"]["valor"] : false,
@@ -774,7 +774,7 @@ if ($consulta == "generar_factura") {
             $productos = [];
             foreach ($jsonarray as $producto) {
                 array_push($productos, array(
-                    'NmbItem' => $producto["variedad"] . " (" . $producto["codigo"] . ") " . ($producto["especie"] && strlen($producto["especie"]) > 0 ? $producto["especie"] : ""),
+                    'NmbItem' => limpiarYRecortar($producto["variedad"] . " (" . $producto["codigo"] . ") " . ($producto["especie"] && strlen($producto["especie"]) > 0 ? $producto["especie"] : "")),
                     'QtyItem' => (int) $producto["cantidad"],
                     'PrcItem' => (int) $producto["precio"],
                     'DescuentoPct' => ($producto["descuento"] && $producto["descuento"]["tipo"] != null && $producto["descuento"]["tipo"] == "porcentual") ? (int) $producto["descuento"]["valor"] : false,
@@ -2067,14 +2067,19 @@ function generarFactura($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_co
             }
 
             $comentario = $dataCotizacion["comentario"] ?? $dataCotizacion["observaciones"] ?? null;
+            if ($comentario) {
+                $comentario = limpiarYRecortar($comentario, 100);
+            }
 
             $arrayproductos = array();
             $i = 0;
             foreach ($dataCotizacion["productos"] as $producto) {
-                if ($i == count($dataCotizacion["productos"]) - 1 && $comentario && mb_strlen($comentario) > 0100) {
+                $nmbItem = limpiarYRecortar($producto["variedad"] . " (" . $producto["codigo"] . ") " . ($producto["especie"] && strlen($producto["especie"]) > 0 ? $producto["especie"] : ""));
+
+                if ($i == count($dataCotizacion["productos"]) - 1 && $comentario && mb_strlen($comentario) > 0) {
                     if ($producto["descuento"] && $producto["descuento"]["tipo"] == "porcentual") {
                         array_push($arrayproductos, array(
-                            'NmbItem' => $producto["variedad"] . " (" . $producto["codigo"] . ") " . ($producto["especie"] && strlen($producto["especie"]) > 0 ? $producto["especie"] : ""),
+                            'NmbItem' => $nmbItem,
                             'DscItem' => $comentario,
                             'QtyItem' => (int) $producto["cantidad"],
                             'PrcItem' => (int) $producto["precio"],
@@ -2082,7 +2087,7 @@ function generarFactura($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_co
                         ));
                     } else if ($producto["descuento"] && $producto["descuento"]["tipo"] == "fijo") {
                         array_push($arrayproductos, array(
-                            'NmbItem' => $producto["variedad"] . " (" . $producto["codigo"] . ") " . ($producto["especie"] && strlen($producto["especie"]) > 0 ? $producto["especie"] : ""),
+                            'NmbItem' => $nmbItem,
                             'DscItem' => $comentario,
                             'QtyItem' => (int) $producto["cantidad"],
                             'PrcItem' => (int) $producto["precio"],
@@ -2090,7 +2095,7 @@ function generarFactura($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_co
                         ));
                     } else {
                         array_push($arrayproductos, array(
-                            'NmbItem' => $producto["variedad"] . " (" . $producto["codigo"] . ") " . ($producto["especie"] && strlen($producto["especie"]) > 0 ? $producto["especie"] : ""),
+                            'NmbItem' => $nmbItem,
                             'DscItem' => $comentario,
                             'QtyItem' => (int) $producto["cantidad"],
                             'PrcItem' => (int) $producto["precio"],
@@ -2099,21 +2104,21 @@ function generarFactura($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_co
                 } else {
                     if ($producto["descuento"] && $producto["descuento"]["tipo"] == "porcentual") {
                         array_push($arrayproductos, array(
-                            'NmbItem' => $producto["variedad"] . " (" . $producto["codigo"] . ") " . ($producto["especie"] && strlen($producto["especie"]) > 0 ? $producto["especie"] : ""),
+                            'NmbItem' => $nmbItem,
                             'QtyItem' => (int) $producto["cantidad"],
                             'PrcItem' => (int) $producto["precio"],
                             'DescuentoPct' => (int) $producto["descuento"]["valor"],
                         ));
                     } else if ($producto["descuento"] && $producto["descuento"]["tipo"] == "fijo") {
                         array_push($arrayproductos, array(
-                            'NmbItem' => $producto["variedad"] . " (" . $producto["codigo"] . ") " . ($producto["especie"] && strlen($producto["especie"]) > 0 ? $producto["especie"] : ""),
+                            'NmbItem' => $nmbItem,
                             'QtyItem' => (int) $producto["cantidad"],
                             'PrcItem' => (int) $producto["precio"],
                             'DescuentoMonto' => (int) $producto["descuento"]["valor"],
                         ));
                     } else {
                         array_push($arrayproductos, array(
-                            'NmbItem' => $producto["variedad"] . " (" . $producto["codigo"] . ") " . ($producto["especie"] && strlen($producto["especie"]) > 0 ? $producto["especie"] : ""),
+                            'NmbItem' => $nmbItem,
                             'QtyItem' => (int) $producto["cantidad"],
                             'PrcItem' => (int) $producto["precio"]
                         ));
@@ -2228,8 +2233,11 @@ function generarFactura($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_co
 
 function limpiarYRecortar($texto, $limite = 100)
 {
+    // Reemplazar diferentes tipos de guiones con un espacio
+    $textoSinGuiones = preg_replace('/[‐‑‒–—−]/u', ' ', $texto);
+
     // Eliminar espacios extra y normalizar a un solo espacio
-    $textoLimpio = preg_replace('/\s+/', ' ', trim($texto));
+    $textoLimpio = preg_replace('/\s+/', ' ', trim($textoSinGuiones));
 
     // Recortar a 100 caracteres si es necesario
     return mb_substr($textoLimpio, 0, $limite);
@@ -2252,7 +2260,7 @@ function generarBoleta($json, $dataFolio, $folio, $id_guia, $folio_guia, $id_cot
         foreach ($dataCotizacion["productos"] as $producto) {
             $prod = $producto["variedad"] . " (" . $producto["codigo"] . ") " . ($producto["especie"] && strlen($producto["especie"]) > 0 ? $producto["especie"] : "");
             array_push($arrayproductos, array(
-                'NmbItem' => trim($prod),
+                'NmbItem' => limpiarYRecortar($prod),
                 'QtyItem' => (int) $producto["cantidad"],
                 'PrcItem' => (int) $producto["precio"],
                 'DescuentoPct' => $producto["descuento"] && $producto["descuento"]["tipo"] == "porcentual" ? (int) $producto["descuento"]["valor"] : false,
@@ -2630,7 +2638,7 @@ function getDataFactura($con, $rowid_factura, $esFactDirecta, $esBoleta = false)
             $productos = array();
             while ($ww2 = mysqli_fetch_array($val2)) {
                 array_push($productos, array(
-                    'NmbItem' => $ww2["nombre_variedad"] . " " . $ww2["nombre_especie"] . "(" . $ww2["codigo_tipo"] . str_pad($ww2["id_variedad"], 2, '0', STR_PAD_LEFT) . ") " . ($ww2["nombre_especie"] && strlen($ww2["nombre_especie"]) > 0 ? $ww2["nombre_especie"] : ""),
+                    'NmbItem' => limpiarYRecortar($ww2["nombre_variedad"] . " " . $ww2["nombre_especie"] . "(" . $ww2["codigo_tipo"] . str_pad($ww2["id_variedad"], 2, '0', STR_PAD_LEFT) . ") " . ($ww2["nombre_especie"] && strlen($ww2["nombre_especie"]) > 0 ? $ww2["nombre_especie"] : "")),
                     'QtyItem' => (int) $ww2["cantidad"],
                     'PrcItem' => (int) $ww2["precio"],
                     'DescuentoPct' => ($ww2["tipo_descuento"] != null && $ww2["tipo_descuento"] == 1) ? (int) $ww2["valor_descuento"] : false,
@@ -2838,7 +2846,7 @@ function generarGuiaDespacho($dataFolio, $folio, $json)
     $productos = [];
     foreach ($json["productos"] as $producto) {
         array_push($productos, array(
-            'NmbItem' => $producto["variedad"] . " (" . $producto["codigo"] . ") " . ($producto["especie"] && strlen($producto["especie"]) > 0 ? $producto["especie"] : ""),
+            'NmbItem' => limpiarYRecortar($producto["variedad"] . " (" . $producto["codigo"] . ") " . ($producto["especie"] && strlen($producto["especie"]) > 0 ? $producto["especie"] : "")),
             'QtyItem' => (int) $producto["cantidad"],
             'PrcItem' => (int) $producto["precio"],
             'DescuentoPct' => ($producto["descuento"] && $producto["descuento"]["tipo"] != null && $producto["descuento"]["tipo"] == "porcentual") ? (int) $producto["descuento"]["valor"] : false,
