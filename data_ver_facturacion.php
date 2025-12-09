@@ -1221,7 +1221,7 @@ UNION
     $patente_camion = safe($datos["patente_camion"], $con);
     $patente_carro = safe($datos["patente_carro"], $con);
     $empresa_transporte = safe($datos["empresa_transporte"], $con);
-    $fecha_despacho = safe($datos["fecha_despacho"], $con);
+    $fecha_despacho = empty($datos["fecha_despacho"]) ? 'NULL' : "'" . safe($datos["fecha_despacho"], $con) . "'";
 
     $sustratos_nombre = safe($datos["sustratos_nombre"], $con);
     $sustratos_cantidad = safe($datos["sustratos_cantidad"], $con);
@@ -1260,7 +1260,7 @@ UNION
             observaciones, nombre_despachador, rut_despachador, fecha
         ) VALUES (
             $id_guia,
-            '$codigo', '$patente_camion', '$patente_carro', '$empresa_transporte', '$fecha_despacho',
+            '$codigo', '$patente_camion', '$patente_carro', '$empresa_transporte', $fecha_despacho,
             '$sustratos_nombre', '$sustratos_cantidad',
             '$material_vegetal_sin_suelo_nombre', '$material_vegetal_sin_suelo_cantidad',
             '$material_vegetal_esterilizado_nombre', '$material_vegetal_esterilizado_cantidad',
