@@ -682,6 +682,7 @@ if ($consulta == "generar_factura") {
             }
         } else {
             array_push($arrErrores, "ERROR_ENVIO_SII");
+            die(json_encode($DTEGenerado["errores"]));
         }
     } else {
         array_push($arrErrores, "ERROR_INSERT_NC");
