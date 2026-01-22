@@ -46,7 +46,7 @@ sasco\LibreDTE\Sii::setServidor('maullin');
 $consulta = $_POST["consulta"];
 $GLOBALS['empresa'] = null;
 $dir_logo = null;
-if ($consulta == "generar_factura" || $consulta == "enviar_mail" || $consulta == "generar_factura_directa" || $consulta == "generar_boleta_directa" || $consulta == "anular_factura" || $consulta == "anular_factura_antigua" || $consulta == "anular_nc" || $consulta == "get_estado_dte" || $consulta == "imprimir_dte" || $consulta == "generar_guia_despacho" || $consulta == "generar_guia_despacho_desde_cotizaciones" || $consulta == "check_estado_real" || $consulta == "reenviar_factura" || $consulta == "reenviar_nota_credito" || $consulta == "reenviar_nota_debito" || $consulta == "reenviar_guia_despacho" || $consulta == "get_ambiente" || $consulta == "generar_boleta") {
+if ($consulta == "generar_factura" || $consulta == "enviar_mail" || $consulta == "generar_factura_directa" || $consulta == "generar_boleta_directa" || $consulta == "anular_factura" || $consulta == "anular_factura_antigua" || $consulta == "anular_nc" || $consulta == "get_estado_dte" || $consulta == "imprimir_dte" || $consulta == "generar_guia_despacho" || $consulta == "generar_guia_despacho_desde_cotizaciones" || $consulta == "check_estado_real" || $consulta == "reenviar_factura" || $consulta == "reenviar_nota_credito" || $consulta == "reenviar_nota_debito" || $consulta == "reenviar_guia_despacho" || $consulta == "get_ambiente" || $consulta == "generar_boleta" || $consulta == "nc_modifica_factura") {
     $query = "SELECT
             d.rut,
             d.razon_social as razon,
