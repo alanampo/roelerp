@@ -98,6 +98,7 @@ if ($consulta == "cargar_historial") { //FACTURAS
             $esFactDirecta = ($ww["id_cotizacion_directa"] != null ? "true" : "false");
 
             $btn_cancelar_factura = ($ww["estado"] == "ACEPTADO" ? "<button onclick='modalAnularFactura($ww[rowid], $ww[folio], $esFactDirecta, $ww[id_cliente])' class='btn btn-danger fa fa-ban btn-sm mr-2'></button>" : "");
+            $btn_nc_modifica = ($ww["estado"] == "ACEPTADO" ? "<button onclick='modalNCModifica($ww[rowid], $ww[folio], $esFactDirecta, $ww[id_cliente])' class='btn btn-warning fa fa-edit btn-sm mr-2' title='NC Modifica Texto'></button>" : "");
             $btn_print = ($ww["track_id"] ? "<button onclick='printDTE(this, $ww[rowid], $ww[folio], 0)' class='btn btn-primary fa fa-print btn-sm mr-2'></button>" : "");
             $btn_print .= "<button onclick='generarGuiaTransito(this, $ww[rowid], $ww[folio], \"$ww[fecha]\", \"$ww[cliente]\", \"$ww[domicilio]\", \"$ww[comuna]\", \"$ww[id_cotizacion_directa]\", \"$ww[telefono]\", \"$ww[rut_cliente]\", \"factura\", \"$ww[provincia]\", \"$ww[region]\")' class='btn btn-info btn-sm d-inline-block px-1 py-1'><small>SAG</small></button>";
             $btn_descargar_xml = ($ww["track_id"] ? "<button onclick='downloadXML(this, $ww[rowid], $ww[folio])' class='btn btn-primary btn-sm ml-2 mr-2 px-1' style='font-size:10px;'>XML INT</button>" : "");
@@ -176,6 +177,7 @@ if ($consulta == "cargar_historial") { //FACTURAS
                         </div>
                         <div class='mt-2 d-flex flex-row justify-content-center align-items-center'>
                             $btn_cancelar_factura
+                            $btn_nc_modifica
                             $btn_eliminar
                             $btn_enviar
                         </div>
@@ -271,6 +273,7 @@ if ($consulta == "cargar_historial") { //FACTURAS
             $esFactDirecta = ($ww["id_cotizacion_directa"] != null ? "true" : "false");
 
             $btn_cancelar_factura = ($ww["estado"] == "ACEPTADO" ? "<button onclick='modalAnularFactura($ww[rowid], $ww[folio], $esFactDirecta, $ww[id_cliente], true)' class='btn btn-danger fa fa-ban btn-sm mr-2'></button>" : "");
+            $btn_nc_modifica = ($ww["estado"] == "ACEPTADO" ? "<button onclick='modalNCModifica($ww[rowid], $ww[folio], $esFactDirecta, $ww[id_cliente], true)' class='btn btn-warning fa fa-edit btn-sm mr-2' title='NC Modifica Texto'></button>" : "");
             $btn_print = ($ww["track_id"] ? "<button onclick='printDTE(this, $ww[rowid], $ww[folio], 10)' class='btn btn-primary fa fa-print btn-sm mr-2'></button>" : "");
 
             $montoint = (int) $ww["monto"];
@@ -337,6 +340,7 @@ if ($consulta == "cargar_historial") { //FACTURAS
                         </div>
                         <div class='mt-2 d-flex flex-row justify-content-center align-items-center'>
                             $btn_cancelar_factura
+                            $btn_nc_modifica
                             $btn_eliminar
                             $btn_enviar
                         </div>

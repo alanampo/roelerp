@@ -431,6 +431,73 @@ include './class_lib/main_footer.php';
       </div>
 
       <div
+        id="modal-nc-modifica"
+        class="modal"
+        data-keyboard="false"
+        data-backdrop="static"
+      >
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">NC Modificación de Texto</h5>
+              <button
+                type="button"
+                class="close"
+                data-dismiss="modal"
+                aria-label="Close"
+              >
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <?php include "loader.php";?>
+              <div class="row-select-folio-nc"></div>
+
+              <div class="row mt-3">
+                <div class="col-md-12">
+                  <h6>Ítems de Corrección (Monto $0)</h6>
+                  <table class="table table-bordered" id="tabla-items-nc-modifica">
+                    <thead>
+                      <tr>
+                        <th style="width: 80%">Descripción</th>
+                        <th style="width: 20%">Acción</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr class="tr-add-item">
+                        <td colspan="2" class="text-center">
+                          <button onclick="agregarItemNCModifica()" class="btn btn-success btn-sm">
+                            <i class="fa fa-plus"></i> Agregar Ítem
+                          </button>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div class="row mt-2">
+                <div class="col-md-12 form-group">
+                  <label class="col-form-label" for="input-comentario-nc-modifica"
+                    >Comentario General (Opcional):</label
+                  >
+                  <input
+                    type="search"
+                    autocomplete="off"
+                    class="form-control"
+                    name="input-comentario-nc-modifica"
+                    id="input-comentario-nc-modifica"
+                    maxlength="100"
+                    placeholder="Ej: Corrección de texto según lo solicitado"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div
         id="modal-guia-despacho"
         class="modal"
         data-keyboard="false"

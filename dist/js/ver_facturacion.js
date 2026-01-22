@@ -4203,11 +4203,230 @@ function renderizarOrdenesParaImprimir(ordenes) {
       if (printStyleTag) {
         document.head.removeChild(printStyleTag);
       }
-      
+
       // Restaurar interfaz
       document.getElementById("ocultar").style.display = "block";
       $(".print-orden-envio").css({ display: "none" });
       $(".print-orden-envio").html("");
     }, 1000);
   }, 500);
+}
+
+// ============================================
+// FUNCIONES PARA NC MODIFICACIÓN DE TEXTO
+// ============================================
+
+function modalNCModifica(rowid, folio, esFactDirecta, id_cliente, esBoleta) {
+  $("#modal-nc-modifica").attr("x-id-cliente", id_cliente);
+  $("#modal-nc-modifica").attr("x-fact-directa", esFactDirecta);
+  $("#modal-nc-modifica").attr("x-rowid-factura", rowid);
+  $("#modal-nc-modifica").attr("x-folio-factura", folio);
+  $("#modal-nc-modifica").attr("x-es-boleta", esBoleta ? "1" : "0");
+
+  // Limpiar items anteriores
+  $("#tabla-items-nc-modifica tbody tr:not(.tr-add-item)").remove();
+  $("#input-comentario-nc-modifica").val("");
+
+  // Cargar folios disponibles
+  getFoliosDisponiblesNCModifica(rowid, folio, esBoleta);
+
+  $("#modal-nc-modifica").modal("show");
+}
+
+function getFoliosDisponiblesNCModifica(rowid, folioFactura, esBoleta) {
+  $.ajax({
+    beforeSend: function () {
+      $(".row-select-folio-nc").html(`
+        <div class='col text-center'>
+          <div class='py-2 mt-3'>
+            <h5>Cargando folios disponibles...</h5>
+          </div>
+        </div>
+      `);
+    },
+    url: "data_ver_facturacion.php",
+    type: "POST",
+    data: {
+      consulta: "cargar_folios_disponibles",
+      tipoDocumento: 61, // Nota de Crédito
+    },
+    success: function (x) {
+      if (x && x.length && x !== "nohay") {
+        const data = JSON.parse(x);
+        $(".row-select-folio-nc").html(`
+          <div class='col'>
+            <h5>Factura a Modificar: <span class="text-primary">${folioFactura}</span></h5>
+            <h5>Folio NC Disponible: <span class="text-success">${data.folio}</span></h5>
+            <button
+              onclick="generarNCModifica(${rowid}, ${folioFactura}, ${data.folio}, ${data.rowid_caf})"
+              class='btn btn-warning btn-block mt-3'>
+              <i class='fa fa-edit'></i> GENERAR NC MODIFICACIÓN
+            </button>
+          </div>
+        `);
+      } else {
+        $(".row-select-folio-nc").html(`
+          <div class='col text-center'>
+            <h5 class='text-danger'>No hay folios disponibles para Notas de Crédito</h5>
+            <button onclick='location.reload()' class='btn btn-primary mt-2'>
+              <i class='fa fa-refresh'></i> Recargar
+            </button>
+          </div>
+        `);
+      }
+    },
+    error: function (jqXHR, estado, error) {
+      $(".row-select-folio-nc").html(`
+        <div class='col text-center'>
+          <h5 class='text-danger'>Error al cargar folios</h5>
+        </div>
+      `);
+    },
+  });
+}
+
+function agregarItemNCModifica() {
+  const index = $("#tabla-items-nc-modifica tbody tr:not(.tr-add-item)").length + 1;
+
+  const itemRow = `
+    <tr class="tr-item-nc">
+      <td>
+        <input
+          type="text"
+          class="form-control input-descripcion-nc"
+          placeholder="Ej: Donde dice 'poinsetia' debe decir 'plantas y flores'"
+          maxlength="200"
+        />
+      </td>
+      <td class="text-center">
+        <button
+          onclick="$(this).closest('tr').remove()"
+          class="btn btn-danger btn-sm">
+          <i class="fa fa-trash"></i>
+        </button>
+      </td>
+    </tr>
+  `;
+
+  $("#tabla-items-nc-modifica tbody .tr-add-item").before(itemRow);
+}
+
+function generarNCModifica(rowidFactura, folioFactura, folioNC, cafNC) {
+  const items = [];
+  let hasEmptyItems = false;
+
+  // Recoger todos los ítems
+  $("#tabla-items-nc-modifica tbody .tr-item-nc").each(function() {
+    const descripcion = $(this).find(".input-descripcion-nc").val().trim();
+
+    if (descripcion.length > 0) {
+      items.push({
+        descripcion: descripcion,
+        monto: 0
+      });
+    } else {
+      hasEmptyItems = true;
+    }
+  });
+
+  // Validaciones
+  if (items.length === 0) {
+    swal("Debes agregar al menos un ítem de corrección", "", "error");
+    return;
+  }
+
+  if (hasEmptyItems) {
+    swal("Todos los ítems deben tener una descripción", "", "error");
+    return;
+  }
+
+  const comentario = $("#input-comentario-nc-modifica").val().trim();
+  const idCliente = $("#modal-nc-modifica").attr("x-id-cliente");
+  const esFactDirecta = $("#modal-nc-modifica").attr("x-fact-directa") === "true";
+  const esBoleta = $("#modal-nc-modifica").attr("x-es-boleta") === "1";
+
+  // Confirmación
+  swal({
+    title: "¿Generar NC de Modificación?",
+    text: `Se generará una NC con ${items.length} ítem(s) de corrección con monto $0`,
+    icon: "info",
+    buttons: {
+      cancel: "Cancelar",
+      confirm: {
+        text: "Generar NC",
+        value: true,
+      }
+    }
+  }).then((confirm) => {
+    if (confirm) {
+      $(".loading-wrapper").css({ display: "flex" });
+
+      $.ajax({
+        type: "POST",
+        url: "class_lib/libredte/vendor/sasco/libredte/examples/data_facturacion_dte.php",
+        data: {
+          consulta: "nc_modifica_factura",
+          rowid: rowidFactura,
+          folio: folioNC,
+          caf: cafNC,
+          folioRef: folioFactura,
+          items: JSON.stringify(items),
+          comentario: comentario,
+          id_cliente: idCliente,
+          esFactDirecta: esFactDirecta,
+          esBoleta: esBoleta ? 1 : 0
+        },
+        success: function (x) {
+          console.log(x);
+
+          if (x.includes("path")) {
+            const data = JSON.parse(x);
+            window.open(`verpdf.php?tipo=NC&folio=${folioNC}&file=${data.path}`, "_blank").focus();
+
+            $(".loading-wrapper").css({ display: "none" });
+            $("#modal-nc-modifica").modal("hide");
+
+            swal(
+              "NC de Modificación generada correctamente!",
+              "Chequea su estado en Notas de Crédito",
+              "success"
+            );
+
+            setTimeout(() => {
+              loadNotas();
+              if (currentTab === "historial") {
+                loadHistorial();
+              } else if (currentTab === "historialboletas") {
+                loadHistorialBoletas();
+              }
+            }, 1000);
+
+          } else if (x.includes("SII_SUCCESS_BUT")) {
+            $(".loading-wrapper").css({ display: "none" });
+            $("#modal-nc-modifica").modal("hide");
+            swal(
+              "La NC se envió al SII, pero hubo un error en la BD",
+              "Contacta a soporte: " + x,
+              "error"
+            );
+          } else if (x.includes("ERROR_ENVIO_SII")) {
+            $(".loading-wrapper").css({ display: "none" });
+            $("#modal-nc-modifica").modal("hide");
+            swal(
+              "Error al enviar la NC al SII",
+              "Deberás buscar la NC en el Historial e intentar reenviarla",
+              "error"
+            );
+          } else {
+            swal("Ocurrió un error al generar la NC", x, "error");
+            $(".loading-wrapper").css({ display: "none" });
+          }
+        },
+        error: function (jqXHR, estado, error) {
+          $(".loading-wrapper").css({ display: "none" });
+          swal("Error de conexión", estado + " " + error, "error");
+        }
+      });
+    }
+  });
 }

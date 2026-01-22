@@ -589,6 +589,109 @@ if ($consulta == "generar_factura") {
         echo (json_encode($arrErrores));
     }
     mysqli_close($con);
+} else if ($consulta == "nc_modifica_factura") { // GENERAR NOTA DE CREDITO DE MODIFICACIÓN
+    $rowid_factura = $_POST["rowid"];
+    $folio = $_POST["folio"];
+    $folio_factura = $_POST["folioRef"];
+    $caf = $_POST["caf"];
+    $id_cliente = $_POST["id_cliente"];
+    $esBoleta = isset($_POST["esBoleta"]) && $_POST["esBoleta"] == 1 ? TRUE : FALSE;
+    $esFactDirecta = (boolean) json_decode(strtolower($_POST["esFactDirecta"]));
+    $comentario = mysqli_real_escape_string($con, $_POST["comentario"]);
+    $items = json_decode($_POST["items"], true);
+    $arrErrores = array();
+    $dir_logo = getDataLogo();
+
+    $tabla = $esBoleta ? "boleta" : "factura";
+    $tabla_plural = $esBoleta ? "boletas" : "facturas";
+
+    // Validar que haya items
+    if (!$items || count($items) === 0) {
+        echo json_encode(["ERROR_NO_ITEMS"]);
+        exit;
+    }
+
+    // Obtener la fecha de la factura original
+    $query_fecha = "SELECT DATE_FORMAT(fecha, '%Y-%m-%d') as fecha_factura FROM $tabla_plural WHERE rowid = $rowid_factura";
+    $val_fecha = mysqli_query($con, $query_fecha);
+    if (!$val_fecha || mysqli_num_rows($val_fecha) === 0) {
+        echo json_encode(["ERROR_GET_FECHA_FACTURA"]);
+        exit;
+    }
+    $fecha_factura = mysqli_fetch_assoc($val_fecha)["fecha_factura"];
+
+    // Insertar NC en la base de datos
+    $query = "INSERT INTO notas_credito (
+        folio,
+        fecha,
+        id_$tabla,
+        caf,
+        comentario,
+        id_cliente,
+        estado
+        ) VALUES (
+            $folio,
+            NOW(),
+            $rowid_factura,
+            $caf,
+            'NC MODIFICA TEXTO',
+            $id_cliente,
+            'NOENV'
+        )";
+
+    if (mysqli_query($con, $query)) { // SE INSERTO LA NOTA DE CREDITO
+        $id_nc = mysqli_insert_id($con);
+
+        // Obtener datos de la factura
+        $dataFactura = getDataFactura($con, $rowid_factura, $esFactDirecta, $esBoleta);
+        if ($dataFactura == null) {
+            die("[ERROR_GET_DATA_FACTURA]");
+        }
+
+        $tmpFolios = getDataFolios($con, $caf, null);
+        if ($tmpFolios == null) {
+            die("[ERROR_GET_CAF]");
+        }
+
+        $dataFolio = $tmpFolios["data"];
+
+        // Generar la NC de modificación con la fecha de la factura
+        $DTEGenerado = generarNotaCreditoModificacion($dataFolio, $folio, $folio_factura, $fecha_factura, $dataFactura, $items, $comentario, $esBoleta);
+
+        if (!isset($DTEGenerado["errores"]) && isset($DTEGenerado["trackID"])) {
+            mysqli_autocommit($con, false);
+            $track_id = $DTEGenerado["trackID"];
+            $datita = $DTEGenerado["data"];
+
+            // NO actualizamos el estado de la factura porque es una NC de modificación, no de anulación
+            // La factura sigue siendo válida y vigente
+
+            $query = "UPDATE notas_credito SET track_id = '$track_id', data = '$datita', estado = 'EPR' WHERE rowid = $id_nc";
+            if (!mysqli_query($con, $query)) {
+                array_push($errores, mysqli_error($con));
+                array_push($arrErrores, "SII_SUCCESS_BUT_ERROR_UPDATE_TRACKID");
+            }
+
+            if (count($arrErrores) === 0) {
+                if (mysqli_commit($con)) {
+                    checkEstadoAndUpdate($id_nc, 1, $con, $track_id);
+                    generarPDF(base64_decode($datita), $dir_logo, $track_id, null);
+                } else {
+                    mysqli_rollback($con);
+                }
+            }
+        } else {
+            array_push($arrErrores, "ERROR_ENVIO_SII");
+        }
+    } else {
+        array_push($arrErrores, "ERROR_INSERT_NC");
+        array_push($errores, mysqli_error($con));
+    }
+
+    if (count($arrErrores) > 0) {
+        echo (json_encode($arrErrores));
+    }
+    mysqli_close($con);
 } else if ($consulta == "anular_factura_antigua") {
     $id_cliente = $_POST["id_cliente"];
     $comentario = mysqli_real_escape_string($con, $_POST["observaciones"]);
@@ -2812,6 +2915,115 @@ function generarNotaDebito($dataFolio, $folio, $folio_nc, $dataFactura)
     $caratula = $GLOBALS["caratula"];
     //$caratula["RutReceptor"] = $dataFactura["rut"];
     // enviar dtes y mostrar resultado del envío: track id o bien =false si hubo error
+    $EnvioDTE->setCaratula($caratula);
+    $EnvioDTE->setFirma($GLOBALS["Firma"]);
+
+    $dataDTE = $EnvioDTE->generar();
+    $datita = base64_encode($dataDTE);
+
+    $track_id = $EnvioDTE->enviar();
+
+    $err = array();
+    foreach (\sasco\LibreDTE\Log::readAll() as $error) {
+        array_push($err, $error);
+    }
+
+    if (count($err) > 0) {
+        return array(
+            "errores" => $err,
+        );
+    } else if (!$track_id) {
+        return array(
+            "errores" => "Error al enviar al SII",
+        );
+    } else {
+        return array(
+            "trackID" => $track_id,
+            "data" => $datita,
+        );
+    }
+}
+
+function generarNotaCreditoModificacion($dataFolio, $folio, $folio_factura, $fecha_factura, $dataFactura, $items, $comentario, $esBoleta = false)
+{
+    // Construir el detalle con los ítems de corrección (todos con monto 0)
+    $detalle = [];
+    foreach ($items as $item) {
+        $descripcion_completa = $item['descripcion'];
+
+        $detalle[] = [
+            'NmbItem' => 'Corrección de texto',
+            'DscItem' => mb_substr(limpiarYRecortar($descripcion_completa), 0, 1000), // Descripción detallada del cambio
+            'QtyItem' => 1,
+            'PrcItem' => 0,
+            'MontoItem' => 0,
+        ];
+    }
+
+    // Construir la razón de referencia según normativa SII
+    $razonRef = "Correccion de texto";
+    if (!empty($comentario)) {
+        $razonRef .= ": " . mb_substr(strtoupper($comentario), 0, 70);
+    } else {
+        $razonRef .= ": nombre producto (sin efecto monetario)";
+    }
+
+    // datos de los DTE (cada elemento del arreglo $set_pruebas es un DTE)
+    $set_pruebas = [
+        [
+            'Encabezado' => [
+                'IdDoc' => [
+                    'TipoDTE' => 61,
+                    'Folio' => $folio,
+                ],
+                'Emisor' => $GLOBALS["Emisor"],
+                'Receptor' => [
+                    'RUTRecep' => $dataFactura["rut"],
+                    'RznSocRecep' => $dataFactura["cliente"],
+                    'GiroRecep' => $dataFactura["giro"] ? strtoupper($dataFactura["giro"]) : "-",
+                    'DirRecep' => $dataFactura["domicilio"],
+                    'CmnaRecep' => $dataFactura["comuna"] ? strtoupper($dataFactura["comuna"]) : "-",
+                ],
+                'Totales' => [
+                    'MntNeto' => 0,
+                    'TasaIVA' => \sasco\LibreDTE\Sii::getIVA(),
+                    'IVA' => 0,
+                    'MntTotal' => 0,
+                ],
+            ],
+            'Detalle' => $detalle,
+            'Referencia' => [
+                [
+                    'TpoDocRef' => $esBoleta ? 39 : 33, // 33 = Factura Electrónica, 39 = Boleta Electrónica
+                    'FolioRef' => $folio_factura, // Folio de la factura original
+                    'FchRef' => $fecha_factura, // Fecha de la factura original (formato YYYY-MM-DD)
+                    'CodRef' => 2, // 2 = Corrección de texto del documento de referencia (según normativa SII)
+                    'RazonRef' => $razonRef,
+                ],
+            ],
+        ],
+    ];
+
+    $Folios = [];
+    $Folios[61] = new \sasco\LibreDTE\Sii\Folios($dataFolio);
+
+    $EnvioDTE = new \sasco\LibreDTE\Sii\EnvioDte();
+
+    // generar cada DTE, timbrar, firmar y agregar al sobre de EnvioDTE
+    foreach ($set_pruebas as $documento) {
+        $DTE = new \sasco\LibreDTE\Sii\Dte($documento);
+        if (!$DTE->timbrar($Folios[$DTE->getTipo()])) {
+            break;
+        }
+
+        if (!$DTE->firmar($GLOBALS["Firma"])) {
+            break;
+        }
+        $EnvioDTE->agregar($DTE);
+    }
+
+    // enviar dtes y mostrar resultado del envío: track id o bien =false si hubo error
+    $caratula = $GLOBALS["caratula"];
     $EnvioDTE->setCaratula($caratula);
     $EnvioDTE->setFirma($GLOBALS["Firma"]);
 
