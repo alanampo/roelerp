@@ -2948,6 +2948,7 @@ function generarNotaDebito($dataFolio, $folio, $folio_nc, $dataFactura)
 function generarNotaCreditoModificacion($dataFolio, $folio, $folio_factura, $fecha_factura, $dataFactura, $items, $comentario, $esBoleta = false)
 {
     // Construir el detalle con los ítems de corrección (todos con monto 0)
+    // Usamos PrcItem > 0 con descuento 100% para cumplir con esquema XSD del SII
     $detalle = [];
     foreach ($items as $item) {
         $descripcion_completa = $item['descripcion'];
@@ -2956,7 +2957,8 @@ function generarNotaCreditoModificacion($dataFolio, $folio, $folio_factura, $fec
             'NmbItem' => 'Corrección de texto',
             'DscItem' => mb_substr(limpiarYRecortar($descripcion_completa), 0, 1000), // Descripción detallada del cambio
             'QtyItem' => 1,
-            'PrcItem' => 0,
+            'PrcItem' => 100, // Precio positivo requerido por XSD (min: 0.000001)
+            'DescuentoMonto' => 100, // Descuento igual al precio para MontoItem = 0
             'MontoItem' => 0,
         ];
     }
