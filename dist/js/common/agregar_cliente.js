@@ -44,19 +44,19 @@ function MostrarModalAgregarCliente() {
 }
 
 function GuardarCliente() {
-  const nombre = $("#nombrecliente_txt").val().trim();
-  const domicilio = $("#domiciliocliente_txt").val().trim();
-  const domicilio2 = $("#domiciliocliente2_txt").val().trim();
-  const telefono = $("#telcliente_txt").val().trim();
-  const rut = $("#rutcliente_txt").val().trim();
-  const razonSocial = $("#razonsocial_txt").val().trim();
-  const mail = $("#mailcliente_txt").val().trim();
-  const comuna = $("#select-comuna2 option:selected").val();
-  const provincia = $("#provinciacliente_txt").val();
-  const region = $("#regioncliente_txt").val();
+  const nombre = $("#ModalAgregarCliente #nombrecliente_txt").val().trim();
+  const domicilio = $("#ModalAgregarCliente #domiciliocliente_txt").val().trim();
+  const domicilio2 = $("#ModalAgregarCliente #domiciliocliente2_txt").val().trim();
+  const telefono = $("#ModalAgregarCliente #telcliente_txt").val().trim();
+  const rut = $("#ModalAgregarCliente #rutcliente_txt").val().trim();
+  const razonSocial = $("#ModalAgregarCliente #razonsocial_txt").val().trim();
+  const mail = $("#ModalAgregarCliente #mailcliente_txt").val().trim();
+  const comuna = $("#ModalAgregarCliente #select-comuna2 option:selected").val();
+  const provincia = $("#ModalAgregarCliente #provinciacliente_txt").val();
+  const region = $("#ModalAgregarCliente #regioncliente_txt").val();
 
   // Solo enviar id_vendedor al agregar nuevo cliente, no al editar
-  const id_vendedor = !edit_mode ? $("#select-vendedor option:selected").val() : null;
+  const id_vendedor = !edit_mode ? $("#ModalAgregarCliente #select-vendedor option:selected").val() : null;
 
   if (nombre.length < 3) {
     swal("Debes ingresar un nombre de al menos 3 letras", "", "error");
@@ -240,19 +240,19 @@ function MostrarModalModificarCliente(id_cliente) {
 }
 
 function setRazonSocial() {
-  const nombre = $("#nombrecliente_txt").val().trim();
+  const nombre = $("#ModalAgregarCliente #nombrecliente_txt").val().trim();
 
   if (nombre && nombre.length) {
-    $("#razonsocial_txt").val(nombre);
+    $("#ModalAgregarCliente #razonsocial_txt").val(nombre);
   }
 }
 
 // Aplicar cambio de vendedor desde el modal de editar cliente
 function aplicarCambioVendedor() {
   const id_cliente = global_id_cliente;
-  const id_vendedor_nuevo = $("#select-nuevo-vendedor-edit").val();
+  const id_vendedor_nuevo = $("#ModalAgregarCliente #select-nuevo-vendedor-edit").val();
   const id_vendedor_anterior = window.id_vendedor_actual_global;
-  const justificacion = $("#justificacion-cambio-edit").val().trim();
+  const justificacion = $("#ModalAgregarCliente #justificacion-cambio-edit").val().trim();
 
   // Validaciones
   if (!id_vendedor_nuevo || id_vendedor_nuevo == 'default') {
