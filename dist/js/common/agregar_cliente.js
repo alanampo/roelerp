@@ -52,8 +52,8 @@ function GuardarCliente() {
   const razonSocial = $("#razonsocial_txt").val().trim();
   const mail = $("#mailcliente_txt").val().trim();
   const comuna = $("#select-comuna2 option:selected").val();
-  const provincia = $("#provinciacliente_txt").val().trim();
-  const region = $("#regioncliente_txt").val().trim();
+  const provincia = $("#provinciacliente_txt").val();
+  const region = $("#regioncliente_txt").val();
 
   // Solo enviar id_vendedor al agregar nuevo cliente, no al editar
   const id_vendedor = !edit_mode ? $("#select-vendedor option:selected").val() : null;
