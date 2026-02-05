@@ -49,11 +49,41 @@ else if ($consulta == "pone_clientes"){
 }
 else if ($consulta == "eliminar_cliente"){
     $id_cliente = $_POST["id_cliente"];
-    if (mysqli_query($con, "DELETE FROM clientes WHERE id_cliente = $id_cliente;")){
+    
+    mysqli_begin_transaction($con);
+
+    try {
+        // 1. Eliminar usuario asociado (si existe)
+        $query_delete_user = "DELETE FROM usuarios WHERE id_cliente = ?";
+        if ($stmt_user = mysqli_prepare($con, $query_delete_user)) {
+            mysqli_stmt_bind_param($stmt_user, "i", $id_cliente);
+            if (!mysqli_stmt_execute($stmt_user)) {
+                throw new Exception(mysqli_error($con));
+            }
+            mysqli_stmt_close($stmt_user);
+        } else {
+            throw new Exception("Error al preparar la consulta de eliminación de usuario: " . mysqli_error($con));
+        }
+
+        // 2. Eliminar cliente
+        $query_delete_client = "DELETE FROM clientes WHERE id_cliente = ?";
+        if ($stmt_client = mysqli_prepare($con, $query_delete_client)) {
+            mysqli_stmt_bind_param($stmt_client, "i", $id_cliente);
+            if (!mysqli_stmt_execute($stmt_client)) {
+                throw new Exception(mysqli_error($con));
+            }
+            mysqli_stmt_close($stmt_client);
+        } else {
+            throw new Exception("Error al preparar la consulta de eliminación de cliente: " . mysqli_error($con));
+        }
+
+        mysqli_commit($con);
         echo "success";
-    }
-    else{
-        print_r(mysqli_error($con));
+
+    } catch (Exception $e) {
+        mysqli_rollback($con);
+        error_log("Error al eliminar cliente y usuario: " . $e->getMessage());
+        print_r($e->getMessage());
     }
 }
 else if ($consulta == "pone_usuarios"){
