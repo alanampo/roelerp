@@ -28,7 +28,7 @@ if (isset($_POST['id'])) {
                 mail,
                 rut,
                 comuna,
-                provincia,
+                UPPER(provincia) as provincia,
                 UPPER(region) as region,
                 id_vendedor
               FROM clientes
