@@ -173,26 +173,26 @@ function MostrarModalModificarCliente(id_cliente) {
   let razon = $("#" + id_cliente)
     .closest("tr").attr("x-razon");
   let domicilio = $("#tabla")
-    .find("tr:eq(" + (parseInt(indice) + 1).toString() + ") td:eq(2)")
-    .text();
-    let domicilio2 = $("#tabla")
     .find("tr:eq(" + (parseInt(indice) + 1).toString() + ") td:eq(3)")
     .text();
-  let telefono = $("#tabla")
+    let domicilio2 = $("#tabla")
     .find("tr:eq(" + (parseInt(indice) + 1).toString() + ") td:eq(4)")
     .text();
-  let mail = $("#tabla")
+  let telefono = $("#tabla")
     .find("tr:eq(" + (parseInt(indice) + 1).toString() + ") td:eq(5)")
     .text();
-  let rut = $("#tabla")
+  let mail = $("#tabla")
     .find("tr:eq(" + (parseInt(indice) + 1).toString() + ") td:eq(6)")
+    .text();
+  let rut = $("#tabla")
+    .find("tr:eq(" + (parseInt(indice) + 1).toString() + ") td:eq(7)")
     .text();
   let comuna = $("#" + id_cliente)
     .closest("tr").attr("x-id-comuna")
   let id_vendedor = $("#" + id_cliente)
     .closest("tr").attr("x-id-vendedor")
   let vendedor_nombre = $("#tabla")
-    .find("tr:eq(" + (parseInt(indice) + 1).toString() + ") td:eq(11)")
+    .find("tr:eq(" + (parseInt(indice) + 1).toString() + ") td:eq(12)")
     .text();
 
   const tr = $("#tabla")
