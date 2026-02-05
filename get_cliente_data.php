@@ -29,7 +29,7 @@ if (isset($_POST['id'])) {
                 rut,
                 comuna,
                 provincia,
-                region,
+                UPPER(region) as region,
                 id_vendedor
               FROM clientes
               WHERE id_cliente = ?";
