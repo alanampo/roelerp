@@ -163,80 +163,95 @@ function pone_usuarios() {
 }
 
 function MostrarModalModificarCliente(id_cliente) {
-  let indice = $("#" + id_cliente)
-    .closest("tr")
-    .index();
-  let id = id_cliente.replace("cliente_", "");
-  let nombre = $("#tabla")
-    .find("tr:eq(" + (parseInt(indice) + 1).toString() + ") td:eq(1)")
-    .text();
-  let razon = $("#" + id_cliente)
-    .closest("tr").attr("x-razon");
-  let domicilio = $("#tabla")
-    .find("tr:eq(" + (parseInt(indice) + 1).toString() + ") td:eq(3)")
-    .text();
-    let domicilio2 = $("#tabla")
-    .find("tr:eq(" + (parseInt(indice) + 1).toString() + ") td:eq(4)")
-    .text();
-  let telefono = $("#tabla")
-    .find("tr:eq(" + (parseInt(indice) + 1).toString() + ") td:eq(5)")
-    .text();
-  let mail = $("#tabla")
-    .find("tr:eq(" + (parseInt(indice) + 1).toString() + ") td:eq(6)")
-    .text();
-  let rut = $("#tabla")
-    .find("tr:eq(" + (parseInt(indice) + 1).toString() + ") td:eq(7)")
-    .text();
-  let comuna = $("#" + id_cliente)
-    .closest("tr").attr("x-id-comuna")
-  let id_vendedor = $("#" + id_cliente)
-    .closest("tr").attr("x-id-vendedor")
-  let vendedor_nombre = $("#tabla")
-    .find("tr:eq(" + (parseInt(indice) + 1).toString() + ") td:eq(12)")
-    .text();
-
-  const tr = $("#tabla")
-  .find("tr:eq(" + (parseInt(indice) + 1).toString() + ")");
-  const provincia = $(tr).find(".td-provincia").text();
-  const region = $(tr).find(".td-region").text();
-  $("#select-comuna2").val("default").selectpicker("refresh");
-  $("#ModalAgregarCliente").find("#titulo").html("Modificar Cliente");
-  $("#nombrecliente_txt").val(nombre);
-  $("#razonsocial_txt").val(razon);
-  $("#domiciliocliente_txt").val(domicilio);
-  $("#domiciliocliente2_txt").val(domicilio2);
-  $("#telcliente_txt").val(telefono);
-  $("#mailcliente_txt").val(mail);
-  $("#rutcliente_txt").val(rut);
-  $("#select-comuna2").val(comuna).selectpicker("refresh")
-  $("#provinciacliente_txt").val(provincia);
-  $("#regioncliente_txt").val(region);
-
-  // Mostrar columna de editar vendedor, ocultar columna de agregar
-  $("#grupo-vendedor-agregar").hide();
-  $("#grupo-vendedor-editar").show();
-  $("#historial-vendedor-inline").hide();
-
-  // Guardar datos del vendedor actual
-  $("#vendedor-actual-nombre").text(vendedor_nombre || "Sin vendedor asignado");
-  $("#select-nuevo-vendedor-edit").val("default").selectpicker("refresh");
-  $("#justificacion-cambio-edit").val("");
-
-  // Mostrar/ocultar asterisco según si tiene vendedor
-  const tiene_vendedor = id_vendedor && id_vendedor != '' && id_vendedor != 'null';
-  if (tiene_vendedor) {
-    $("#asterisco-requerido-edit").show();
-    $("#texto-opcional-edit").hide();
-  } else {
-    $("#asterisco-requerido-edit").hide();
-    $("#texto-opcional-edit").show();
-  }
-
+  const id = id_cliente.replace("cliente_", "");
   global_id_cliente = id;
-  window.id_vendedor_actual_global = id_vendedor; // Para usar en aplicarCambioVendedor
   edit_mode = true;
-  $("#ModalAgregarCliente").modal("show");
-  document.getElementById("nombrecliente_txt").focus();
+
+  $.ajax({
+    url: 'get_cliente_data.php',
+    type: 'POST',
+    dataType: 'json',
+    data: { id: id },
+    beforeSend: function() {
+      // Opcional: Mostrar un loader
+      swal({
+        title: "Cargando cliente...",
+        text: "Por favor, espere.",
+        icon: "info",
+        buttons: false,
+        closeOnClickOutside: false,
+        closeOnEsc: false,
+      });
+    },
+    success: function(response) {
+      swal.close(); // Ocultar el loader
+      if(response.status === 'success') {
+        const cliente = response.data;
+        
+        // Limpiar y preparar modal
+        $("#ModalAgregarCliente").find("#titulo").html("Modificar Cliente");
+        $("#select-comuna2").val("default").selectpicker("refresh");
+
+        // Llenar los campos con los datos obtenidos
+        $("#nombrecliente_txt").val(cliente.nombre);
+        $("#razonsocial_txt").val(cliente.razon_social);
+        $("#domiciliocliente_txt").val(cliente.domicilio);
+        $("#domiciliocliente2_txt").val(cliente.domicilio2);
+        $("#telcliente_txt").val(cliente.telefono);
+        $("#mailcliente_txt").val(cliente.mail);
+        $("#rutcliente_txt").val(cliente.rut);
+        $("#select-comuna2").val(cliente.comuna).selectpicker("refresh");
+        $("#provinciacliente_txt").val(cliente.provincia);
+        $("#regioncliente_txt").val(cliente.region);
+
+        // Lógica para el cambio de vendedor
+        $("#grupo-vendedor-agregar").hide();
+        $("#grupo-vendedor-editar").show();
+        $("#historial-vendedor-inline").hide();
+
+        // No se puede obtener el nombre del vendedor de esta consulta.
+        // Se puede hacer otra consulta AJAX o modificar get_cliente_data.php
+        // Por ahora, se deja un placeholder.
+        $("#vendedor-actual-nombre").text("Cargando..."); 
+        $("#select-nuevo-vendedor-edit").val("default").selectpicker("refresh");
+        $("#justificacion-cambio-edit").val("");
+
+        // Cargar nombre del vendedor actual dinámicamente
+        $.ajax({
+            url: 'data_ver_clientes.php',
+            type: 'POST',
+            data: { consulta: 'obtener_vendedor_cliente', id_cliente: id },
+            success: function(res) {
+                const data = JSON.parse(res);
+                $("#vendedor-actual-nombre").text(data.vendedor || "Sin vendedor asignado");
+            }
+        });
+
+
+        const tiene_vendedor = cliente.id_vendedor && cliente.id_vendedor != '' && cliente.id_vendedor != 'null';
+        if (tiene_vendedor) {
+          $("#asterisco-requerido-edit").show();
+          $("#texto-opcional-edit").hide();
+        } else {
+          $("#asterisco-requerido-edit").hide();
+          $("#texto-opcional-edit").show();
+        }
+        
+        window.id_vendedor_actual_global = cliente.id_vendedor; // Para usar en aplicarCambioVendedor
+
+        // Mostrar el modal
+        $("#ModalAgregarCliente").modal("show");
+        document.getElementById("nombrecliente_txt").focus();
+
+      } else {
+        swal("Error", response.message, "error");
+      }
+    },
+    error: function(jqXHR, estado, error) {
+      swal.close(); // Ocultar el loader
+      swal("Error", "No se pudo cargar la información del cliente: " + error, "error");
+    }
+  });
 }
 
 function setRazonSocial() {
