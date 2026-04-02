@@ -3331,6 +3331,38 @@ function printSAG(tipo, data) {
   if (tipo == 1) {
     $("#miVentana").html(atob(atob(data)))
 
+    // Agregar CSS específico para impresión de guías SAG
+    const printStyles = `
+      <style id="guia-sag-print-styles">
+        @media print {
+          @page {
+            size: auto;
+            margin: 10mm;
+          }
+          body {
+            margin: 0;
+            padding: 0;
+          }
+          #miVentana {
+            page-break-after: auto;
+          }
+          #miVentana .tableizer-table-transito {
+            page-break-inside: avoid;
+          }
+          #miVentana .row {
+            page-break-inside: avoid;
+          }
+          .container-data-cliente {
+            page-break-inside: avoid;
+          }
+        }
+      </style>
+    `;
+
+    // Remover estilos anteriores si existen
+    $("#guia-sag-print-styles").remove();
+    $("head").append(printStyles);
+
     document.getElementById("ocultar").style.display = "none";
     document.getElementById("miVentana").style.display = "block";
 
@@ -3339,6 +3371,9 @@ function printSAG(tipo, data) {
       500
     );
   } else {
+    // Limpiar estilos de impresión
+    $("#guia-sag-print-styles").remove();
+
     document.getElementById("ocultar").style.display = "block";
     document.getElementById("miVentana").style.display = "none";
     document.title = "Guía SAG";
@@ -4020,6 +4055,9 @@ function editarGuiaTransito(id) {
 
 function printGuiaTransito(tipo) {
   if (tipo == 1) {
+    // Limpiar #miVentana antes de clonar
+    $("#miVentana").html("");
+
     $("#miVentana").html($(".container-guia-transito").clone())
 
     $("#miVentana").find("input,textarea").each(function () {
@@ -4028,8 +4066,39 @@ function printGuiaTransito(tipo) {
       $(this).replaceWith(`<span>${val}</span>`);
     })
 
-    document.getElementById("ocultar").style.display = "none";
+    // Agregar CSS específico para impresión de guías de tránsito
+    const printStyles = `
+      <style id="guia-transito-print-styles">
+        @media print {
+          @page {
+            size: auto;
+            margin: 10mm;
+          }
+          body {
+            margin: 0;
+            padding: 0;
+          }
+          #miVentana {
+            page-break-after: auto;
+          }
+          #miVentana .tableizer-table-transito {
+            page-break-inside: avoid;
+          }
+          #miVentana .row {
+            page-break-inside: avoid;
+          }
+          .container-data-cliente {
+            page-break-inside: avoid;
+          }
+        }
+      </style>
+    `;
 
+    // Remover estilos anteriores si existen
+    $("#guia-transito-print-styles").remove();
+    $("head").append(printStyles);
+
+    document.getElementById("ocultar").style.display = "none";
     document.getElementById("miVentana").style.display = "block";
     $("#modal-guia-transito").modal("hide");
 
@@ -4102,6 +4171,9 @@ function printGuiaTransito(tipo) {
 
 
   } else {
+    // Limpiar estilos de impresión
+    $("#guia-transito-print-styles").remove();
+
     document.getElementById("ocultar").style.display = "block";
     document.getElementById("miVentana").style.display = "none";
     document.title = "Guía de Libre Tránsito";
