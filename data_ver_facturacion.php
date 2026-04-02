@@ -1585,19 +1585,25 @@ UNION
         f.folio as folio_factura,
         f.fecha as fecha_factura,
         f.id_cotizacion_directa,
+        g.folio as folio_guia,
+        g.fecha as fecha_guia,
         c.nombre as cliente,
         c.domicilio,
         c.comuna,
         c.telefono,
         c.rut as rut_cliente,
         c.provincia,
-        c.region,
-        g.folio as folio_guia,
-        g.fecha as fecha_guia
+        c.region
         FROM guias_transito gt
         LEFT JOIN facturas f ON f.rowid = gt.id_factura
         LEFT JOIN guias_despacho g ON g.rowid = gt.id_guia_despacho
-        LEFT JOIN clientes c ON (c.id_cliente = f.id_cliente OR c.id_cliente = g.id_cliente)
+        LEFT JOIN cotizaciones cot ON cot.id = f.id_cotizacion
+        LEFT JOIN cotizaciones_directas cd ON cd.id = f.id_cotizacion_directa
+        LEFT JOIN clientes c ON (
+            c.id_cliente = g.id_cliente
+            OR c.id_cliente = cot.id_cliente
+            OR c.id_cliente = cd.id_cliente
+        )
         WHERE gt.id = $id
     ";
 
