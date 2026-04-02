@@ -1215,6 +1215,8 @@ UNION
     $datos = $_POST["datos"]; // objeto enviado desde JS
     $id_guia = $_POST["id_guia"];
     $tipo = $_POST["tipo"];
+    $edit_id = isset($_POST["edit_id"]) && $_POST["edit_id"] ? $_POST["edit_id"] : null;
+
     // Sanitizar los valores
     function safe($val, $con)
     {
@@ -1250,30 +1252,62 @@ UNION
     $observaciones = safe($datos["observaciones"], $con);
     $nombre_despachador = safe($datos["nombre_despachador"], $con);
     $rut_despachador = safe($datos["rut_despachador"], $con);
-    $campo = $tipo == "factura" ? "id_factura" : "id_guia_despacho";
-    $query = "
-        INSERT INTO guias_transito (
-            $campo,
-            codigo, patente_camion, patente_carro_acoplado, empresa_transporte, fecha_despacho,
-            sustratos_especie, sustratos_cantidad,
-            material_vegetal_especie, material_vegetal_cantidad,
-            plantas_sustrato_esterilizado_especie, plantas_sustrato_esterilizado_cantidad,
-            plantas_sin_turba_especie, plantas_sin_turba_cantidad,
-            otros_especie, otros_cantidad,
-            destino_region, destino_provincia, destino_comuna, destino_direccion,
-            observaciones, nombre_despachador, rut_despachador, fecha
-        ) VALUES (
-            $id_guia,
-            '$codigo', '$patente_camion', '$patente_carro', '$empresa_transporte', $fecha_despacho,
-            '$sustratos_nombre', '$sustratos_cantidad',
-            '$material_vegetal_sin_suelo_nombre', '$material_vegetal_sin_suelo_cantidad',
-            '$material_vegetal_esterilizado_nombre', '$material_vegetal_esterilizado_cantidad',
-            '$plantas_sin_turba_nombre', '$plantas_sin_turba_cantidad',
-            '$otros_nombre', '$otros_cantidad',
-            '$region', '$provincia', '$comuna', '$direccion',
-            '$observaciones', '$nombre_despachador', '$rut_despachador', NOW()
-        )
-    ";
+
+    if ($edit_id) {
+        // UPDATE - Edición de guía existente
+        $query = "
+            UPDATE guias_transito SET
+                codigo = '$codigo',
+                patente_camion = '$patente_camion',
+                patente_carro_acoplado = '$patente_carro',
+                empresa_transporte = '$empresa_transporte',
+                fecha_despacho = $fecha_despacho,
+                sustratos_especie = '$sustratos_nombre',
+                sustratos_cantidad = '$sustratos_cantidad',
+                material_vegetal_especie = '$material_vegetal_sin_suelo_nombre',
+                material_vegetal_cantidad = '$material_vegetal_sin_suelo_cantidad',
+                plantas_sustrato_esterilizado_especie = '$material_vegetal_esterilizado_nombre',
+                plantas_sustrato_esterilizado_cantidad = '$material_vegetal_esterilizado_cantidad',
+                plantas_sin_turba_especie = '$plantas_sin_turba_nombre',
+                plantas_sin_turba_cantidad = '$plantas_sin_turba_cantidad',
+                otros_especie = '$otros_nombre',
+                otros_cantidad = '$otros_cantidad',
+                destino_region = '$region',
+                destino_provincia = '$provincia',
+                destino_comuna = '$comuna',
+                destino_direccion = '$direccion',
+                observaciones = '$observaciones',
+                nombre_despachador = '$nombre_despachador',
+                rut_despachador = '$rut_despachador'
+            WHERE id = $edit_id
+        ";
+    } else {
+        // INSERT - Nueva guía
+        $campo = $tipo == "factura" ? "id_factura" : "id_guia_despacho";
+        $query = "
+            INSERT INTO guias_transito (
+                $campo,
+                codigo, patente_camion, patente_carro_acoplado, empresa_transporte, fecha_despacho,
+                sustratos_especie, sustratos_cantidad,
+                material_vegetal_especie, material_vegetal_cantidad,
+                plantas_sustrato_esterilizado_especie, plantas_sustrato_esterilizado_cantidad,
+                plantas_sin_turba_especie, plantas_sin_turba_cantidad,
+                otros_especie, otros_cantidad,
+                destino_region, destino_provincia, destino_comuna, destino_direccion,
+                observaciones, nombre_despachador, rut_despachador, fecha
+            ) VALUES (
+                $id_guia,
+                '$codigo', '$patente_camion', '$patente_carro', '$empresa_transporte', $fecha_despacho,
+                '$sustratos_nombre', '$sustratos_cantidad',
+                '$material_vegetal_sin_suelo_nombre', '$material_vegetal_sin_suelo_cantidad',
+                '$material_vegetal_esterilizado_nombre', '$material_vegetal_esterilizado_cantidad',
+                '$plantas_sin_turba_nombre', '$plantas_sin_turba_cantidad',
+                '$otros_nombre', '$otros_cantidad',
+                '$region', '$provincia', '$comuna', '$direccion',
+                '$observaciones', '$nombre_despachador', '$rut_despachador', NOW()
+            )
+        ";
+    }
 
     if (mysqli_query($con, $query)) {
         echo "success";
@@ -1426,6 +1460,7 @@ UNION
         while ($ww = mysqli_fetch_array($val)) {
             $data = base64_encode($ww["codigo"]);
             $boton_eliminar = "<button class='btn btn-danger fa fa-trash btn-sm' onClick='eliminarSAG($ww[id])'></button>";
+            $boton_editar = "<button class='btn btn-warning fa fa-edit btn-sm mr-2' onClick='editarGuiaTransito($ww[id])'></button>";
             echo "
     <tr class='text-center' style='cursor:pointer' x-id='$ww[id]'>
       <td>$ww[id]</td>
@@ -1435,7 +1470,8 @@ UNION
       <td>$ww[observaciones]</td>
       <td class='text-center'>
             <div class='d-flex flex-row justify-content-center align-items-center'>
-                <button onclick='printSAG(1, \"$data\")' class='btn btn-primary fa fa-print btn-sm mr-4'></button>
+                <button onclick='printSAG(1, \"$data\")' class='btn btn-primary fa fa-print btn-sm mr-2'></button>
+                $boton_editar
                 $boton_eliminar
             </div>
       </td>
@@ -1540,6 +1576,38 @@ UNION
     } catch (\Throwable $th) {
         //throw $th;
         echo "error: $th";
+    }
+} else if ($consulta == "get_guia_transito") {
+    $id = $_POST["id"];
+
+    $query = "SELECT
+        gt.*,
+        f.folio as folio_factura,
+        f.fecha as fecha_factura,
+        f.id_cotizacion_directa,
+        c.nombre as cliente,
+        c.domicilio,
+        c.comuna,
+        c.telefono,
+        c.rut as rut_cliente,
+        c.provincia,
+        c.region,
+        g.folio as folio_guia,
+        g.fecha as fecha_guia
+        FROM guias_transito gt
+        LEFT JOIN facturas f ON f.rowid = gt.id_factura
+        LEFT JOIN guias_despacho g ON g.rowid = gt.id_guia_despacho
+        LEFT JOIN clientes c ON (c.id_cliente = f.id_cliente OR c.id_cliente = g.id_cliente)
+        WHERE gt.id = $id
+    ";
+
+    $val = mysqli_query($con, $query);
+
+    if (mysqli_num_rows($val) > 0) {
+        $data = mysqli_fetch_assoc($val);
+        echo json_encode($data);
+    } else {
+        echo json_encode(["error" => "No se encontró la guía"]);
     }
 } else if ($consulta == "eliminar_orden_envio") {
     $rowid = $_POST["rowid"];

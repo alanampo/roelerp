@@ -3669,22 +3669,95 @@ function generarGuiaTransito(obj, rowid, folio, fecha, cliente, domicilio, comun
   $(".selectpicker").selectpicker()
 }
 
+function editarGuiaTransito(id) {
+  // Obtener los datos de la guía SAG desde la base de datos
+  $.ajax({
+    url: "data_ver_facturacion.php",
+    type: "POST",
+    data: {
+      consulta: "get_guia_transito",
+      id: id
+    },
+    success: function (x) {
+      try {
+        const data = JSON.parse(x);
 
+        if (data.error) {
+          swal("Error", data.error, "error");
+          return;
+        }
 
-// function editarGuiaTransito(obj, rowid, folio, fecha, cliente, domicilio, comuna, id_cotizacion_directa, telefono, provincia, region) {
+        // Determinar el tipo (factura o guía de despacho)
+        const tipo = data.id_factura ? "factura" : "guia_despacho";
+        const rowid = data.id_factura || data.id_guia_despacho;
+        const folio = data.folio_factura || data.folio_guia;
+        const fecha = data.fecha_factura || data.fecha_guia;
 
-//   $("#modal-guia-transito").attr("x-edit-id", rowid)
-//   let selectedMap = {};
-//   const now = new Date();
-//   const datetime =
-//     (now.getDate() < 10 ? "0" + now.getDate() : now.getDate()) +
-//     "/" +
-//     (now.getMonth() + 1 < 10
-//       ? "0" + (now.getMonth() + 1)
-//       : now.getMonth() + 1) +
-//     "/" +
-//     now.getFullYear() +
-//     " ";
+        // Abrir el modal con los datos básicos (reutilizando la función generarGuiaTransito)
+        generarGuiaTransito(
+          null,
+          rowid,
+          folio,
+          fecha,
+          data.cliente,
+          data.domicilio,
+          data.comuna,
+          data.id_cotizacion_directa,
+          data.telefono,
+          data.rut_cliente,
+          tipo,
+          data.provincia,
+          data.region
+        );
+
+        // Establecer que estamos en modo edición
+        $("#modal-guia-transito").attr("x-edit-id", id);
+
+        // Pre-llenar los campos con los datos existentes
+        setTimeout(() => {
+          $(".input-patente-camion").val(data.patente_camion || "");
+          $(".input-patente-carro").val(data.patente_carro_acoplado || "");
+          $(".input-empresa-transporte").val(data.empresa_transporte || "");
+          $(".input-fecha-despacho").val(data.fecha_despacho || "");
+
+          $(".input-sustratos-nombres").val(data.sustratos_especie || "");
+          $(".input-sustratos-cantidad").val(data.sustratos_cantidad || "");
+
+          $(".input-material-vegetal-sin-suelo-nombres").val(data.material_vegetal_especie || "");
+          $(".input-material-vegetal-sin-suelo-cantidad").val(data.material_vegetal_cantidad || "");
+
+          $(".input-material-vegetal-esterilizado-nombres").val(data.plantas_sustrato_esterilizado_especie || "");
+          $(".input-material-vegetal-esterilizado-cantidad").val(data.plantas_sustrato_esterilizado_cantidad || "");
+
+          $(".input-plantas-sin-turba-nombres").val(data.plantas_sin_turba_especie || "");
+          $(".input-plantas-sin-turba-cantidad").val(data.plantas_sin_turba_cantidad || "");
+
+          $(".input-otros-nombres").val(data.otros_especie || "");
+          $(".input-otros-cantidad").val(data.otros_cantidad || "");
+
+          $(".input-region").val(data.destino_region || "");
+          $(".input-provincia").val(data.destino_provincia || "");
+          $(".input-comuna").val(data.destino_comuna || "");
+          $(".input-direccion").val(data.destino_direccion || "");
+
+          $(".input-observaciones").val(data.observaciones || "");
+          $(".input-nombre-despachador").val(data.nombre_despachador || "");
+          $(".input-rut-despachador").val(data.rut_despachador || "");
+
+          // Actualizar el número de guía para mostrar el ID existente
+          $("#num-guia").html("N° " + id);
+        }, 300);
+
+      } catch (error) {
+        console.error(error);
+        swal("Error", "Error al cargar los datos de la guía", "error");
+      }
+    },
+    error: function (jqXHR, estado, error) {
+      swal("Error", "Error al obtener los datos: " + error, "error");
+    }
+  });
+}
 
 //   $("#modal-guia-transito").modal("show");
 
@@ -3991,6 +4064,9 @@ function printGuiaTransito(tipo) {
       nombre_despachador: $(".input-nombre-despachador").val(),
       rut_despachador: $(".input-rut-despachador").val(),
     };
+    // Obtener el ID de edición si existe
+    const editId = $("#modal-guia-transito").attr("x-edit-id");
+
     $.ajax({
       url: "data_ver_facturacion.php",
       type: "POST",
@@ -3999,18 +4075,27 @@ function printGuiaTransito(tipo) {
         codigo: btoa($("#miVentana").html()),
         datos: datosGuiaTransito,
         id_guia: $("#modal-guia-transito").attr("x-id"),
-        tipo: $("#modal-guia-transito").attr("x-tipo")
+        tipo: $("#modal-guia-transito").attr("x-tipo"),
+        edit_id: editId || null
       },
       success: function (x) {
         if (x.includes("success")) {
+          // Recargar la tabla de SAG si estamos en esa vista
+          if (currentTab == "sag") {
+            loadSag();
+          }
           setTimeout(
             "window.print();printGuiaTransito(2);document.title = 'Facturación';",
             500
           );
+        } else {
+          swal("Error al guardar", x, "error");
+          printGuiaTransito(2);
         }
       },
       error: function (jqXHR, estado, error) {
-
+        swal("Error", "Error al guardar la guía: " + error, "error");
+        printGuiaTransito(2);
       },
     });
 
