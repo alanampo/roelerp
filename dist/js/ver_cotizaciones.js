@@ -37,11 +37,15 @@ $(document).ready(function () {
         $(".col-select-transp,.col-select-sucursal").removeClass("d-none");
         $(".col-direccion-envio").addClass("d-none");
       } else if (this.value == 1) {
-        $(".col-select-transp,.col-select-sucursal").addClass("d-none");
+        getTransportistasSelect();
+        $(".col-select-sucursal").addClass("d-none");
+        $(".col-select-transp").removeClass("d-none");
         $(".col-direccion-envio").removeClass("d-none");
       }
       else if (this.value == 2) {
-        $(".col-select-transp,.col-select-sucursal,.col-direccion-envio").addClass("d-none");
+        getTransportistasSelect();
+        $(".col-select-sucursal,.col-direccion-envio").addClass("d-none");
+        $(".col-select-transp").removeClass("d-none");
         $(".col-direccion-envio-2").removeClass("d-none");
       }
       else {
@@ -1986,13 +1990,14 @@ function guardarOrdenEnvio() {
   }
 
   const tipo = $("#select-tipo-envio option:selected").val();
-  const id_sucursal = $("#select-transportista option:selected").val();
+  const id_sucursal = $("#select-sucursal option:selected").val();
   const nombre_sucursal = $("#select-sucursal option:selected").attr(
     "x-nombre"
   );
   const nombre_transp = $("#select-transportista option:selected").attr(
     "x-nombre"
   );
+  const id_transportista = $("#select-transportista option:selected").val();
   const direccion_sucursal = $("#select-sucursal option:selected").attr(
     "x-direccion"
   );
@@ -2004,6 +2009,11 @@ function guardarOrdenEnvio() {
 
   if (tipo == 0 && (!id_sucursal || !id_sucursal.length)) {
     swal("Selecciona una Sucursal", "", "error");
+    return;
+  }
+
+  if ((tipo == 1 || tipo == 2) && (!id_transportista || !id_transportista.length)) {
+    swal("Selecciona un Transportista", "", "error");
     return;
   }
 
@@ -2120,8 +2130,10 @@ async function printOrdenEnvio(dataOrden) {
     titulo = `${nombre_sucursal} - ${nombre_transp}`;
     direccionEntrega = `Suc. ${nombre_transp} ${nombre_sucursal} - ${direccion_sucursal}`;
   } else if (tipo == 1) {
+    titulo = "ORDEN ENVÍO";
     direccionEntrega = dataOrden.direccion;
   } else if (tipo == 2) {
+    titulo = "ORDEN ENVÍO";
     direccionEntrega = dataOrden.direccion2;
   }
 
@@ -2175,6 +2187,7 @@ async function printOrdenEnvio(dataOrden) {
           <tr>
             <td>
               <div><strong>Destinatario:</strong> ${dataCotizacion.data.cliente}</div>
+              <div><strong>Transportista:</strong> ${nombre_transp}</div>
               <div><strong>Dirección:</strong> ${direccionEntrega}</div>
               <div><strong>Comuna:</strong> ${dataCotizacion.data.comuna ?? '-'}</div>
               <div><strong>Región:</strong> ${dataCotizacion.data.region ?? '-'}</div>

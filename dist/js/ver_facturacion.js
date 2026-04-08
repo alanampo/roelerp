@@ -11,6 +11,35 @@ $(document).on("input", ".numeric", function () {
 $(document).ready(function () {
   productosCotizados = [];
   document.getElementById("defaultOpen").click();
+
+  $("#select-tipo-envio").on(
+    "changed.bs.select",
+    function (e, clickedIndex, newValue, oldValue) {
+      $("#select-sucursal").html("").selectpicker();
+      $(".col-direccion-envio-2").addClass("d-none");
+      if (this.value == 0) {
+        getTransportistasSelectFactura();
+        $(".col-select-transp,.col-select-sucursal").removeClass("d-none");
+        $(".col-direccion-envio").addClass("d-none");
+      } else if (this.value == 1) {
+        getTransportistasSelectFactura();
+        $(".col-select-sucursal").addClass("d-none");
+        $(".col-select-transp").removeClass("d-none");
+        $(".col-direccion-envio").removeClass("d-none");
+      }
+      else if (this.value == 2) {
+        getTransportistasSelectFactura();
+        $(".col-select-sucursal,.col-direccion-envio").addClass("d-none");
+        $(".col-select-transp").removeClass("d-none");
+        $(".col-direccion-envio-2").removeClass("d-none");
+      }
+      else {
+        $(".col-select-transp,.col-select-sucursal").addClass("d-none");
+        $(".col-direccion-envio").addClass("d-none");
+      }
+      $("#select-transportista").val("default").selectpicker("refresh");
+    }
+  );
 });
 
 function abrirTab(evt, tabName) {
@@ -636,13 +665,14 @@ function guardarOrdenEnvioFactura() {
   }
 
   const tipo = $("#select-tipo-envio option:selected").val();
-  const id_sucursal = $("#select-transportista option:selected").val();
+  const id_sucursal = $("#select-sucursal option:selected").val();
   const nombre_sucursal = $("#select-sucursal option:selected").attr(
     "x-nombre"
   );
   const nombre_transp = $("#select-transportista option:selected").attr(
     "x-nombre"
   );
+  const id_transportista = $("#select-transportista option:selected").val();
   const direccion_sucursal = $("#select-sucursal option:selected").attr(
     "x-direccion"
   );
@@ -654,6 +684,11 @@ function guardarOrdenEnvioFactura() {
 
   if (tipo == 0 && (!id_sucursal || !id_sucursal.length)) {
     swal("Selecciona una Sucursal", "", "error");
+    return;
+  }
+
+  if ((tipo == 1 || tipo == 2) && (!id_transportista || !id_transportista.length)) {
+    swal("Selecciona un Transportista", "", "error");
     return;
   }
 
@@ -770,9 +805,11 @@ async function printOrdenEnvioFactura(dataOrden) {
     titulo = `${nombre_sucursal} - ${nombre_transp}`;
     direccionEntrega = `Suc. ${nombre_transp} ${nombre_sucursal} - ${direccion_sucursal}`;
   } else if (tipo == 1) {
+    titulo = "ORDEN ENVÍO";
     direccionEntrega = dataOrden.direccion;
   }
   else if (tipo == 2) {
+    titulo = "ORDEN ENVÍO";
     direccionEntrega = dataOrden.direccion2;
   }
 
@@ -863,6 +900,10 @@ async function printOrdenEnvioFactura(dataOrden) {
               <span>Destinatario:</span>
             </div>
             <span>${dataCotizacion.data.cliente}</span>
+          </div>
+          <div class="d-flex flex-row" style="justify-content:start;">
+            <span>Transportista:</span>
+            <span class="ml-5">${nombre_transp}</span>
           </div>
           <div class="d-flex flex-row" style="justify-content:start;">
             <span>Dirección:</span>
