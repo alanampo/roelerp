@@ -30,7 +30,8 @@ $(document).ready(function () {
   $("#select-tipo-envio").on(
     "changed.bs.select",
     function (e, clickedIndex, newValue, oldValue) {
-      $("#select-sucursal").html("").selectpicker();
+      $("#select-sucursal").html("").selectpicker("refresh");
+      $("#select-transportista").html("").selectpicker("refresh");
       $(".col-direccion-envio-2").addClass("d-none");
       if (this.value == 0) {
         getTransportistasSelect();
@@ -52,7 +53,6 @@ $(document).ready(function () {
         $(".col-select-transp,.col-select-sucursal").addClass("d-none");
         $(".col-direccion-envio").addClass("d-none");
       }
-      $("#select-transportista").val("default").selectpicker("refresh");
     }
   );
   productosCotizados = [];
@@ -1961,24 +1961,25 @@ function getSucursalesSelect(id) {
 
 function getTransportistasSelect() {
   $.ajax({
-    beforeSend: function () {
-      $("#select-transportista").html("").selectpicker("refresh");
-    },
     url: phpFile,
     type: "POST",
     data: {
       consulta: "get_transportistas_select",
     },
     success: function (x) {
-      $("#select-transportista").html(x).selectpicker("refresh");
-      $("#select-transportista").on(
-        "changed.bs.select",
-        function (e, clickedIndex, newValue, oldValue) {
-          getSucursalesSelect(this.value)
-        }
-      );
+      if (x && x.length) {
+        $("#select-transportista").html(x).selectpicker("refresh");
+        $("#select-transportista").off("changed.bs.select").on(
+          "changed.bs.select",
+          function (e, clickedIndex, newValue, oldValue) {
+            getSucursalesSelect(this.value)
+          }
+        );
+      }
     },
-    error: function (jqXHR, estado, error) { },
+    error: function (jqXHR, estado, error) {
+      console.error("Error loading transportistas:", error);
+    },
   });
 }
 
