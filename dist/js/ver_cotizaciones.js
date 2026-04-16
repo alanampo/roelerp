@@ -2128,14 +2128,17 @@ async function printOrdenEnvio(dataOrden) {
   let titulo = "ORDEN ENVÍO";
 
   if (tipo == 0) {
-    titulo = `${nombre_sucursal} - ${nombre_transp}`;
-    direccionEntrega = `Suc. ${nombre_transp} ${nombre_sucursal} - ${direccion_sucursal}`;
+    const displayNombre = nombre_sucursal || "SUCURSAL";
+    const displayTransp = nombre_transp || "TRANSPORTISTA";
+    const displayDireccion = direccion_sucursal || "";
+    titulo = `${displayNombre} - ${displayTransp}`;
+    direccionEntrega = `Suc. ${displayTransp} ${displayNombre}${displayDireccion ? ` - ${displayDireccion}` : ""}`;
   } else if (tipo == 1) {
-    titulo = "ORDEN ENVÍO";
     direccionEntrega = dataOrden.direccion;
+    titulo = nombre_transp ? `DOMICILIO CLIENTE - ${nombre_transp}` : "DOMICILIO CLIENTE";
   } else if (tipo == 2) {
-    titulo = "ORDEN ENVÍO";
     direccionEntrega = dataOrden.direccion2;
+    titulo = nombre_transp ? `DOMICILIO ENVÍO - ${nombre_transp}` : "DOMICILIO ENVÍO";
   }
 
   bultos.forEach(function (b, i) {
